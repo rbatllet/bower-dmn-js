@@ -1,0 +1,9 @@
+{
+  "name": "dmn-js-test",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "dmn-js": "*",
+    "jquery": "~2.1.1"
+  }
+}
