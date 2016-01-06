@@ -1910,3 +1910,59 @@
 .dmn-combobox-suggestions li:last-child {
   border-bottom: 0;
 }
+.dmn-table .dragTable {
+  width: 100%;
+  pointer-events: none;
+  box-shadow: 0 0 3px 0px rgba(181, 181, 181, 0.7);
+  transform: scale(0.75) translateY(-50%);
+  transform-origin: left top;
+  opacity: 0.85;
+}
+.dmn-table thead tr > td.drop.left,
+.dmn-table tbody tr > td.drop.left {
+  border-left: 6px double #52b415;
+}
+.dmn-table thead tr > td.drop.right,
+.dmn-table tbody tr > td.drop.right {
+  border-right: 6px double #52b415;
+}
+.dmn-table table > tbody tr.drop.above {
+  border-top: 6px double #52b415;
+}
+.dmn-table table > tbody tr.drop.below {
+  border-bottom: 6px double #52b415;
+}
+.dmn-table table > tbody tr td.draggable {
+  cursor: move;
+  cursor: ns-resize;
+}
+.dmn-table table > tbody tr td.draggable:before {
+  float: left;
+  content: '\283F';
+  cursor: move;
+  cursor: ns-resize;
+}
+.dmn-table table > tbody tr td.draggable span {
+  float: right;
+  width: auto;
+}
+.dmn-table table > thead tr td.draggable .drag-handle,
+.dmn-table table > thead tr td.draggable [contenteditable] {
+  vertical-align: middle;
+  display: inline-block;
+}
+.dmn-table table > thead tr td.draggable [contenteditable] {
+  width: calc(100% - 1em);
+}
+.dmn-table table > thead tr td.draggable .drag-handle {
+  float: left;
+  width: 1em;
+  cursor: move;
+  cursor: ew-resize;
+}
+.dmn-table table > thead tr td.draggable .drag-handle:before {
+  position: relative;
+  top: 2px;
+  content: '\283F';
+  display: inline-block;
+}

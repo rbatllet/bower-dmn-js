@@ -1,5 +1,5 @@
 /*!
- * dmn-js - dmn-viewer v0.3.1
+ * dmn-js - dmn-viewer v0.4.0
 
  * Copyright 2015 camunda Services GmbH and other contributors
  *
@@ -8,7 +8,7 @@
  *
  * Source Code: https://github.com/dmn-io/dmn-js
  *
- * Date: 2015-12-11
+ * Date: 2016-01-06
  */
 
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.DmnJS=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
@@ -983,91 +983,98 @@ function IoLabel(eventBus, sheet, elementRegistry, graphicsFactory, rules) {
   });
 
   function updateColspans(evt) {
-    if(evt._type === 'column') {
-      var cells = elementRegistry.filter(function(element) {
-        return element._type === 'cell' && element.row === self.row;
-      });
+    var cells = elementRegistry.filter(function(element) {
+      return element._type === 'cell' && element.row === self.row;
+    });
 
-      var inputs = cells.filter(function(cell) {
-        return cell.column.businessObject && cell.column.businessObject.inputExpression;
-      });
+    var inputs = cells.filter(function(cell) {
+      return cell.column.businessObject && cell.column.businessObject.inputExpression;
+    });
 
-      forEach(inputs, function(input) {
-        if(!input.column.previous.businessObject) {
-          // first cell of the inputs array has the colspan attribute set
-          input.colspan = inputs.length;
+    forEach(inputs, function(input) {
+      if(!input.column.previous.businessObject) {
+        // first cell of the inputs array has the colspan attribute set
+        input.colspan = inputs.length;
 
-          var node;
-          if(rules.allowed('column.create')) {
-            node = domify('Input <a class="dmn-icon-plus"></a>');
-            node.querySelector('a').addEventListener('mouseup', function() {
-              var col = input.column;
-              while(col.next && col.next.businessObject.$type === 'dmn:InputClause') {
-                col = col.next;
-              }
+        var node;
+        if(rules.allowed('column.create')) {
+          node = domify('Input <a class="dmn-icon-plus"></a>');
+          node.querySelector('a').addEventListener('mouseup', function() {
+            var col = input.column;
+            while(col.next && col.next.businessObject.$type === 'dmn:InputClause') {
+              col = col.next;
+            }
 
-              var newColumn = {
-                id: ids.next(),
-                previous: col,
-                name: '',
-                isInput: true
-              };
+            var newColumn = {
+              id: ids.next(),
+              previous: col,
+              name: '',
+              isInput: true
+            };
 
-              eventBus.fire('ioLabel.createColumn', {
-                newColumn: newColumn
-              });
+            eventBus.fire('ioLabel.createColumn', {
+              newColumn: newColumn
             });
-          } else {
-            node = domify('Input');
-          }
-
-          input.content = node;
+          });
+        } else {
+          node = domify('Input');
         }
-      });
 
-      var outputs = cells.filter(function(cell) {
-        return cell.column.businessObject && cell.column.businessObject.$instanceOf('dmn:OutputClause');
-      });
-
-      forEach(outputs, function(output) {
-        if(output.column.previous.businessObject.inputExpression) {
-          // first cell of the outputs array has the colspan attribute set
-          output.colspan = outputs.length;
-
-          var node;
-          if(rules.allowed('column.create')) {
-            node = domify('Output <a class="dmn-icon-plus"></a>');
-            node.querySelector('a').addEventListener('mouseup', function() {
-              var col = output.column;
-              while(col.next && col.next.businessObject && col.next.businessObject.$type === 'dmn:OutputClause') {
-                col = col.next;
-              }
-
-              var newColumn = {
-                id: ids.next(),
-                previous: col,
-                name: '',
-                isInput: false
-              };
-
-              eventBus.fire('ioLabel.createColumn', {
-                newColumn: newColumn
-              });
-            });
-          } else {
-            node = domify('Output');
-          }
-
-          output.content = node;
-        }
-      });
-
-      if(cells.length > 0) {
-        graphicsFactory.update('row', cells[0].row, elementRegistry.getGraphics(cells[0].row.id));
+        input.content = node;
+      } else {
+        input.colspan = 1;
       }
+    });
+
+    var outputs = cells.filter(function(cell) {
+      return cell.column.businessObject && cell.column.businessObject.$instanceOf('dmn:OutputClause');
+    });
+
+    forEach(outputs, function(output) {
+      if(output.column.previous.businessObject.inputExpression) {
+        // first cell of the outputs array has the colspan attribute set
+        output.colspan = outputs.length;
+
+        var node;
+        if(rules.allowed('column.create')) {
+          node = domify('Output <a class="dmn-icon-plus"></a>');
+          node.querySelector('a').addEventListener('mouseup', function() {
+            var col = output.column;
+            while(col.next && col.next.businessObject && col.next.businessObject.$type === 'dmn:OutputClause') {
+              col = col.next;
+            }
+
+            var newColumn = {
+              id: ids.next(),
+              previous: col,
+              name: '',
+              isInput: false
+            };
+
+            eventBus.fire('ioLabel.createColumn', {
+              newColumn: newColumn
+            });
+          });
+        } else {
+          node = domify('Output');
+        }
+
+        output.content = node;
+      } else {
+        output.colspan = 1;
+      }
+    });
+
+    if(cells.length > 0) {
+      graphicsFactory.update('row', cells[0].row, elementRegistry.getGraphics(cells[0].row.id));
     }
   }
-  eventBus.on(['cells.added', 'cells.removed'], updateColspans);
+  eventBus.on(['cells.added', 'cells.removed'], function(evt) {
+    if(evt._type === 'column') {
+      updateColspans();
+    }
+  });
+  eventBus.on(['column.move.applied'], updateColspans);
 }
 
 IoLabel.$inject = [ 'eventBus', 'sheet', 'elementRegistry', 'graphicsFactory', 'rules' ];
@@ -11019,7 +11026,7 @@ module.exports = _dereq_(388);
 },{"388":388}],388:[function(_dereq_,module,exports){
 'use strict';
 
-var di = _dereq_(519);
+var di = _dereq_(422);
 
 
 /**
@@ -11181,7 +11188,7 @@ Table.prototype.destroy = function() {
   this.get('eventBus').fire('table.destroy');
 };
 
-},{"393":393,"519":519}],389:[function(_dereq_,module,exports){
+},{"393":393,"422":422}],389:[function(_dereq_,module,exports){
 'use strict';
 
 var Model = _dereq_(410);
@@ -11424,7 +11431,7 @@ ElementRegistry.prototype._validateId = function(id) {
 },{}],391:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(525);
+var forEach = _dereq_(430);
 
 /**
  * A factory that creates graphical elements
@@ -11472,6 +11479,44 @@ GraphicsFactory.prototype.create = function(type, element, parent) {
   return newElement || document.createElement('div');
 };
 
+GraphicsFactory.prototype.moveRow = function(source, target, above) {
+  var gfxSource = this._elementRegistry.getGraphics(source);
+  var gfxTarget;
+
+  if(above) {
+    gfxTarget = this._elementRegistry.getGraphics(target);
+    gfxTarget.parentNode.insertBefore(gfxSource, gfxTarget);
+  } else {
+    if(source.next) {
+      gfxTarget = this._elementRegistry.getGraphics(source.next);
+      gfxTarget.parentNode.insertBefore(gfxSource, gfxTarget);
+    } else {
+      gfxSource.parentNode.appendChild(gfxSource);
+    }
+  }
+};
+
+GraphicsFactory.prototype.moveColumn = function(source, target, left) {
+  var self = this;
+
+  // find all cells which belong to the source and add them at their new place
+  this._elementRegistry.forEach(function(element, gfx) {
+    if(element._type === 'cell' && element.column === source) {
+
+      // find the cell exactly right of them
+      self._elementRegistry.forEach(function(targetElement, targetGfx) {
+        if(targetElement._type === 'cell' && targetElement.row === element.row) {
+          if(left && targetElement.column === target) {
+            targetGfx.parentNode.insertBefore(gfx, targetGfx);
+          } else if(!left && targetElement.column === source.next) {
+            targetGfx.parentNode.insertBefore(gfx, targetGfx);
+          }
+        }
+      });
+    }
+  });
+};
+
 
 GraphicsFactory.prototype.update = function(type, element, gfx) {
 
@@ -11516,13 +11561,13 @@ GraphicsFactory.prototype.remove = function(element) {
   gfx.parentNode && gfx.parentNode.removeChild(gfx);
 };
 
-},{"525":525}],392:[function(_dereq_,module,exports){
+},{"430":430}],392:[function(_dereq_,module,exports){
 'use strict';
 
-var isNumber = _dereq_(574),
-    assign = _dereq_(577),
-    forEach = _dereq_(525),
-    every = _dereq_(524);
+var isNumber = _dereq_(488),
+    assign = _dereq_(491),
+    forEach = _dereq_(430),
+    every = _dereq_(429);
 
 function ensurePx(number) {
   return isNumber(number) ? number + 'px' : number;
@@ -11762,6 +11807,160 @@ Sheet.prototype.getContainer = function() {
 };
 
 
+/**
+ * Returns the table body element of the table.
+ *
+ * @return {DOMNode}
+ */
+Sheet.prototype.getBody = function() {
+  return this._body;
+};
+
+/**
+ * Moves a row above or below another row
+ *
+ */
+Sheet.prototype.moveRow = function(source, target, above) {
+
+  if(source === target) {
+    return;
+  }
+
+  this._eventBus.fire('row.move', {
+    source: source,
+    target: target,
+    above: above
+  });
+
+  // update the last row if necessary
+  if(this.getLastRow('body') === source) {
+    this.setLastRow(source.previous, 'body');
+  }
+
+  // re-wire the prev/next relations for the source
+  if(source.previous) {
+    source.previous.next = source.next;
+  }
+  if(source.next) {
+    source.next.previous = source.previous;
+  }
+  // re-wire the prev/next relations for the target
+  if(above) {
+    if(target.previous) {
+      // (previous --> source --> target)
+      target.previous.next = source;
+      source.previous = target.previous;
+
+      source.next = target;
+      target.previous = source;
+    } else {
+      // (null --> source --> target)
+      source.previous = null;
+
+      source.next = target;
+      target.previous = source;
+    }
+  } else {
+    if(target.next) {
+      // (target --> source --> next)
+      target.next.previous = source;
+      source.next = target.next;
+
+      source.previous = target;
+      target.next = source;
+    } else {
+      // (target --> source --> null)
+      source.next = null;
+
+      source.previous = target;
+      target.next = source;
+      this.setLastRow(source, 'body');
+    }
+  }
+
+  this._graphicsFactory.moveRow(source, target, above);
+
+  this._eventBus.fire('row.moved', {
+    source: source,
+    target: target,
+    above: above
+  });
+
+};
+
+/**
+ * Moves a column left or right another column
+ *
+ */
+Sheet.prototype.moveColumn = function(source, target, left) {
+
+  if(source === target) {
+    return;
+  }
+
+  this._eventBus.fire('column.move', {
+    source: source,
+    target: target,
+    left: left
+  });
+
+  // update the last row if necessary
+  if(this.getLastColumn() === source) {
+    this.setLastColumn(source.previous);
+  }
+
+  // re-wire the prev/next relations for the source
+  if(source.previous) {
+    source.previous.next = source.next;
+  }
+  if(source.next) {
+    source.next.previous = source.previous;
+  }
+  // re-wire the prev/next relations for the target
+  if(left) {
+    if(target.previous) {
+      // (previous --> source --> target)
+      target.previous.next = source;
+      source.previous = target.previous;
+
+      source.next = target;
+      target.previous = source;
+    } else {
+      // (null --> source --> target)
+      source.previous = null;
+
+      source.next = target;
+      target.previous = source;
+    }
+  } else {
+    if(target.next) {
+      // (target --> source --> next)
+      target.next.previous = source;
+      source.next = target.next;
+
+      source.previous = target;
+      target.next = source;
+    } else {
+      // (target --> source --> null)
+      source.next = null;
+
+      source.previous = target;
+      target.next = source;
+      this.setLastColumn(source);
+    }
+  }
+
+  this._graphicsFactory.moveColumn(source, target, left);
+
+  this._eventBus.fire('column.moved', {
+    source: source,
+    target: target,
+    left: left
+  });
+
+};
+
+
 ///////////// add functionality ///////////////////////////////
 
 Sheet.prototype._ensureValid = function(type, element) {
@@ -11981,7 +12180,7 @@ Sheet.prototype.setRootElement = function(root) {
   this._rootNode = root;
 };
 
-},{"524":524,"525":525,"574":574,"577":577}],393:[function(_dereq_,module,exports){
+},{"429":429,"430":430,"488":488,"491":491}],393:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [ _dereq_(395) ],
   __init__: [ 'sheet' ],
@@ -11995,7 +12194,7 @@ module.exports = {
 },{"389":389,"390":390,"391":391,"392":392,"395":395,"414":414}],394:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(525),
+var forEach = _dereq_(430),
     colDistance = function colDistance(from, to) {
       var i = 0,
           current = from.column;
@@ -12097,7 +12296,7 @@ Renderer.prototype.drawCell = function drawCell(gfx, data) {
 };
 
 
-},{"525":525}],395:[function(_dereq_,module,exports){
+},{"430":430}],395:[function(_dereq_,module,exports){
 module.exports = {
   renderer: [ 'type', _dereq_(394) ]
 };
@@ -12107,10 +12306,10 @@ module.exports = {
 
 
 
-var domify = _dereq_(586),
-    domClasses = _dereq_(584),
-    assign = _dereq_(577),
-    forEach = _dereq_(525);
+var domify = _dereq_(499),
+    domClasses = _dereq_(497),
+    assign = _dereq_(491),
+    forEach = _dereq_(430);
 
 /**
  * Offers the ability to create a combobox which is a combination of an
@@ -12399,12 +12598,12 @@ ComboBox.prototype.enable = function() {
 
 module.exports = ComboBox;
 
-},{"525":525,"577":577,"584":584,"586":586}],397:[function(_dereq_,module,exports){
+},{"430":430,"491":491,"497":497,"499":499}],397:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(577),
-    domClasses = _dereq_(584),
-    domRemove = _dereq_(587);
+var assign = _dereq_(491),
+    domClasses = _dereq_(497),
+    domRemove = _dereq_(500);
 
 
 /**
@@ -12496,6 +12695,10 @@ ComplexCell.prototype.setupListeners = function() {
           offset.y -= e.scrollTop;
           e = e.parentNode;
       }
+
+      // add the global scroll offset
+      offset.x += window.pageXOffset;
+      offset.y += window.pageYOffset;
 
       event.element.complex.position = {
         x: offset.x,
@@ -12612,7 +12815,7 @@ ComplexCell.$inject = [ 'eventBus', 'elementRegistry' ];
 
 module.exports = ComplexCell;
 
-},{"577":577,"584":584,"587":587}],398:[function(_dereq_,module,exports){
+},{"491":491,"497":497,"500":500}],398:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -12623,7 +12826,7 @@ module.exports = {
 },{"397":397}],399:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(584);
+var domClasses = _dereq_(497);
 /**
  *  The controls module adds a container to the top-right corner of the table which holds
  *  some control elements
@@ -12675,7 +12878,7 @@ Controls.$inject = [ 'eventBus' ];
 
 module.exports = Controls;
 
-},{"584":584}],400:[function(_dereq_,module,exports){
+},{"497":497}],400:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -12686,8 +12889,8 @@ module.exports = {
 },{"399":399}],401:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(525),
-    domDelegate = _dereq_(585);
+var forEach = _dereq_(430),
+    domDelegate = _dereq_(498);
 
 
 var isPrimaryButton = _dereq_(419).isPrimaryButton;
@@ -12755,6 +12958,7 @@ function InteractionEvents(eventBus, elementRegistry) {
     click: 'element.click',
     dblclick: 'element.dblclick',
     mousedown: 'element.mousedown',
+    mousemove: 'element.mousemove',
     mouseup: 'element.mouseup',
     focus: 'element.focus',
     blur: 'element.blur',
@@ -12929,7 +13133,7 @@ module.exports = InteractionEvents;
  * @property {Event} originalEvent
  */
 
-},{"419":419,"525":525,"585":585}],402:[function(_dereq_,module,exports){
+},{"419":419,"430":430,"498":498}],402:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'interactionEvents' ],
   interactionEvents: [ 'type', _dereq_(401) ]
@@ -12938,7 +13142,7 @@ module.exports = {
 },{"401":401}],403:[function(_dereq_,module,exports){
 'use strict';
 
-var debounce = _dereq_(527);
+var debounce = _dereq_(432);
 
 function LineNumbers(eventBus, sheet) {
 
@@ -12952,7 +13156,7 @@ function LineNumbers(eventBus, sheet) {
     self._utilityColumn = column;
     self.updateLineNumbers();
   });
-  eventBus.on([ 'cells.added', 'row.removed' ], debounce(self.updateLineNumbers.bind(self), 100, {
+  eventBus.on([ 'cells.added', 'row.removed', 'row.moved' ], debounce(self.updateLineNumbers.bind(self), 100, {
     'leading': true,
     'trailing': true
   }));
@@ -12988,7 +13192,7 @@ LineNumbers.prototype.updateLineNumbers = function() {
   }
 };
 
-},{"527":527}],404:[function(_dereq_,module,exports){
+},{"432":432}],404:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'lineNumbers' ],
   __depends__: [
@@ -13000,7 +13204,7 @@ module.exports = {
 },{"403":403,"409":409}],405:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(586);
+var domify = _dereq_(499);
 
 /**
  * Adds a header to the table containing the table name
@@ -13041,7 +13245,7 @@ TableName.prototype.getNode = function() {
   return this.node.querySelector('h3');
 };
 
-},{"586":586}],406:[function(_dereq_,module,exports){
+},{"499":499}],406:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -13088,7 +13292,7 @@ UtilityColumn.prototype.getColumn = function() {
 },{}],407:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(584);
+var domClasses = _dereq_(497);
 
 function UtilityColumnRenderer(
     eventBus,
@@ -13109,10 +13313,10 @@ UtilityColumnRenderer.$inject = [
 
 module.exports = UtilityColumnRenderer;
 
-},{"584":584}],408:[function(_dereq_,module,exports){
+},{"497":497}],408:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(522);
+var inherits = _dereq_(425);
 
 var RuleProvider = _dereq_(415);
 
@@ -13141,7 +13345,7 @@ UtilityColumnRules.prototype.init = function() {
 
 };
 
-},{"415":415,"522":522}],409:[function(_dereq_,module,exports){
+},{"415":415,"425":425}],409:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'utilityColumn', 'utilityColumnRules', 'utilityColumnRenderer' ],
   __depends__: [
@@ -13155,8 +13359,8 @@ module.exports = {
 },{"406":406,"407":407,"408":408,"417":417}],410:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(577),
-    inherits = _dereq_(522);
+var assign = _dereq_(491),
+    inherits = _dereq_(425);
 
 function Base() {
   Object.defineProperty(this, 'businessObject', {
@@ -13219,14 +13423,148 @@ module.exports.Table = Table;
 module.exports.Row = Row;
 module.exports.Column = Column;
 
-},{"522":522,"577":577}],411:[function(_dereq_,module,exports){
-arguments[4][33][0].apply(exports,arguments)
-},{"33":33,"426":426,"503":503,"504":504,"506":506}],412:[function(_dereq_,module,exports){
+},{"425":425,"491":491}],411:[function(_dereq_,module,exports){
 'use strict';
 
-var unique = _dereq_(424),
-    isArray = _dereq_(503),
-    assign = _dereq_(509);
+var forEach = _dereq_(430),
+    isFunction = _dereq_(486),
+    isArray = _dereq_(485),
+    isNumber = _dereq_(488);
+
+
+var DEFAULT_PRIORITY = 1000;
+
+
+/**
+ * A utility that can be used to plug-in into the command execution for
+ * extension and/or validation.
+ *
+ * @param {EventBus} eventBus
+ *
+ * @example
+ *
+ * var inherits = require('inherits');
+ *
+ * var CommandInterceptor = require('diagram-js/lib/command/CommandInterceptor');
+ *
+ * function CommandLogger(eventBus) {
+ *   CommandInterceptor.call(this, eventBus);
+ *
+ *   this.preExecute(function(event) {
+ *     console.log('command pre-execute', event);
+ *   });
+ * }
+ *
+ * inherits(CommandLogger, CommandInterceptor);
+ *
+ */
+function CommandInterceptor(eventBus) {
+  this._eventBus = eventBus;
+}
+
+CommandInterceptor.$inject = [ 'eventBus' ];
+
+module.exports = CommandInterceptor;
+
+function unwrapEvent(fn) {
+  return function(event) {
+    return fn(event.context, event.command, event);
+  };
+}
+
+/**
+ * Register an interceptor for a command execution
+ *
+ * @param {String|Array<String>} [events] list of commands to register on
+ * @param {String} [hook] command hook, i.e. preExecute, executed to listen on
+ * @param {Number} [priority] the priority on which to hook into the execution
+ * @param {Function} handlerFn interceptor to be invoked with (event)
+ * @param {Boolean} unwrap if true, unwrap the event and pass (context, command, event) to the
+ *                          listener instead
+ */
+CommandInterceptor.prototype.on = function(events, hook, priority, handlerFn, unwrap) {
+
+  if (isFunction(hook) || isNumber(hook)) {
+    unwrap = handlerFn;
+    handlerFn = priority;
+    priority = hook;
+    hook = null;
+  }
+
+  if (isFunction(priority)) {
+    unwrap = handlerFn;
+    handlerFn = priority;
+    priority = DEFAULT_PRIORITY;
+  }
+
+  if (!isFunction(handlerFn)) {
+    throw new Error('handlerFn must be a function');
+  }
+
+  if (!isArray(events)) {
+    events = [ events ];
+  }
+
+  var eventBus = this._eventBus;
+
+  forEach(events, function(event) {
+    // concat commandStack(.event)?(.hook)?
+    var fullEvent = [ 'commandStack', event, hook ].filter(function(e) { return e; }).join('.');
+
+    eventBus.on(fullEvent, priority, unwrap ? unwrapEvent(handlerFn) : handlerFn);
+  });
+};
+
+
+var hooks = [
+  'canExecute',
+  'preExecute',
+  'preExecuted',
+  'execute',
+  'executed',
+  'postExecute',
+  'postExecuted',
+  'revert',
+  'reverted'
+];
+
+/*
+ * Install hook shortcuts
+ *
+ * This will generate the CommandInterceptor#(preExecute|...|reverted) methods
+ * which will in term forward to CommandInterceptor#on.
+ */
+forEach(hooks, function(hook) {
+
+  /**
+   * {canExecute|preExecute|preExecuted|execute|executed|postExecute|postExecuted|revert|reverted}
+   *
+   * A named hook for plugging into the command execution
+   *
+   * @param {String|Array<String>} [events] list of commands to register on
+   * @param {Number} [priority] the priority on which to hook into the execution
+   * @param {Function} handlerFn interceptor to be invoked with (event)
+   * @param {Boolean} [unwrap=false] if true, unwrap the event and pass (context, command, event) to the
+   *                          listener instead
+   */
+  CommandInterceptor.prototype[hook] = function(events, priority, handlerFn, unwrap) {
+
+    if (isFunction(events) || isNumber(events)) {
+      unwrap = handlerFn;
+      handlerFn = priority;
+      priority = events;
+      events = null;
+    }
+
+    this.on(events, hook, priority, handlerFn, unwrap);
+  };
+});
+},{"430":430,"485":485,"486":486,"488":488}],412:[function(_dereq_,module,exports){
+'use strict';
+
+var unique = _dereq_(428),
+    isArray = _dereq_(485),
+    assign = _dereq_(491);
 
 var InternalEvent = _dereq_(414).Event;
 
@@ -13686,7 +14024,7 @@ CommandStack.prototype._setHandler = function(command, handler) {
   this._handlerMap[command] = handler;
 };
 
-},{"414":414,"424":424,"503":503,"509":509}],413:[function(_dereq_,module,exports){
+},{"414":414,"428":428,"485":485,"491":491}],413:[function(_dereq_,module,exports){
 module.exports = {
   commandStack: [ 'type', _dereq_(412) ]
 };
@@ -13694,11 +14032,10 @@ module.exports = {
 },{"412":412}],414:[function(_dereq_,module,exports){
 'use strict';
 
-var isFunction = _dereq_(504),
-    isArray = _dereq_(503),
-    isNumber = _dereq_(506),
-    bind = _dereq_(428),
-    assign = _dereq_(509);
+var isFunction = _dereq_(486),
+    isArray = _dereq_(485),
+    isNumber = _dereq_(488),
+    assign = _dereq_(491);
 
 var DEFAULT_PRIORITY = 1000;
 
@@ -13754,12 +14091,6 @@ var DEFAULT_PRIORITY = 1000;
  * eventBus.on('priorityfoo', 1500, function(event) {
  *   console.log('invoked first!');
  * });
- *
- *
- * // listen for event and pass the context (`this`)
- * eventBus.on('foobar', function(event) {
- *   this.foo();
- * }, this);
  * ```
  *
  *
@@ -13818,24 +14149,18 @@ module.exports = EventBus;
  * @param {String|Array<String>} events
  * @param {Number} [priority=1000] the priority in which this listener is called, larger is higher
  * @param {Function} callback
- * @param {Object} [that] Pass context (`this`) to the callback
  */
-EventBus.prototype.on = function(events, priority, callback, that) {
+EventBus.prototype.on = function(events, priority, callback) {
 
   events = isArray(events) ? events : [ events ];
 
   if (isFunction(priority)) {
-    that = callback;
     callback = priority;
     priority = DEFAULT_PRIORITY;
   }
 
   if (!isNumber(priority)) {
     throw new Error('priority must be a number');
-  }
-
-  if (that) {
-    callback = bind(callback, that);
   }
 
   var self = this,
@@ -13852,13 +14177,13 @@ EventBus.prototype.on = function(events, priority, callback, that) {
  *
  * @param {String} event the event name to register for
  * @param {Function} callback the callback to execute
- * @param {Object} [that] Pass context (`this`) to the callback
  */
-EventBus.prototype.once = function(event, callback, that) {
+EventBus.prototype.once = function(event, callback) {
+
   var self = this;
 
   function wrappedCallback() {
-    callback.apply(that || self, arguments);
+    callback.apply(self, arguments);
     self.off(event, wrappedCallback);
   }
 
@@ -14090,9 +14415,82 @@ Event.prototype.init = function(data) {
   assign(this, data || {});
 };
 
-},{"428":428,"503":503,"504":504,"506":506,"509":509}],415:[function(_dereq_,module,exports){
-arguments[4][34][0].apply(exports,arguments)
-},{"34":34,"411":411,"421":421}],416:[function(_dereq_,module,exports){
+},{"485":485,"486":486,"488":488,"491":491}],415:[function(_dereq_,module,exports){
+'use strict';
+
+var inherits = _dereq_(425);
+
+var CommandInterceptor = _dereq_(411);
+
+/**
+ * A basic provider that may be extended to implement modeling rules.
+ *
+ * Extensions should implement the init method to actually add their custom
+ * modeling checks. Checks may be added via the #addRule(action, fn) method.
+ *
+ * @param {EventBus} eventBus
+ */
+function RuleProvider(eventBus) {
+  CommandInterceptor.call(this, eventBus);
+
+  this.init();
+}
+
+RuleProvider.$inject = [ 'eventBus' ];
+
+inherits(RuleProvider, CommandInterceptor);
+
+module.exports = RuleProvider;
+
+
+/**
+ * Adds a modeling rule for the given action, implemented through a callback function.
+ *
+ * The function will receive the modeling specific action context to perform its check.
+ * It must return false or null to disallow the action from happening.
+ *
+ * Returning <code>null</code> may encode simply ignoring the action.
+ *
+ * @example
+ *
+ * ResizableRules.prototype.init = function() {
+ *
+ *   this.addRule('shape.resize', function(context) {
+ *
+ *     var shape = context.shape;
+ *
+ *     if (!context.newBounds) {
+ *       // check general resizability
+ *       if (!shape.resizable) {
+ *         return false;
+ *       }
+ *     } else {
+ *       // element must have minimum size of 10*10 points
+ *       return context.newBounds.width > 10 && context.newBounds.height > 10;
+ *     }
+ *   });
+ * };
+ *
+ * @param {String|Array<String>} actions the identifier for the modeling action to check
+ * @param {Number} [priority] the priority at which this rule is being applied
+ * @param {Function} fn the callback function that performs the actual check
+ */
+RuleProvider.prototype.addRule = function(actions, priority, fn) {
+
+  var self = this;
+
+  if (typeof actions === 'string') {
+    actions = [ actions ];
+  }
+
+  actions.forEach(function(action) {
+
+    self.canExecute(action, priority, function(context, action, event) {
+      return fn(context);
+    }, true);
+  });
+};
+},{"411":411,"425":425}],416:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -14249,1486 +14647,6 @@ module.exports.isMac = function isMac() {
   return (/mac/i).test(navigator.platform);
 };
 },{}],421:[function(_dereq_,module,exports){
-arguments[4][36][0].apply(exports,arguments)
-},{"36":36}],422:[function(_dereq_,module,exports){
-arguments[4][102][0].apply(exports,arguments)
-},{"102":102}],423:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(438),
-    baseUniq = _dereq_(458),
-    isIterateeCall = _dereq_(485),
-    sortedUniq = _dereq_(498);
-
-/**
- * Creates a duplicate-free version of an array, using
- * [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
- * for equality comparisons, in which only the first occurence of each element
- * is kept. Providing `true` for `isSorted` performs a faster search algorithm
- * for sorted arrays. If an iteratee function is provided it is invoked for
- * each element in the array to generate the criterion by which uniqueness
- * is computed. The `iteratee` is bound to `thisArg` and invoked with three
- * arguments: (value, index, array).
- *
- * If a property name is provided for `iteratee` the created `_.property`
- * style callback returns the property value of the given element.
- *
- * If a value is also provided for `thisArg` the created `_.matchesProperty`
- * style callback returns `true` for elements that have a matching property
- * value, else `false`.
- *
- * If an object is provided for `iteratee` the created `_.matches` style
- * callback returns `true` for elements that have the properties of the given
- * object, else `false`.
- *
- * @static
- * @memberOf _
- * @alias unique
- * @category Array
- * @param {Array} array The array to inspect.
- * @param {boolean} [isSorted] Specify the array is sorted.
- * @param {Function|Object|string} [iteratee] The function invoked per iteration.
- * @param {*} [thisArg] The `this` binding of `iteratee`.
- * @returns {Array} Returns the new duplicate-value-free array.
- * @example
- *
- * _.uniq([2, 1, 2]);
- * // => [2, 1]
- *
- * // using `isSorted`
- * _.uniq([1, 1, 2], true);
- * // => [1, 2]
- *
- * // using an iteratee function
- * _.uniq([1, 2.5, 1.5, 2], function(n) {
- *   return this.floor(n);
- * }, Math);
- * // => [1, 2.5]
- *
- * // using the `_.property` callback shorthand
- * _.uniq([{ 'x': 1 }, { 'x': 2 }, { 'x': 1 }], 'x');
- * // => [{ 'x': 1 }, { 'x': 2 }]
- */
-function uniq(array, isSorted, iteratee, thisArg) {
-  var length = array ? array.length : 0;
-  if (!length) {
-    return [];
-  }
-  if (isSorted != null && typeof isSorted != 'boolean') {
-    thisArg = iteratee;
-    iteratee = isIterateeCall(array, isSorted, thisArg) ? null : isSorted;
-    isSorted = false;
-  }
-  iteratee = iteratee == null ? iteratee : baseCallback(iteratee, thisArg, 3);
-  return (isSorted)
-    ? sortedUniq(array, iteratee)
-    : baseUniq(array, iteratee);
-}
-
-module.exports = uniq;
-
-},{"438":438,"458":458,"485":485,"498":498}],424:[function(_dereq_,module,exports){
-module.exports = _dereq_(423);
-
-},{"423":423}],425:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(430),
-    LodashWrapper = _dereq_(431),
-    baseLodash = _dereq_(450),
-    isArray = _dereq_(503),
-    isObjectLike = _dereq_(489),
-    wrapperClone = _dereq_(501);
-
-/** Used for native method references. */
-var objectProto = Object.prototype;
-
-/** Used to check objects for own properties. */
-var hasOwnProperty = objectProto.hasOwnProperty;
-
-/**
- * Creates a `lodash` object which wraps `value` to enable implicit chaining.
- * Methods that operate on and return arrays, collections, and functions can
- * be chained together. Methods that return a boolean or single value will
- * automatically end the chain returning the unwrapped value. Explicit chaining
- * may be enabled using `_.chain`. The execution of chained methods is lazy,
- * that is, execution is deferred until `_#value` is implicitly or explicitly
- * called.
- *
- * Lazy evaluation allows several methods to support shortcut fusion. Shortcut
- * fusion is an optimization that merges iteratees to avoid creating intermediate
- * arrays and reduce the number of iteratee executions.
- *
- * Chaining is supported in custom builds as long as the `_#value` method is
- * directly or indirectly included in the build.
- *
- * In addition to lodash methods, wrappers have `Array` and `String` methods.
- *
- * The wrapper `Array` methods are:
- * `concat`, `join`, `pop`, `push`, `reverse`, `shift`, `slice`, `sort`,
- * `splice`, and `unshift`
- *
- * The wrapper `String` methods are:
- * `replace` and `split`
- *
- * The wrapper methods that support shortcut fusion are:
- * `compact`, `drop`, `dropRight`, `dropRightWhile`, `dropWhile`, `filter`,
- * `first`, `initial`, `last`, `map`, `pluck`, `reject`, `rest`, `reverse`,
- * `slice`, `take`, `takeRight`, `takeRightWhile`, `takeWhile`, `toArray`,
- * and `where`
- *
- * The chainable wrapper methods are:
- * `after`, `ary`, `assign`, `at`, `before`, `bind`, `bindAll`, `bindKey`,
- * `callback`, `chain`, `chunk`, `commit`, `compact`, `concat`, `constant`,
- * `countBy`, `create`, `curry`, `debounce`, `defaults`, `defer`, `delay`,
- * `difference`, `drop`, `dropRight`, `dropRightWhile`, `dropWhile`, `fill`,
- * `filter`, `flatten`, `flattenDeep`, `flow`, `flowRight`, `forEach`,
- * `forEachRight`, `forIn`, `forInRight`, `forOwn`, `forOwnRight`, `functions`,
- * `groupBy`, `indexBy`, `initial`, `intersection`, `invert`, `invoke`, `keys`,
- * `keysIn`, `map`, `mapKeys`, `mapValues`, `matches`, `matchesProperty`,
- * `memoize`, `merge`, `method`, `methodOf`, `mixin`, `negate`, `omit`, `once`,
- * `pairs`, `partial`, `partialRight`, `partition`, `pick`, `plant`, `pluck`,
- * `property`, `propertyOf`, `pull`, `pullAt`, `push`, `range`, `rearg`,
- * `reject`, `remove`, `rest`, `restParam`, `reverse`, `set`, `shuffle`,
- * `slice`, `sort`, `sortBy`, `sortByAll`, `sortByOrder`, `splice`, `spread`,
- * `take`, `takeRight`, `takeRightWhile`, `takeWhile`, `tap`, `throttle`,
- * `thru`, `times`, `toArray`, `toPlainObject`, `transform`, `union`, `uniq`,
- * `unshift`, `unzip`, `unzipWith`, `values`, `valuesIn`, `where`, `without`,
- * `wrap`, `xor`, `zip`, `zipObject`, `zipWith`
- *
- * The wrapper methods that are **not** chainable by default are:
- * `add`, `attempt`, `camelCase`, `capitalize`, `clone`, `cloneDeep`, `deburr`,
- * `endsWith`, `escape`, `escapeRegExp`, `every`, `find`, `findIndex`, `findKey`,
- * `findLast`, `findLastIndex`, `findLastKey`, `findWhere`, `first`, `get`,
- * `gt`, `gte`, `has`, `identity`, `includes`, `indexOf`, `inRange`, `isArguments`,
- * `isArray`, `isBoolean`, `isDate`, `isElement`, `isEmpty`, `isEqual`, `isError`,
- * `isFinite` `isFunction`, `isMatch`, `isNative`, `isNaN`, `isNull`, `isNumber`,
- * `isObject`, `isPlainObject`, `isRegExp`, `isString`, `isUndefined`,
- * `isTypedArray`, `join`, `kebabCase`, `last`, `lastIndexOf`, `lt`, `lte`,
- * `max`, `min`, `noConflict`, `noop`, `now`, `pad`, `padLeft`, `padRight`,
- * `parseInt`, `pop`, `random`, `reduce`, `reduceRight`, `repeat`, `result`,
- * `runInContext`, `shift`, `size`, `snakeCase`, `some`, `sortedIndex`,
- * `sortedLastIndex`, `startCase`, `startsWith`, `sum`, `template`, `trim`,
- * `trimLeft`, `trimRight`, `trunc`, `unescape`, `uniqueId`, `value`, and `words`
- *
- * The wrapper method `sample` will return a wrapped value when `n` is provided,
- * otherwise an unwrapped value is returned.
- *
- * @name _
- * @constructor
- * @category Chain
- * @param {*} value The value to wrap in a `lodash` instance.
- * @returns {Object} Returns the new `lodash` wrapper instance.
- * @example
- *
- * var wrapped = _([1, 2, 3]);
- *
- * // returns an unwrapped value
- * wrapped.reduce(function(total, n) {
- *   return total + n;
- * });
- * // => 6
- *
- * // returns a wrapped value
- * var squares = wrapped.map(function(n) {
- *   return n * n;
- * });
- *
- * _.isArray(squares);
- * // => false
- *
- * _.isArray(squares.value());
- * // => true
- */
-function lodash(value) {
-  if (isObjectLike(value) && !isArray(value) && !(value instanceof LazyWrapper)) {
-    if (value instanceof LodashWrapper) {
-      return value;
-    }
-    if (hasOwnProperty.call(value, '__chain__') && hasOwnProperty.call(value, '__wrapped__')) {
-      return wrapperClone(value);
-    }
-  }
-  return new LodashWrapper(value);
-}
-
-// Ensure wrappers are instances of `baseLodash`.
-lodash.prototype = baseLodash.prototype;
-
-module.exports = lodash;
-
-},{"430":430,"431":431,"450":450,"489":489,"501":501,"503":503}],426:[function(_dereq_,module,exports){
-arguments[4][37][0].apply(exports,arguments)
-},{"37":37,"434":434,"441":441,"470":470}],427:[function(_dereq_,module,exports){
-var getNative = _dereq_(481);
-
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeNow = getNative(Date, 'now');
-
-/**
- * Gets the number of milliseconds that have elapsed since the Unix epoch
- * (1 January 1970 00:00:00 UTC).
- *
- * @static
- * @memberOf _
- * @category Date
- * @example
- *
- * _.defer(function(stamp) {
- *   console.log(_.now() - stamp);
- * }, _.now());
- * // => logs the number of milliseconds it took for the deferred function to be invoked
- */
-var now = nativeNow || function() {
-  return new Date().getTime();
-};
-
-module.exports = now;
-
-},{"481":481}],428:[function(_dereq_,module,exports){
-var createWrapper = _dereq_(473),
-    replaceHolders = _dereq_(495),
-    restParam = _dereq_(429);
-
-/** Used to compose bitmasks for wrapper metadata. */
-var BIND_FLAG = 1,
-    PARTIAL_FLAG = 32;
-
-/**
- * Creates a function that invokes `func` with the `this` binding of `thisArg`
- * and prepends any additional `_.bind` arguments to those provided to the
- * bound function.
- *
- * The `_.bind.placeholder` value, which defaults to `_` in monolithic builds,
- * may be used as a placeholder for partially applied arguments.
- *
- * **Note:** Unlike native `Function#bind` this method does not set the "length"
- * property of bound functions.
- *
- * @static
- * @memberOf _
- * @category Function
- * @param {Function} func The function to bind.
- * @param {*} thisArg The `this` binding of `func`.
- * @param {...*} [partials] The arguments to be partially applied.
- * @returns {Function} Returns the new bound function.
- * @example
- *
- * var greet = function(greeting, punctuation) {
- *   return greeting + ' ' + this.user + punctuation;
- * };
- *
- * var object = { 'user': 'fred' };
- *
- * var bound = _.bind(greet, object, 'hi');
- * bound('!');
- * // => 'hi fred!'
- *
- * // using placeholders
- * var bound = _.bind(greet, object, _, '!');
- * bound('hi');
- * // => 'hi fred!'
- */
-var bind = restParam(function(func, thisArg, partials) {
-  var bitmask = BIND_FLAG;
-  if (partials.length) {
-    var holders = replaceHolders(partials, bind.placeholder);
-    bitmask |= PARTIAL_FLAG;
-  }
-  return createWrapper(func, bitmask, thisArg, partials, holders);
-});
-
-// Assign default placeholders.
-bind.placeholder = {};
-
-module.exports = bind;
-
-},{"429":429,"473":473,"495":495}],429:[function(_dereq_,module,exports){
-arguments[4][71][0].apply(exports,arguments)
-},{"71":71}],430:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(440),
-    baseLodash = _dereq_(450);
-
-/** Used as references for `-Infinity` and `Infinity`. */
-var POSITIVE_INFINITY = Number.POSITIVE_INFINITY;
-
-/**
- * Creates a lazy wrapper object which wraps `value` to enable lazy evaluation.
- *
- * @private
- * @param {*} value The value to wrap.
- */
-function LazyWrapper(value) {
-  this.__wrapped__ = value;
-  this.__actions__ = null;
-  this.__dir__ = 1;
-  this.__dropCount__ = 0;
-  this.__filtered__ = false;
-  this.__iteratees__ = null;
-  this.__takeCount__ = POSITIVE_INFINITY;
-  this.__views__ = null;
-}
-
-LazyWrapper.prototype = baseCreate(baseLodash.prototype);
-LazyWrapper.prototype.constructor = LazyWrapper;
-
-module.exports = LazyWrapper;
-
-},{"440":440,"450":450}],431:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(440),
-    baseLodash = _dereq_(450);
-
-/**
- * The base constructor for creating `lodash` wrapper objects.
- *
- * @private
- * @param {*} value The value to wrap.
- * @param {boolean} [chainAll] Enable chaining for all wrapper methods.
- * @param {Array} [actions=[]] Actions to peform to resolve the unwrapped value.
- */
-function LodashWrapper(value, chainAll, actions) {
-  this.__wrapped__ = value;
-  this.__actions__ = actions || [];
-  this.__chain__ = !!chainAll;
-}
-
-LodashWrapper.prototype = baseCreate(baseLodash.prototype);
-LodashWrapper.prototype.constructor = LodashWrapper;
-
-module.exports = LodashWrapper;
-
-},{"440":440,"450":450}],432:[function(_dereq_,module,exports){
-(function (global){
-var cachePush = _dereq_(461),
-    getNative = _dereq_(481);
-
-/** Native method references. */
-var Set = getNative(global, 'Set');
-
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeCreate = getNative(Object, 'create');
-
-/**
- *
- * Creates a cache object to store unique values.
- *
- * @private
- * @param {Array} [values] The values to cache.
- */
-function SetCache(values) {
-  var length = values ? values.length : 0;
-
-  this.data = { 'hash': nativeCreate(null), 'set': new Set };
-  while (length--) {
-    this.push(values[length]);
-  }
-}
-
-// Add functions to the `Set` cache.
-SetCache.prototype.push = cachePush;
-
-module.exports = SetCache;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-//# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy90YWJsZS1qcy9ub2RlX21vZHVsZXMvZGlhZ3JhbS1qcy9ub2RlX21vZHVsZXMvbG9kYXNoL2ludGVybmFsL1NldENhY2hlLmpzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7QUFBQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EiLCJmaWxlIjoiZ2VuZXJhdGVkLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXNDb250ZW50IjpbInZhciBjYWNoZVB1c2ggPSByZXF1aXJlKCcuL2NhY2hlUHVzaCcpLFxuICAgIGdldE5hdGl2ZSA9IHJlcXVpcmUoJy4vZ2V0TmF0aXZlJyk7XG5cbi8qKiBOYXRpdmUgbWV0aG9kIHJlZmVyZW5jZXMuICovXG52YXIgU2V0ID0gZ2V0TmF0aXZlKGdsb2JhbCwgJ1NldCcpO1xuXG4vKiBOYXRpdmUgbWV0aG9kIHJlZmVyZW5jZXMgZm9yIHRob3NlIHdpdGggdGhlIHNhbWUgbmFtZSBhcyBvdGhlciBgbG9kYXNoYCBtZXRob2RzLiAqL1xudmFyIG5hdGl2ZUNyZWF0ZSA9IGdldE5hdGl2ZShPYmplY3QsICdjcmVhdGUnKTtcblxuLyoqXG4gKlxuICogQ3JlYXRlcyBhIGNhY2hlIG9iamVjdCB0byBzdG9yZSB1bmlxdWUgdmFsdWVzLlxuICpcbiAqIEBwcml2YXRlXG4gKiBAcGFyYW0ge0FycmF5fSBbdmFsdWVzXSBUaGUgdmFsdWVzIHRvIGNhY2hlLlxuICovXG5mdW5jdGlvbiBTZXRDYWNoZSh2YWx1ZXMpIHtcbiAgdmFyIGxlbmd0aCA9IHZhbHVlcyA/IHZhbHVlcy5sZW5ndGggOiAwO1xuXG4gIHRoaXMuZGF0YSA9IHsgJ2hhc2gnOiBuYXRpdmVDcmVhdGUobnVsbCksICdzZXQnOiBuZXcgU2V0IH07XG4gIHdoaWxlIChsZW5ndGgtLSkge1xuICAgIHRoaXMucHVzaCh2YWx1ZXNbbGVuZ3RoXSk7XG4gIH1cbn1cblxuLy8gQWRkIGZ1bmN0aW9ucyB0byB0aGUgYFNldGAgY2FjaGUuXG5TZXRDYWNoZS5wcm90b3R5cGUucHVzaCA9IGNhY2hlUHVzaDtcblxubW9kdWxlLmV4cG9ydHMgPSBTZXRDYWNoZTtcbiJdfQ==
-},{"461":461,"481":481}],433:[function(_dereq_,module,exports){
-/**
- * Copies the values of `source` to `array`.
- *
- * @private
- * @param {Array} source The array to copy values from.
- * @param {Array} [array=[]] The array to copy values to.
- * @returns {Array} Returns `array`.
- */
-function arrayCopy(source, array) {
-  var index = -1,
-      length = source.length;
-
-  array || (array = Array(length));
-  while (++index < length) {
-    array[index] = source[index];
-  }
-  return array;
-}
-
-module.exports = arrayCopy;
-
-},{}],434:[function(_dereq_,module,exports){
-arguments[4][38][0].apply(exports,arguments)
-},{"38":38}],435:[function(_dereq_,module,exports){
-arguments[4][114][0].apply(exports,arguments)
-},{"114":114}],436:[function(_dereq_,module,exports){
-arguments[4][72][0].apply(exports,arguments)
-},{"510":510,"72":72}],437:[function(_dereq_,module,exports){
-arguments[4][73][0].apply(exports,arguments)
-},{"439":439,"510":510,"73":73}],438:[function(_dereq_,module,exports){
-arguments[4][117][0].apply(exports,arguments)
-},{"117":117,"451":451,"452":452,"459":459,"515":515,"517":517}],439:[function(_dereq_,module,exports){
-arguments[4][74][0].apply(exports,arguments)
-},{"74":74}],440:[function(_dereq_,module,exports){
-var isObject = _dereq_(507);
-
-/**
- * The base implementation of `_.create` without support for assigning
- * properties to the created object.
- *
- * @private
- * @param {Object} prototype The object to inherit from.
- * @returns {Object} Returns the new object.
- */
-var baseCreate = (function() {
-  function object() {}
-  return function(prototype) {
-    if (isObject(prototype)) {
-      object.prototype = prototype;
-      var result = new object;
-      object.prototype = null;
-    }
-    return result || {};
-  };
-}());
-
-module.exports = baseCreate;
-
-},{"507":507}],441:[function(_dereq_,module,exports){
-arguments[4][39][0].apply(exports,arguments)
-},{"39":39,"443":443,"465":465}],442:[function(_dereq_,module,exports){
-arguments[4][40][0].apply(exports,arguments)
-},{"40":40,"466":466}],443:[function(_dereq_,module,exports){
-arguments[4][41][0].apply(exports,arguments)
-},{"41":41,"442":442,"510":510}],444:[function(_dereq_,module,exports){
-arguments[4][126][0].apply(exports,arguments)
-},{"126":126,"499":499}],445:[function(_dereq_,module,exports){
-arguments[4][344][0].apply(exports,arguments)
-},{"344":344,"482":482}],446:[function(_dereq_,module,exports){
-arguments[4][127][0].apply(exports,arguments)
-},{"127":127,"447":447,"489":489,"507":507}],447:[function(_dereq_,module,exports){
-arguments[4][128][0].apply(exports,arguments)
-},{"128":128,"474":474,"475":475,"476":476,"503":503,"508":508}],448:[function(_dereq_,module,exports){
-arguments[4][42][0].apply(exports,arguments)
-},{"42":42}],449:[function(_dereq_,module,exports){
-arguments[4][129][0].apply(exports,arguments)
-},{"129":129,"446":446,"499":499}],450:[function(_dereq_,module,exports){
-/**
- * The function whose prototype all chaining wrappers inherit from.
- *
- * @private
- */
-function baseLodash() {
-  // No operation performed.
-}
-
-module.exports = baseLodash;
-
-},{}],451:[function(_dereq_,module,exports){
-arguments[4][131][0].apply(exports,arguments)
-},{"131":131,"449":449,"480":480,"499":499}],452:[function(_dereq_,module,exports){
-arguments[4][132][0].apply(exports,arguments)
-},{"132":132,"422":422,"444":444,"446":446,"456":456,"486":486,"490":490,"499":499,"500":500,"503":503}],453:[function(_dereq_,module,exports){
-arguments[4][43][0].apply(exports,arguments)
-},{"43":43}],454:[function(_dereq_,module,exports){
-arguments[4][134][0].apply(exports,arguments)
-},{"134":134,"444":444,"500":500}],455:[function(_dereq_,module,exports){
-var identity = _dereq_(515),
-    metaMap = _dereq_(492);
-
-/**
- * The base implementation of `setData` without support for hot loop detection.
- *
- * @private
- * @param {Function} func The function to associate metadata with.
- * @param {*} data The metadata.
- * @returns {Function} Returns `func`.
- */
-var baseSetData = !metaMap ? identity : function(func, data) {
-  metaMap.set(func, data);
-  return func;
-};
-
-module.exports = baseSetData;
-
-},{"492":492,"515":515}],456:[function(_dereq_,module,exports){
-arguments[4][136][0].apply(exports,arguments)
-},{"136":136}],457:[function(_dereq_,module,exports){
-arguments[4][44][0].apply(exports,arguments)
-},{"44":44}],458:[function(_dereq_,module,exports){
-var baseIndexOf = _dereq_(445),
-    cacheIndexOf = _dereq_(460),
-    createCache = _dereq_(468);
-
-/**
- * The base implementation of `_.uniq` without support for callback shorthands
- * and `this` binding.
- *
- * @private
- * @param {Array} array The array to inspect.
- * @param {Function} [iteratee] The function invoked per iteration.
- * @returns {Array} Returns the new duplicate-value-free array.
- */
-function baseUniq(array, iteratee) {
-  var index = -1,
-      indexOf = baseIndexOf,
-      length = array.length,
-      isCommon = true,
-      isLarge = isCommon && length >= 200,
-      seen = isLarge ? createCache() : null,
-      result = [];
-
-  if (seen) {
-    indexOf = cacheIndexOf;
-    isCommon = false;
-  } else {
-    isLarge = false;
-    seen = iteratee ? [] : result;
-  }
-  outer:
-  while (++index < length) {
-    var value = array[index],
-        computed = iteratee ? iteratee(value, index, array) : value;
-
-    if (isCommon && value === value) {
-      var seenIndex = seen.length;
-      while (seenIndex--) {
-        if (seen[seenIndex] === computed) {
-          continue outer;
-        }
-      }
-      if (iteratee) {
-        seen.push(computed);
-      }
-      result.push(value);
-    }
-    else if (indexOf(seen, computed, 0) < 0) {
-      if (iteratee || isLarge) {
-        seen.push(computed);
-      }
-      result.push(value);
-    }
-  }
-  return result;
-}
-
-module.exports = baseUniq;
-
-},{"445":445,"460":460,"468":468}],459:[function(_dereq_,module,exports){
-arguments[4][45][0].apply(exports,arguments)
-},{"45":45,"515":515}],460:[function(_dereq_,module,exports){
-arguments[4][348][0].apply(exports,arguments)
-},{"348":348,"507":507}],461:[function(_dereq_,module,exports){
-arguments[4][349][0].apply(exports,arguments)
-},{"349":349,"507":507}],462:[function(_dereq_,module,exports){
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeMax = Math.max;
-
-/**
- * Creates an array that is the composition of partially applied arguments,
- * placeholders, and provided arguments into a single array of arguments.
- *
- * @private
- * @param {Array|Object} args The provided arguments.
- * @param {Array} partials The arguments to prepend to those provided.
- * @param {Array} holders The `partials` placeholder indexes.
- * @returns {Array} Returns the new array of composed arguments.
- */
-function composeArgs(args, partials, holders) {
-  var holdersLength = holders.length,
-      argsIndex = -1,
-      argsLength = nativeMax(args.length - holdersLength, 0),
-      leftIndex = -1,
-      leftLength = partials.length,
-      result = Array(argsLength + leftLength);
-
-  while (++leftIndex < leftLength) {
-    result[leftIndex] = partials[leftIndex];
-  }
-  while (++argsIndex < holdersLength) {
-    result[holders[argsIndex]] = args[argsIndex];
-  }
-  while (argsLength--) {
-    result[leftIndex++] = args[argsIndex++];
-  }
-  return result;
-}
-
-module.exports = composeArgs;
-
-},{}],463:[function(_dereq_,module,exports){
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeMax = Math.max;
-
-/**
- * This function is like `composeArgs` except that the arguments composition
- * is tailored for `_.partialRight`.
- *
- * @private
- * @param {Array|Object} args The provided arguments.
- * @param {Array} partials The arguments to append to those provided.
- * @param {Array} holders The `partials` placeholder indexes.
- * @returns {Array} Returns the new array of composed arguments.
- */
-function composeArgsRight(args, partials, holders) {
-  var holdersIndex = -1,
-      holdersLength = holders.length,
-      argsIndex = -1,
-      argsLength = nativeMax(args.length - holdersLength, 0),
-      rightIndex = -1,
-      rightLength = partials.length,
-      result = Array(argsLength + rightLength);
-
-  while (++argsIndex < argsLength) {
-    result[argsIndex] = args[argsIndex];
-  }
-  var offset = argsIndex;
-  while (++rightIndex < rightLength) {
-    result[offset + rightIndex] = partials[rightIndex];
-  }
-  while (++holdersIndex < holdersLength) {
-    result[offset + holders[holdersIndex]] = args[argsIndex++];
-  }
-  return result;
-}
-
-module.exports = composeArgsRight;
-
-},{}],464:[function(_dereq_,module,exports){
-arguments[4][79][0].apply(exports,arguments)
-},{"429":429,"459":459,"485":485,"79":79}],465:[function(_dereq_,module,exports){
-arguments[4][46][0].apply(exports,arguments)
-},{"46":46,"479":479,"488":488,"499":499}],466:[function(_dereq_,module,exports){
-arguments[4][47][0].apply(exports,arguments)
-},{"47":47,"499":499}],467:[function(_dereq_,module,exports){
-(function (global){
-var createCtorWrapper = _dereq_(469);
-
-/**
- * Creates a function that wraps `func` and invokes it with the `this`
- * binding of `thisArg`.
- *
- * @private
- * @param {Function} func The function to bind.
- * @param {*} [thisArg] The `this` binding of `func`.
- * @returns {Function} Returns the new bound function.
- */
-function createBindWrapper(func, thisArg) {
-  var Ctor = createCtorWrapper(func);
-
-  function wrapper() {
-    var fn = (this && this !== global && this instanceof wrapper) ? Ctor : func;
-    return fn.apply(thisArg, arguments);
-  }
-  return wrapper;
-}
-
-module.exports = createBindWrapper;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-//# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy90YWJsZS1qcy9ub2RlX21vZHVsZXMvZGlhZ3JhbS1qcy9ub2RlX21vZHVsZXMvbG9kYXNoL2ludGVybmFsL2NyZWF0ZUJpbmRXcmFwcGVyLmpzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7QUFBQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBIiwiZmlsZSI6ImdlbmVyYXRlZC5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzQ29udGVudCI6WyJ2YXIgY3JlYXRlQ3RvcldyYXBwZXIgPSByZXF1aXJlKCcuL2NyZWF0ZUN0b3JXcmFwcGVyJyk7XG5cbi8qKlxuICogQ3JlYXRlcyBhIGZ1bmN0aW9uIHRoYXQgd3JhcHMgYGZ1bmNgIGFuZCBpbnZva2VzIGl0IHdpdGggdGhlIGB0aGlzYFxuICogYmluZGluZyBvZiBgdGhpc0FyZ2AuXG4gKlxuICogQHByaXZhdGVcbiAqIEBwYXJhbSB7RnVuY3Rpb259IGZ1bmMgVGhlIGZ1bmN0aW9uIHRvIGJpbmQuXG4gKiBAcGFyYW0geyp9IFt0aGlzQXJnXSBUaGUgYHRoaXNgIGJpbmRpbmcgb2YgYGZ1bmNgLlxuICogQHJldHVybnMge0Z1bmN0aW9ufSBSZXR1cm5zIHRoZSBuZXcgYm91bmQgZnVuY3Rpb24uXG4gKi9cbmZ1bmN0aW9uIGNyZWF0ZUJpbmRXcmFwcGVyKGZ1bmMsIHRoaXNBcmcpIHtcbiAgdmFyIEN0b3IgPSBjcmVhdGVDdG9yV3JhcHBlcihmdW5jKTtcblxuICBmdW5jdGlvbiB3cmFwcGVyKCkge1xuICAgIHZhciBmbiA9ICh0aGlzICYmIHRoaXMgIT09IGdsb2JhbCAmJiB0aGlzIGluc3RhbmNlb2Ygd3JhcHBlcikgPyBDdG9yIDogZnVuYztcbiAgICByZXR1cm4gZm4uYXBwbHkodGhpc0FyZywgYXJndW1lbnRzKTtcbiAgfVxuICByZXR1cm4gd3JhcHBlcjtcbn1cblxubW9kdWxlLmV4cG9ydHMgPSBjcmVhdGVCaW5kV3JhcHBlcjtcbiJdfQ==
-},{"469":469}],468:[function(_dereq_,module,exports){
-(function (global){
-var SetCache = _dereq_(432),
-    constant = _dereq_(514),
-    getNative = _dereq_(481);
-
-/** Native method references. */
-var Set = getNative(global, 'Set');
-
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeCreate = getNative(Object, 'create');
-
-/**
- * Creates a `Set` cache object to optimize linear searches of large arrays.
- *
- * @private
- * @param {Array} [values] The values to cache.
- * @returns {null|Object} Returns the new cache object if `Set` is supported, else `null`.
- */
-var createCache = !(nativeCreate && Set) ? constant(null) : function(values) {
-  return new SetCache(values);
-};
-
-module.exports = createCache;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-//# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy90YWJsZS1qcy9ub2RlX21vZHVsZXMvZGlhZ3JhbS1qcy9ub2RlX21vZHVsZXMvbG9kYXNoL2ludGVybmFsL2NyZWF0ZUNhY2hlLmpzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7QUFBQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBIiwiZmlsZSI6ImdlbmVyYXRlZC5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzQ29udGVudCI6WyJ2YXIgU2V0Q2FjaGUgPSByZXF1aXJlKCcuL1NldENhY2hlJyksXG4gICAgY29uc3RhbnQgPSByZXF1aXJlKCcuLi91dGlsaXR5L2NvbnN0YW50JyksXG4gICAgZ2V0TmF0aXZlID0gcmVxdWlyZSgnLi9nZXROYXRpdmUnKTtcblxuLyoqIE5hdGl2ZSBtZXRob2QgcmVmZXJlbmNlcy4gKi9cbnZhciBTZXQgPSBnZXROYXRpdmUoZ2xvYmFsLCAnU2V0Jyk7XG5cbi8qIE5hdGl2ZSBtZXRob2QgcmVmZXJlbmNlcyBmb3IgdGhvc2Ugd2l0aCB0aGUgc2FtZSBuYW1lIGFzIG90aGVyIGBsb2Rhc2hgIG1ldGhvZHMuICovXG52YXIgbmF0aXZlQ3JlYXRlID0gZ2V0TmF0aXZlKE9iamVjdCwgJ2NyZWF0ZScpO1xuXG4vKipcbiAqIENyZWF0ZXMgYSBgU2V0YCBjYWNoZSBvYmplY3QgdG8gb3B0aW1pemUgbGluZWFyIHNlYXJjaGVzIG9mIGxhcmdlIGFycmF5cy5cbiAqXG4gKiBAcHJpdmF0ZVxuICogQHBhcmFtIHtBcnJheX0gW3ZhbHVlc10gVGhlIHZhbHVlcyB0byBjYWNoZS5cbiAqIEByZXR1cm5zIHtudWxsfE9iamVjdH0gUmV0dXJucyB0aGUgbmV3IGNhY2hlIG9iamVjdCBpZiBgU2V0YCBpcyBzdXBwb3J0ZWQsIGVsc2UgYG51bGxgLlxuICovXG52YXIgY3JlYXRlQ2FjaGUgPSAhKG5hdGl2ZUNyZWF0ZSAmJiBTZXQpID8gY29uc3RhbnQobnVsbCkgOiBmdW5jdGlvbih2YWx1ZXMpIHtcbiAgcmV0dXJuIG5ldyBTZXRDYWNoZSh2YWx1ZXMpO1xufTtcblxubW9kdWxlLmV4cG9ydHMgPSBjcmVhdGVDYWNoZTtcbiJdfQ==
-},{"432":432,"481":481,"514":514}],469:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(440),
-    isObject = _dereq_(507);
-
-/**
- * Creates a function that produces an instance of `Ctor` regardless of
- * whether it was invoked as part of a `new` expression or by `call` or `apply`.
- *
- * @private
- * @param {Function} Ctor The constructor to wrap.
- * @returns {Function} Returns the new wrapped function.
- */
-function createCtorWrapper(Ctor) {
-  return function() {
-    // Use a `switch` statement to work with class constructors.
-    // See https://people.mozilla.org/~jorendorff/es6-draft.html#sec-ecmascript-function-objects-call-thisargument-argumentslist
-    // for more details.
-    var args = arguments;
-    switch (args.length) {
-      case 0: return new Ctor;
-      case 1: return new Ctor(args[0]);
-      case 2: return new Ctor(args[0], args[1]);
-      case 3: return new Ctor(args[0], args[1], args[2]);
-      case 4: return new Ctor(args[0], args[1], args[2], args[3]);
-      case 5: return new Ctor(args[0], args[1], args[2], args[3], args[4]);
-    }
-    var thisBinding = baseCreate(Ctor.prototype),
-        result = Ctor.apply(thisBinding, args);
-
-    // Mimic the constructor's `return` behavior.
-    // See https://es5.github.io/#x13.2.2 for more details.
-    return isObject(result) ? result : thisBinding;
-  };
-}
-
-module.exports = createCtorWrapper;
-
-},{"440":440,"507":507}],470:[function(_dereq_,module,exports){
-arguments[4][48][0].apply(exports,arguments)
-},{"459":459,"48":48,"503":503}],471:[function(_dereq_,module,exports){
-(function (global){
-var arrayCopy = _dereq_(433),
-    composeArgs = _dereq_(462),
-    composeArgsRight = _dereq_(463),
-    createCtorWrapper = _dereq_(469),
-    isLaziable = _dereq_(487),
-    reorder = _dereq_(494),
-    replaceHolders = _dereq_(495),
-    setData = _dereq_(496);
-
-/** Used to compose bitmasks for wrapper metadata. */
-var BIND_FLAG = 1,
-    BIND_KEY_FLAG = 2,
-    CURRY_BOUND_FLAG = 4,
-    CURRY_FLAG = 8,
-    CURRY_RIGHT_FLAG = 16,
-    PARTIAL_FLAG = 32,
-    PARTIAL_RIGHT_FLAG = 64,
-    ARY_FLAG = 128;
-
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeMax = Math.max;
-
-/**
- * Creates a function that wraps `func` and invokes it with optional `this`
- * binding of, partial application, and currying.
- *
- * @private
- * @param {Function|string} func The function or method name to reference.
- * @param {number} bitmask The bitmask of flags. See `createWrapper` for more details.
- * @param {*} [thisArg] The `this` binding of `func`.
- * @param {Array} [partials] The arguments to prepend to those provided to the new function.
- * @param {Array} [holders] The `partials` placeholder indexes.
- * @param {Array} [partialsRight] The arguments to append to those provided to the new function.
- * @param {Array} [holdersRight] The `partialsRight` placeholder indexes.
- * @param {Array} [argPos] The argument positions of the new function.
- * @param {number} [ary] The arity cap of `func`.
- * @param {number} [arity] The arity of `func`.
- * @returns {Function} Returns the new wrapped function.
- */
-function createHybridWrapper(func, bitmask, thisArg, partials, holders, partialsRight, holdersRight, argPos, ary, arity) {
-  var isAry = bitmask & ARY_FLAG,
-      isBind = bitmask & BIND_FLAG,
-      isBindKey = bitmask & BIND_KEY_FLAG,
-      isCurry = bitmask & CURRY_FLAG,
-      isCurryBound = bitmask & CURRY_BOUND_FLAG,
-      isCurryRight = bitmask & CURRY_RIGHT_FLAG,
-      Ctor = isBindKey ? null : createCtorWrapper(func);
-
-  function wrapper() {
-    // Avoid `arguments` object use disqualifying optimizations by
-    // converting it to an array before providing it to other functions.
-    var length = arguments.length,
-        index = length,
-        args = Array(length);
-
-    while (index--) {
-      args[index] = arguments[index];
-    }
-    if (partials) {
-      args = composeArgs(args, partials, holders);
-    }
-    if (partialsRight) {
-      args = composeArgsRight(args, partialsRight, holdersRight);
-    }
-    if (isCurry || isCurryRight) {
-      var placeholder = wrapper.placeholder,
-          argsHolders = replaceHolders(args, placeholder);
-
-      length -= argsHolders.length;
-      if (length < arity) {
-        var newArgPos = argPos ? arrayCopy(argPos) : null,
-            newArity = nativeMax(arity - length, 0),
-            newsHolders = isCurry ? argsHolders : null,
-            newHoldersRight = isCurry ? null : argsHolders,
-            newPartials = isCurry ? args : null,
-            newPartialsRight = isCurry ? null : args;
-
-        bitmask |= (isCurry ? PARTIAL_FLAG : PARTIAL_RIGHT_FLAG);
-        bitmask &= ~(isCurry ? PARTIAL_RIGHT_FLAG : PARTIAL_FLAG);
-
-        if (!isCurryBound) {
-          bitmask &= ~(BIND_FLAG | BIND_KEY_FLAG);
-        }
-        var newData = [func, bitmask, thisArg, newPartials, newsHolders, newPartialsRight, newHoldersRight, newArgPos, ary, newArity],
-            result = createHybridWrapper.apply(undefined, newData);
-
-        if (isLaziable(func)) {
-          setData(result, newData);
-        }
-        result.placeholder = placeholder;
-        return result;
-      }
-    }
-    var thisBinding = isBind ? thisArg : this,
-        fn = isBindKey ? thisBinding[func] : func;
-
-    if (argPos) {
-      args = reorder(args, argPos);
-    }
-    if (isAry && ary < args.length) {
-      args.length = ary;
-    }
-    if (this && this !== global && this instanceof wrapper) {
-      fn = Ctor || createCtorWrapper(func);
-    }
-    return fn.apply(thisBinding, args);
-  }
-  return wrapper;
-}
-
-module.exports = createHybridWrapper;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-//# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy90YWJsZS1qcy9ub2RlX21vZHVsZXMvZGlhZ3JhbS1qcy9ub2RlX21vZHVsZXMvbG9kYXNoL2ludGVybmFsL2NyZWF0ZUh5YnJpZFdyYXBwZXIuanMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IjtBQUFBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBIiwiZmlsZSI6ImdlbmVyYXRlZC5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzQ29udGVudCI6WyJ2YXIgYXJyYXlDb3B5ID0gcmVxdWlyZSgnLi9hcnJheUNvcHknKSxcbiAgICBjb21wb3NlQXJncyA9IHJlcXVpcmUoJy4vY29tcG9zZUFyZ3MnKSxcbiAgICBjb21wb3NlQXJnc1JpZ2h0ID0gcmVxdWlyZSgnLi9jb21wb3NlQXJnc1JpZ2h0JyksXG4gICAgY3JlYXRlQ3RvcldyYXBwZXIgPSByZXF1aXJlKCcuL2NyZWF0ZUN0b3JXcmFwcGVyJyksXG4gICAgaXNMYXppYWJsZSA9IHJlcXVpcmUoJy4vaXNMYXppYWJsZScpLFxuICAgIHJlb3JkZXIgPSByZXF1aXJlKCcuL3Jlb3JkZXInKSxcbiAgICByZXBsYWNlSG9sZGVycyA9IHJlcXVpcmUoJy4vcmVwbGFjZUhvbGRlcnMnKSxcbiAgICBzZXREYXRhID0gcmVxdWlyZSgnLi9zZXREYXRhJyk7XG5cbi8qKiBVc2VkIHRvIGNvbXBvc2UgYml0bWFza3MgZm9yIHdyYXBwZXIgbWV0YWRhdGEuICovXG52YXIgQklORF9GTEFHID0gMSxcbiAgICBCSU5EX0tFWV9GTEFHID0gMixcbiAgICBDVVJSWV9CT1VORF9GTEFHID0gNCxcbiAgICBDVVJSWV9GTEFHID0gOCxcbiAgICBDVVJSWV9SSUdIVF9GTEFHID0gMTYsXG4gICAgUEFSVElBTF9GTEFHID0gMzIsXG4gICAgUEFSVElBTF9SSUdIVF9GTEFHID0gNjQsXG4gICAgQVJZX0ZMQUcgPSAxMjg7XG5cbi8qIE5hdGl2ZSBtZXRob2QgcmVmZXJlbmNlcyBmb3IgdGhvc2Ugd2l0aCB0aGUgc2FtZSBuYW1lIGFzIG90aGVyIGBsb2Rhc2hgIG1ldGhvZHMuICovXG52YXIgbmF0aXZlTWF4ID0gTWF0aC5tYXg7XG5cbi8qKlxuICogQ3JlYXRlcyBhIGZ1bmN0aW9uIHRoYXQgd3JhcHMgYGZ1bmNgIGFuZCBpbnZva2VzIGl0IHdpdGggb3B0aW9uYWwgYHRoaXNgXG4gKiBiaW5kaW5nIG9mLCBwYXJ0aWFsIGFwcGxpY2F0aW9uLCBhbmQgY3VycnlpbmcuXG4gKlxuICogQHByaXZhdGVcbiAqIEBwYXJhbSB7RnVuY3Rpb258c3RyaW5nfSBmdW5jIFRoZSBmdW5jdGlvbiBvciBtZXRob2QgbmFtZSB0byByZWZlcmVuY2UuXG4gKiBAcGFyYW0ge251bWJlcn0gYml0bWFzayBUaGUgYml0bWFzayBvZiBmbGFncy4gU2VlIGBjcmVhdGVXcmFwcGVyYCBmb3IgbW9yZSBkZXRhaWxzLlxuICogQHBhcmFtIHsqfSBbdGhpc0FyZ10gVGhlIGB0aGlzYCBiaW5kaW5nIG9mIGBmdW5jYC5cbiAqIEBwYXJhbSB7QXJyYXl9IFtwYXJ0aWFsc10gVGhlIGFyZ3VtZW50cyB0byBwcmVwZW5kIHRvIHRob3NlIHByb3ZpZGVkIHRvIHRoZSBuZXcgZnVuY3Rpb24uXG4gKiBAcGFyYW0ge0FycmF5fSBbaG9sZGVyc10gVGhlIGBwYXJ0aWFsc2AgcGxhY2Vob2xkZXIgaW5kZXhlcy5cbiAqIEBwYXJhbSB7QXJyYXl9IFtwYXJ0aWFsc1JpZ2h0XSBUaGUgYXJndW1lbnRzIHRvIGFwcGVuZCB0byB0aG9zZSBwcm92aWRlZCB0byB0aGUgbmV3IGZ1bmN0aW9uLlxuICogQHBhcmFtIHtBcnJheX0gW2hvbGRlcnNSaWdodF0gVGhlIGBwYXJ0aWFsc1JpZ2h0YCBwbGFjZWhvbGRlciBpbmRleGVzLlxuICogQHBhcmFtIHtBcnJheX0gW2FyZ1Bvc10gVGhlIGFyZ3VtZW50IHBvc2l0aW9ucyBvZiB0aGUgbmV3IGZ1bmN0aW9uLlxuICogQHBhcmFtIHtudW1iZXJ9IFthcnldIFRoZSBhcml0eSBjYXAgb2YgYGZ1bmNgLlxuICogQHBhcmFtIHtudW1iZXJ9IFthcml0eV0gVGhlIGFyaXR5IG9mIGBmdW5jYC5cbiAqIEByZXR1cm5zIHtGdW5jdGlvbn0gUmV0dXJucyB0aGUgbmV3IHdyYXBwZWQgZnVuY3Rpb24uXG4gKi9cbmZ1bmN0aW9uIGNyZWF0ZUh5YnJpZFdyYXBwZXIoZnVuYywgYml0bWFzaywgdGhpc0FyZywgcGFydGlhbHMsIGhvbGRlcnMsIHBhcnRpYWxzUmlnaHQsIGhvbGRlcnNSaWdodCwgYXJnUG9zLCBhcnksIGFyaXR5KSB7XG4gIHZhciBpc0FyeSA9IGJpdG1hc2sgJiBBUllfRkxBRyxcbiAgICAgIGlzQmluZCA9IGJpdG1hc2sgJiBCSU5EX0ZMQUcsXG4gICAgICBpc0JpbmRLZXkgPSBiaXRtYXNrICYgQklORF9LRVlfRkxBRyxcbiAgICAgIGlzQ3VycnkgPSBiaXRtYXNrICYgQ1VSUllfRkxBRyxcbiAgICAgIGlzQ3VycnlCb3VuZCA9IGJpdG1hc2sgJiBDVVJSWV9CT1VORF9GTEFHLFxuICAgICAgaXNDdXJyeVJpZ2h0ID0gYml0bWFzayAmIENVUlJZX1JJR0hUX0ZMQUcsXG4gICAgICBDdG9yID0gaXNCaW5kS2V5ID8gbnVsbCA6IGNyZWF0ZUN0b3JXcmFwcGVyKGZ1bmMpO1xuXG4gIGZ1bmN0aW9uIHdyYXBwZXIoKSB7XG4gICAgLy8gQXZvaWQgYGFyZ3VtZW50c2Agb2JqZWN0IHVzZSBkaXNxdWFsaWZ5aW5nIG9wdGltaXphdGlvbnMgYnlcbiAgICAvLyBjb252ZXJ0aW5nIGl0IHRvIGFuIGFycmF5IGJlZm9yZSBwcm92aWRpbmcgaXQgdG8gb3RoZXIgZnVuY3Rpb25zLlxuICAgIHZhciBsZW5ndGggPSBhcmd1bWVudHMubGVuZ3RoLFxuICAgICAgICBpbmRleCA9IGxlbmd0aCxcbiAgICAgICAgYXJncyA9IEFycmF5KGxlbmd0aCk7XG5cbiAgICB3aGlsZSAoaW5kZXgtLSkge1xuICAgICAgYXJnc1tpbmRleF0gPSBhcmd1bWVudHNbaW5kZXhdO1xuICAgIH1cbiAgICBpZiAocGFydGlhbHMpIHtcbiAgICAgIGFyZ3MgPSBjb21wb3NlQXJncyhhcmdzLCBwYXJ0aWFscywgaG9sZGVycyk7XG4gICAgfVxuICAgIGlmIChwYXJ0aWFsc1JpZ2h0KSB7XG4gICAgICBhcmdzID0gY29tcG9zZUFyZ3NSaWdodChhcmdzLCBwYXJ0aWFsc1JpZ2h0LCBob2xkZXJzUmlnaHQpO1xuICAgIH1cbiAgICBpZiAoaXNDdXJyeSB8fCBpc0N1cnJ5UmlnaHQpIHtcbiAgICAgIHZhciBwbGFjZWhvbGRlciA9IHdyYXBwZXIucGxhY2Vob2xkZXIsXG4gICAgICAgICAgYXJnc0hvbGRlcnMgPSByZXBsYWNlSG9sZGVycyhhcmdzLCBwbGFjZWhvbGRlcik7XG5cbiAgICAgIGxlbmd0aCAtPSBhcmdzSG9sZGVycy5sZW5ndGg7XG4gICAgICBpZiAobGVuZ3RoIDwgYXJpdHkpIHtcbiAgICAgICAgdmFyIG5ld0FyZ1BvcyA9IGFyZ1BvcyA/IGFycmF5Q29weShhcmdQb3MpIDogbnVsbCxcbiAgICAgICAgICAgIG5ld0FyaXR5ID0gbmF0aXZlTWF4KGFyaXR5IC0gbGVuZ3RoLCAwKSxcbiAgICAgICAgICAgIG5ld3NIb2xkZXJzID0gaXNDdXJyeSA/IGFyZ3NIb2xkZXJzIDogbnVsbCxcbiAgICAgICAgICAgIG5ld0hvbGRlcnNSaWdodCA9IGlzQ3VycnkgPyBudWxsIDogYXJnc0hvbGRlcnMsXG4gICAgICAgICAgICBuZXdQYXJ0aWFscyA9IGlzQ3VycnkgPyBhcmdzIDogbnVsbCxcbiAgICAgICAgICAgIG5ld1BhcnRpYWxzUmlnaHQgPSBpc0N1cnJ5ID8gbnVsbCA6IGFyZ3M7XG5cbiAgICAgICAgYml0bWFzayB8PSAoaXNDdXJyeSA/IFBBUlRJQUxfRkxBRyA6IFBBUlRJQUxfUklHSFRfRkxBRyk7XG4gICAgICAgIGJpdG1hc2sgJj0gfihpc0N1cnJ5ID8gUEFSVElBTF9SSUdIVF9GTEFHIDogUEFSVElBTF9GTEFHKTtcblxuICAgICAgICBpZiAoIWlzQ3VycnlCb3VuZCkge1xuICAgICAgICAgIGJpdG1hc2sgJj0gfihCSU5EX0ZMQUcgfCBCSU5EX0tFWV9GTEFHKTtcbiAgICAgICAgfVxuICAgICAgICB2YXIgbmV3RGF0YSA9IFtmdW5jLCBiaXRtYXNrLCB0aGlzQXJnLCBuZXdQYXJ0aWFscywgbmV3c0hvbGRlcnMsIG5ld1BhcnRpYWxzUmlnaHQsIG5ld0hvbGRlcnNSaWdodCwgbmV3QXJnUG9zLCBhcnksIG5ld0FyaXR5XSxcbiAgICAgICAgICAgIHJlc3VsdCA9IGNyZWF0ZUh5YnJpZFdyYXBwZXIuYXBwbHkodW5kZWZpbmVkLCBuZXdEYXRhKTtcblxuICAgICAgICBpZiAoaXNMYXppYWJsZShmdW5jKSkge1xuICAgICAgICAgIHNldERhdGEocmVzdWx0LCBuZXdEYXRhKTtcbiAgICAgICAgfVxuICAgICAgICByZXN1bHQucGxhY2Vob2xkZXIgPSBwbGFjZWhvbGRlcjtcbiAgICAgICAgcmV0dXJuIHJlc3VsdDtcbiAgICAgIH1cbiAgICB9XG4gICAgdmFyIHRoaXNCaW5kaW5nID0gaXNCaW5kID8gdGhpc0FyZyA6IHRoaXMsXG4gICAgICAgIGZuID0gaXNCaW5kS2V5ID8gdGhpc0JpbmRpbmdbZnVuY10gOiBmdW5jO1xuXG4gICAgaWYgKGFyZ1Bvcykge1xuICAgICAgYXJncyA9IHJlb3JkZXIoYXJncywgYXJnUG9zKTtcbiAgICB9XG4gICAgaWYgKGlzQXJ5ICYmIGFyeSA8IGFyZ3MubGVuZ3RoKSB7XG4gICAgICBhcmdzLmxlbmd0aCA9IGFyeTtcbiAgICB9XG4gICAgaWYgKHRoaXMgJiYgdGhpcyAhPT0gZ2xvYmFsICYmIHRoaXMgaW5zdGFuY2VvZiB3cmFwcGVyKSB7XG4gICAgICBmbiA9IEN0b3IgfHwgY3JlYXRlQ3RvcldyYXBwZXIoZnVuYyk7XG4gICAgfVxuICAgIHJldHVybiBmbi5hcHBseSh0aGlzQmluZGluZywgYXJncyk7XG4gIH1cbiAgcmV0dXJuIHdyYXBwZXI7XG59XG5cbm1vZHVsZS5leHBvcnRzID0gY3JlYXRlSHlicmlkV3JhcHBlcjtcbiJdfQ==
-},{"433":433,"462":462,"463":463,"469":469,"487":487,"494":494,"495":495,"496":496}],472:[function(_dereq_,module,exports){
-(function (global){
-var createCtorWrapper = _dereq_(469);
-
-/** Used to compose bitmasks for wrapper metadata. */
-var BIND_FLAG = 1;
-
-/**
- * Creates a function that wraps `func` and invokes it with the optional `this`
- * binding of `thisArg` and the `partials` prepended to those provided to
- * the wrapper.
- *
- * @private
- * @param {Function} func The function to partially apply arguments to.
- * @param {number} bitmask The bitmask of flags. See `createWrapper` for more details.
- * @param {*} thisArg The `this` binding of `func`.
- * @param {Array} partials The arguments to prepend to those provided to the new function.
- * @returns {Function} Returns the new bound function.
- */
-function createPartialWrapper(func, bitmask, thisArg, partials) {
-  var isBind = bitmask & BIND_FLAG,
-      Ctor = createCtorWrapper(func);
-
-  function wrapper() {
-    // Avoid `arguments` object use disqualifying optimizations by
-    // converting it to an array before providing it `func`.
-    var argsIndex = -1,
-        argsLength = arguments.length,
-        leftIndex = -1,
-        leftLength = partials.length,
-        args = Array(argsLength + leftLength);
-
-    while (++leftIndex < leftLength) {
-      args[leftIndex] = partials[leftIndex];
-    }
-    while (argsLength--) {
-      args[leftIndex++] = arguments[++argsIndex];
-    }
-    var fn = (this && this !== global && this instanceof wrapper) ? Ctor : func;
-    return fn.apply(isBind ? thisArg : this, args);
-  }
-  return wrapper;
-}
-
-module.exports = createPartialWrapper;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-//# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy90YWJsZS1qcy9ub2RlX21vZHVsZXMvZGlhZ3JhbS1qcy9ub2RlX21vZHVsZXMvbG9kYXNoL2ludGVybmFsL2NyZWF0ZVBhcnRpYWxXcmFwcGVyLmpzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7QUFBQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBIiwiZmlsZSI6ImdlbmVyYXRlZC5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzQ29udGVudCI6WyJ2YXIgY3JlYXRlQ3RvcldyYXBwZXIgPSByZXF1aXJlKCcuL2NyZWF0ZUN0b3JXcmFwcGVyJyk7XG5cbi8qKiBVc2VkIHRvIGNvbXBvc2UgYml0bWFza3MgZm9yIHdyYXBwZXIgbWV0YWRhdGEuICovXG52YXIgQklORF9GTEFHID0gMTtcblxuLyoqXG4gKiBDcmVhdGVzIGEgZnVuY3Rpb24gdGhhdCB3cmFwcyBgZnVuY2AgYW5kIGludm9rZXMgaXQgd2l0aCB0aGUgb3B0aW9uYWwgYHRoaXNgXG4gKiBiaW5kaW5nIG9mIGB0aGlzQXJnYCBhbmQgdGhlIGBwYXJ0aWFsc2AgcHJlcGVuZGVkIHRvIHRob3NlIHByb3ZpZGVkIHRvXG4gKiB0aGUgd3JhcHBlci5cbiAqXG4gKiBAcHJpdmF0ZVxuICogQHBhcmFtIHtGdW5jdGlvbn0gZnVuYyBUaGUgZnVuY3Rpb24gdG8gcGFydGlhbGx5IGFwcGx5IGFyZ3VtZW50cyB0by5cbiAqIEBwYXJhbSB7bnVtYmVyfSBiaXRtYXNrIFRoZSBiaXRtYXNrIG9mIGZsYWdzLiBTZWUgYGNyZWF0ZVdyYXBwZXJgIGZvciBtb3JlIGRldGFpbHMuXG4gKiBAcGFyYW0geyp9IHRoaXNBcmcgVGhlIGB0aGlzYCBiaW5kaW5nIG9mIGBmdW5jYC5cbiAqIEBwYXJhbSB7QXJyYXl9IHBhcnRpYWxzIFRoZSBhcmd1bWVudHMgdG8gcHJlcGVuZCB0byB0aG9zZSBwcm92aWRlZCB0byB0aGUgbmV3IGZ1bmN0aW9uLlxuICogQHJldHVybnMge0Z1bmN0aW9ufSBSZXR1cm5zIHRoZSBuZXcgYm91bmQgZnVuY3Rpb24uXG4gKi9cbmZ1bmN0aW9uIGNyZWF0ZVBhcnRpYWxXcmFwcGVyKGZ1bmMsIGJpdG1hc2ssIHRoaXNBcmcsIHBhcnRpYWxzKSB7XG4gIHZhciBpc0JpbmQgPSBiaXRtYXNrICYgQklORF9GTEFHLFxuICAgICAgQ3RvciA9IGNyZWF0ZUN0b3JXcmFwcGVyKGZ1bmMpO1xuXG4gIGZ1bmN0aW9uIHdyYXBwZXIoKSB7XG4gICAgLy8gQXZvaWQgYGFyZ3VtZW50c2Agb2JqZWN0IHVzZSBkaXNxdWFsaWZ5aW5nIG9wdGltaXphdGlvbnMgYnlcbiAgICAvLyBjb252ZXJ0aW5nIGl0IHRvIGFuIGFycmF5IGJlZm9yZSBwcm92aWRpbmcgaXQgYGZ1bmNgLlxuICAgIHZhciBhcmdzSW5kZXggPSAtMSxcbiAgICAgICAgYXJnc0xlbmd0aCA9IGFyZ3VtZW50cy5sZW5ndGgsXG4gICAgICAgIGxlZnRJbmRleCA9IC0xLFxuICAgICAgICBsZWZ0TGVuZ3RoID0gcGFydGlhbHMubGVuZ3RoLFxuICAgICAgICBhcmdzID0gQXJyYXkoYXJnc0xlbmd0aCArIGxlZnRMZW5ndGgpO1xuXG4gICAgd2hpbGUgKCsrbGVmdEluZGV4IDwgbGVmdExlbmd0aCkge1xuICAgICAgYXJnc1tsZWZ0SW5kZXhdID0gcGFydGlhbHNbbGVmdEluZGV4XTtcbiAgICB9XG4gICAgd2hpbGUgKGFyZ3NMZW5ndGgtLSkge1xuICAgICAgYXJnc1tsZWZ0SW5kZXgrK10gPSBhcmd1bWVudHNbKythcmdzSW5kZXhdO1xuICAgIH1cbiAgICB2YXIgZm4gPSAodGhpcyAmJiB0aGlzICE9PSBnbG9iYWwgJiYgdGhpcyBpbnN0YW5jZW9mIHdyYXBwZXIpID8gQ3RvciA6IGZ1bmM7XG4gICAgcmV0dXJuIGZuLmFwcGx5KGlzQmluZCA/IHRoaXNBcmcgOiB0aGlzLCBhcmdzKTtcbiAgfVxuICByZXR1cm4gd3JhcHBlcjtcbn1cblxubW9kdWxlLmV4cG9ydHMgPSBjcmVhdGVQYXJ0aWFsV3JhcHBlcjtcbiJdfQ==
-},{"469":469}],473:[function(_dereq_,module,exports){
-var baseSetData = _dereq_(455),
-    createBindWrapper = _dereq_(467),
-    createHybridWrapper = _dereq_(471),
-    createPartialWrapper = _dereq_(472),
-    getData = _dereq_(477),
-    mergeData = _dereq_(491),
-    setData = _dereq_(496);
-
-/** Used to compose bitmasks for wrapper metadata. */
-var BIND_FLAG = 1,
-    BIND_KEY_FLAG = 2,
-    PARTIAL_FLAG = 32,
-    PARTIAL_RIGHT_FLAG = 64;
-
-/** Used as the `TypeError` message for "Functions" methods. */
-var FUNC_ERROR_TEXT = 'Expected a function';
-
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeMax = Math.max;
-
-/**
- * Creates a function that either curries or invokes `func` with optional
- * `this` binding and partially applied arguments.
- *
- * @private
- * @param {Function|string} func The function or method name to reference.
- * @param {number} bitmask The bitmask of flags.
- *  The bitmask may be composed of the following flags:
- *     1 - `_.bind`
- *     2 - `_.bindKey`
- *     4 - `_.curry` or `_.curryRight` of a bound function
- *     8 - `_.curry`
- *    16 - `_.curryRight`
- *    32 - `_.partial`
- *    64 - `_.partialRight`
- *   128 - `_.rearg`
- *   256 - `_.ary`
- * @param {*} [thisArg] The `this` binding of `func`.
- * @param {Array} [partials] The arguments to be partially applied.
- * @param {Array} [holders] The `partials` placeholder indexes.
- * @param {Array} [argPos] The argument positions of the new function.
- * @param {number} [ary] The arity cap of `func`.
- * @param {number} [arity] The arity of `func`.
- * @returns {Function} Returns the new wrapped function.
- */
-function createWrapper(func, bitmask, thisArg, partials, holders, argPos, ary, arity) {
-  var isBindKey = bitmask & BIND_KEY_FLAG;
-  if (!isBindKey && typeof func != 'function') {
-    throw new TypeError(FUNC_ERROR_TEXT);
-  }
-  var length = partials ? partials.length : 0;
-  if (!length) {
-    bitmask &= ~(PARTIAL_FLAG | PARTIAL_RIGHT_FLAG);
-    partials = holders = null;
-  }
-  length -= (holders ? holders.length : 0);
-  if (bitmask & PARTIAL_RIGHT_FLAG) {
-    var partialsRight = partials,
-        holdersRight = holders;
-
-    partials = holders = null;
-  }
-  var data = isBindKey ? null : getData(func),
-      newData = [func, bitmask, thisArg, partials, holders, partialsRight, holdersRight, argPos, ary, arity];
-
-  if (data) {
-    mergeData(newData, data);
-    bitmask = newData[1];
-    arity = newData[9];
-  }
-  newData[9] = arity == null
-    ? (isBindKey ? 0 : func.length)
-    : (nativeMax(arity - length, 0) || 0);
-
-  if (bitmask == BIND_FLAG) {
-    var result = createBindWrapper(newData[0], newData[2]);
-  } else if ((bitmask == PARTIAL_FLAG || bitmask == (BIND_FLAG | PARTIAL_FLAG)) && !newData[4].length) {
-    result = createPartialWrapper.apply(undefined, newData);
-  } else {
-    result = createHybridWrapper.apply(undefined, newData);
-  }
-  var setter = data ? baseSetData : setData;
-  return setter(result, newData);
-}
-
-module.exports = createWrapper;
-
-},{"455":455,"467":467,"471":471,"472":472,"477":477,"491":491,"496":496}],474:[function(_dereq_,module,exports){
-arguments[4][145][0].apply(exports,arguments)
-},{"145":145,"435":435}],475:[function(_dereq_,module,exports){
-arguments[4][146][0].apply(exports,arguments)
-},{"146":146}],476:[function(_dereq_,module,exports){
-arguments[4][147][0].apply(exports,arguments)
-},{"147":147,"510":510}],477:[function(_dereq_,module,exports){
-var metaMap = _dereq_(492),
-    noop = _dereq_(516);
-
-/**
- * Gets metadata for `func`.
- *
- * @private
- * @param {Function} func The function to query.
- * @returns {*} Returns the metadata for `func`.
- */
-var getData = !metaMap ? noop : function(func) {
-  return metaMap.get(func);
-};
-
-module.exports = getData;
-
-},{"492":492,"516":516}],478:[function(_dereq_,module,exports){
-var realNames = _dereq_(493);
-
-/**
- * Gets the name of `func`.
- *
- * @private
- * @param {Function} func The function to query.
- * @returns {string} Returns the function name.
- */
-function getFuncName(func) {
-  var result = func.name,
-      array = realNames[result],
-      length = array ? array.length : 0;
-
-  while (length--) {
-    var data = array[length],
-        otherFunc = data.func;
-    if (otherFunc == null || otherFunc == func) {
-      return data.name;
-    }
-  }
-  return result;
-}
-
-module.exports = getFuncName;
-
-},{"493":493}],479:[function(_dereq_,module,exports){
-arguments[4][49][0].apply(exports,arguments)
-},{"453":453,"49":49}],480:[function(_dereq_,module,exports){
-arguments[4][149][0].apply(exports,arguments)
-},{"149":149,"490":490,"512":512}],481:[function(_dereq_,module,exports){
-arguments[4][50][0].apply(exports,arguments)
-},{"50":50,"505":505}],482:[function(_dereq_,module,exports){
-arguments[4][357][0].apply(exports,arguments)
-},{"357":357}],483:[function(_dereq_,module,exports){
-arguments[4][51][0].apply(exports,arguments)
-},{"479":479,"488":488,"51":51}],484:[function(_dereq_,module,exports){
-arguments[4][52][0].apply(exports,arguments)
-},{"52":52}],485:[function(_dereq_,module,exports){
-arguments[4][84][0].apply(exports,arguments)
-},{"483":483,"484":484,"507":507,"84":84}],486:[function(_dereq_,module,exports){
-arguments[4][154][0].apply(exports,arguments)
-},{"154":154,"499":499,"503":503}],487:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(430),
-    getData = _dereq_(477),
-    getFuncName = _dereq_(478),
-    lodash = _dereq_(425);
-
-/**
- * Checks if `func` has a lazy counterpart.
- *
- * @private
- * @param {Function} func The function to check.
- * @returns {boolean} Returns `true` if `func` has a lazy counterpart, else `false`.
- */
-function isLaziable(func) {
-  var funcName = getFuncName(func);
-  if (!(funcName in LazyWrapper.prototype)) {
-    return false;
-  }
-  var other = lodash[funcName];
-  if (func === other) {
-    return true;
-  }
-  var data = getData(other);
-  return !!data && func === data[0];
-}
-
-module.exports = isLaziable;
-
-},{"425":425,"430":430,"477":477,"478":478}],488:[function(_dereq_,module,exports){
-arguments[4][53][0].apply(exports,arguments)
-},{"53":53}],489:[function(_dereq_,module,exports){
-arguments[4][54][0].apply(exports,arguments)
-},{"54":54}],490:[function(_dereq_,module,exports){
-arguments[4][157][0].apply(exports,arguments)
-},{"157":157,"507":507}],491:[function(_dereq_,module,exports){
-var arrayCopy = _dereq_(433),
-    composeArgs = _dereq_(462),
-    composeArgsRight = _dereq_(463),
-    replaceHolders = _dereq_(495);
-
-/** Used to compose bitmasks for wrapper metadata. */
-var BIND_FLAG = 1,
-    CURRY_BOUND_FLAG = 4,
-    CURRY_FLAG = 8,
-    ARY_FLAG = 128,
-    REARG_FLAG = 256;
-
-/** Used as the internal argument placeholder. */
-var PLACEHOLDER = '__lodash_placeholder__';
-
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeMin = Math.min;
-
-/**
- * Merges the function metadata of `source` into `data`.
- *
- * Merging metadata reduces the number of wrappers required to invoke a function.
- * This is possible because methods like `_.bind`, `_.curry`, and `_.partial`
- * may be applied regardless of execution order. Methods like `_.ary` and `_.rearg`
- * augment function arguments, making the order in which they are executed important,
- * preventing the merging of metadata. However, we make an exception for a safe
- * common case where curried functions have `_.ary` and or `_.rearg` applied.
- *
- * @private
- * @param {Array} data The destination metadata.
- * @param {Array} source The source metadata.
- * @returns {Array} Returns `data`.
- */
-function mergeData(data, source) {
-  var bitmask = data[1],
-      srcBitmask = source[1],
-      newBitmask = bitmask | srcBitmask,
-      isCommon = newBitmask < ARY_FLAG;
-
-  var isCombo =
-    (srcBitmask == ARY_FLAG && bitmask == CURRY_FLAG) ||
-    (srcBitmask == ARY_FLAG && bitmask == REARG_FLAG && data[7].length <= source[8]) ||
-    (srcBitmask == (ARY_FLAG | REARG_FLAG) && bitmask == CURRY_FLAG);
-
-  // Exit early if metadata can't be merged.
-  if (!(isCommon || isCombo)) {
-    return data;
-  }
-  // Use source `thisArg` if available.
-  if (srcBitmask & BIND_FLAG) {
-    data[2] = source[2];
-    // Set when currying a bound function.
-    newBitmask |= (bitmask & BIND_FLAG) ? 0 : CURRY_BOUND_FLAG;
-  }
-  // Compose partial arguments.
-  var value = source[3];
-  if (value) {
-    var partials = data[3];
-    data[3] = partials ? composeArgs(partials, value, source[4]) : arrayCopy(value);
-    data[4] = partials ? replaceHolders(data[3], PLACEHOLDER) : arrayCopy(source[4]);
-  }
-  // Compose partial right arguments.
-  value = source[5];
-  if (value) {
-    partials = data[5];
-    data[5] = partials ? composeArgsRight(partials, value, source[6]) : arrayCopy(value);
-    data[6] = partials ? replaceHolders(data[5], PLACEHOLDER) : arrayCopy(source[6]);
-  }
-  // Use source `argPos` if available.
-  value = source[7];
-  if (value) {
-    data[7] = arrayCopy(value);
-  }
-  // Use source `ary` if it's smaller.
-  if (srcBitmask & ARY_FLAG) {
-    data[8] = data[8] == null ? source[8] : nativeMin(data[8], source[8]);
-  }
-  // Use source `arity` if one is not provided.
-  if (data[9] == null) {
-    data[9] = source[9];
-  }
-  // Use source `func` and merge bitmasks.
-  data[0] = source[0];
-  data[1] = newBitmask;
-
-  return data;
-}
-
-module.exports = mergeData;
-
-},{"433":433,"462":462,"463":463,"495":495}],492:[function(_dereq_,module,exports){
-(function (global){
-var getNative = _dereq_(481);
-
-/** Native method references. */
-var WeakMap = getNative(global, 'WeakMap');
-
-/** Used to store function metadata. */
-var metaMap = WeakMap && new WeakMap;
-
-module.exports = metaMap;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-//# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy90YWJsZS1qcy9ub2RlX21vZHVsZXMvZGlhZ3JhbS1qcy9ub2RlX21vZHVsZXMvbG9kYXNoL2ludGVybmFsL21ldGFNYXAuanMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IjtBQUFBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBIiwiZmlsZSI6ImdlbmVyYXRlZC5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzQ29udGVudCI6WyJ2YXIgZ2V0TmF0aXZlID0gcmVxdWlyZSgnLi9nZXROYXRpdmUnKTtcblxuLyoqIE5hdGl2ZSBtZXRob2QgcmVmZXJlbmNlcy4gKi9cbnZhciBXZWFrTWFwID0gZ2V0TmF0aXZlKGdsb2JhbCwgJ1dlYWtNYXAnKTtcblxuLyoqIFVzZWQgdG8gc3RvcmUgZnVuY3Rpb24gbWV0YWRhdGEuICovXG52YXIgbWV0YU1hcCA9IFdlYWtNYXAgJiYgbmV3IFdlYWtNYXA7XG5cbm1vZHVsZS5leHBvcnRzID0gbWV0YU1hcDtcbiJdfQ==
-},{"481":481}],493:[function(_dereq_,module,exports){
-/** Used to lookup unminified function names. */
-var realNames = {};
-
-module.exports = realNames;
-
-},{}],494:[function(_dereq_,module,exports){
-var arrayCopy = _dereq_(433),
-    isIndex = _dereq_(484);
-
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeMin = Math.min;
-
-/**
- * Reorder `array` according to the specified indexes where the element at
- * the first index is assigned as the first element, the element at
- * the second index is assigned as the second element, and so on.
- *
- * @private
- * @param {Array} array The array to reorder.
- * @param {Array} indexes The arranged array indexes.
- * @returns {Array} Returns `array`.
- */
-function reorder(array, indexes) {
-  var arrLength = array.length,
-      length = nativeMin(indexes.length, arrLength),
-      oldArray = arrayCopy(array);
-
-  while (length--) {
-    var index = indexes[length];
-    array[length] = isIndex(index, arrLength) ? oldArray[index] : undefined;
-  }
-  return array;
-}
-
-module.exports = reorder;
-
-},{"433":433,"484":484}],495:[function(_dereq_,module,exports){
-/** Used as the internal argument placeholder. */
-var PLACEHOLDER = '__lodash_placeholder__';
-
-/**
- * Replaces all `placeholder` elements in `array` with an internal placeholder
- * and returns an array of their indexes.
- *
- * @private
- * @param {Array} array The array to modify.
- * @param {*} placeholder The placeholder to replace.
- * @returns {Array} Returns the new array of placeholder indexes.
- */
-function replaceHolders(array, placeholder) {
-  var index = -1,
-      length = array.length,
-      resIndex = -1,
-      result = [];
-
-  while (++index < length) {
-    if (array[index] === placeholder) {
-      array[index] = PLACEHOLDER;
-      result[++resIndex] = index;
-    }
-  }
-  return result;
-}
-
-module.exports = replaceHolders;
-
-},{}],496:[function(_dereq_,module,exports){
-var baseSetData = _dereq_(455),
-    now = _dereq_(427);
-
-/** Used to detect when a function becomes hot. */
-var HOT_COUNT = 150,
-    HOT_SPAN = 16;
-
-/**
- * Sets metadata for `func`.
- *
- * **Note:** If this function becomes hot, i.e. is invoked a lot in a short
- * period of time, it will trip its breaker and transition to an identity function
- * to avoid garbage collection pauses in V8. See [V8 issue 2070](https://code.google.com/p/v8/issues/detail?id=2070)
- * for more details.
- *
- * @private
- * @param {Function} func The function to associate metadata with.
- * @param {*} data The metadata.
- * @returns {Function} Returns `func`.
- */
-var setData = (function() {
-  var count = 0,
-      lastCalled = 0;
-
-  return function(key, value) {
-    var stamp = now(),
-        remaining = HOT_SPAN - (stamp - lastCalled);
-
-    lastCalled = stamp;
-    if (remaining > 0) {
-      if (++count >= HOT_COUNT) {
-        return key;
-      }
-    } else {
-      count = 0;
-    }
-    return baseSetData(key, value);
-  };
-}());
-
-module.exports = setData;
-
-},{"427":427,"455":455}],497:[function(_dereq_,module,exports){
-arguments[4][55][0].apply(exports,arguments)
-},{"484":484,"488":488,"502":502,"503":503,"511":511,"55":55}],498:[function(_dereq_,module,exports){
-/**
- * An implementation of `_.uniq` optimized for sorted arrays without support
- * for callback shorthands and `this` binding.
- *
- * @private
- * @param {Array} array The array to inspect.
- * @param {Function} [iteratee] The function invoked per iteration.
- * @returns {Array} Returns the new duplicate-value-free array.
- */
-function sortedUniq(array, iteratee) {
-  var seen,
-      index = -1,
-      length = array.length,
-      resIndex = -1,
-      result = [];
-
-  while (++index < length) {
-    var value = array[index],
-        computed = iteratee ? iteratee(value, index, array) : value;
-
-    if (!index || seen !== computed) {
-      seen = computed;
-      result[++resIndex] = value;
-    }
-  }
-  return result;
-}
-
-module.exports = sortedUniq;
-
-},{}],499:[function(_dereq_,module,exports){
-arguments[4][56][0].apply(exports,arguments)
-},{"507":507,"56":56}],500:[function(_dereq_,module,exports){
-arguments[4][160][0].apply(exports,arguments)
-},{"160":160,"457":457,"503":503}],501:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(430),
-    LodashWrapper = _dereq_(431),
-    arrayCopy = _dereq_(433);
-
-/**
- * Creates a clone of `wrapper`.
- *
- * @private
- * @param {Object} wrapper The wrapper to clone.
- * @returns {Object} Returns the cloned wrapper.
- */
-function wrapperClone(wrapper) {
-  return wrapper instanceof LazyWrapper
-    ? wrapper.clone()
-    : new LodashWrapper(wrapper.__wrapped__, wrapper.__chain__, arrayCopy(wrapper.__actions__));
-}
-
-module.exports = wrapperClone;
-
-},{"430":430,"431":431,"433":433}],502:[function(_dereq_,module,exports){
-arguments[4][57][0].apply(exports,arguments)
-},{"483":483,"489":489,"57":57}],503:[function(_dereq_,module,exports){
-arguments[4][58][0].apply(exports,arguments)
-},{"481":481,"488":488,"489":489,"58":58}],504:[function(_dereq_,module,exports){
-(function (global){
-var baseIsFunction = _dereq_(448),
-    getNative = _dereq_(481);
-
-/** `Object#toString` result references. */
-var funcTag = '[object Function]';
-
-/** Used for native method references. */
-var objectProto = Object.prototype;
-
-/**
- * Used to resolve the [`toStringTag`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.prototype.tostring)
- * of values.
- */
-var objToString = objectProto.toString;
-
-/** Native method references. */
-var Uint8Array = getNative(global, 'Uint8Array');
-
-/**
- * Checks if `value` is classified as a `Function` object.
- *
- * @static
- * @memberOf _
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is correctly classified, else `false`.
- * @example
- *
- * _.isFunction(_);
- * // => true
- *
- * _.isFunction(/abc/);
- * // => false
- */
-var isFunction = !(baseIsFunction(/x/) || (Uint8Array && !baseIsFunction(Uint8Array))) ? baseIsFunction : function(value) {
-  // The use of `Object#toString` avoids issues with the `typeof` operator
-  // in older versions of Chrome and Safari which return 'function' for regexes
-  // and Safari 8 equivalents which return 'object' for typed array constructors.
-  return objToString.call(value) == funcTag;
-};
-
-module.exports = isFunction;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-//# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy90YWJsZS1qcy9ub2RlX21vZHVsZXMvZGlhZ3JhbS1qcy9ub2RlX21vZHVsZXMvbG9kYXNoL2xhbmcvaXNGdW5jdGlvbi5qcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiO0FBQUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EiLCJmaWxlIjoiZ2VuZXJhdGVkLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXNDb250ZW50IjpbInZhciBiYXNlSXNGdW5jdGlvbiA9IHJlcXVpcmUoJy4uL2ludGVybmFsL2Jhc2VJc0Z1bmN0aW9uJyksXG4gICAgZ2V0TmF0aXZlID0gcmVxdWlyZSgnLi4vaW50ZXJuYWwvZ2V0TmF0aXZlJyk7XG5cbi8qKiBgT2JqZWN0I3RvU3RyaW5nYCByZXN1bHQgcmVmZXJlbmNlcy4gKi9cbnZhciBmdW5jVGFnID0gJ1tvYmplY3QgRnVuY3Rpb25dJztcblxuLyoqIFVzZWQgZm9yIG5hdGl2ZSBtZXRob2QgcmVmZXJlbmNlcy4gKi9cbnZhciBvYmplY3RQcm90byA9IE9iamVjdC5wcm90b3R5cGU7XG5cbi8qKlxuICogVXNlZCB0byByZXNvbHZlIHRoZSBbYHRvU3RyaW5nVGFnYF0oaHR0cHM6Ly9wZW9wbGUubW96aWxsYS5vcmcvfmpvcmVuZG9yZmYvZXM2LWRyYWZ0Lmh0bWwjc2VjLW9iamVjdC5wcm90b3R5cGUudG9zdHJpbmcpXG4gKiBvZiB2YWx1ZXMuXG4gKi9cbnZhciBvYmpUb1N0cmluZyA9IG9iamVjdFByb3RvLnRvU3RyaW5nO1xuXG4vKiogTmF0aXZlIG1ldGhvZCByZWZlcmVuY2VzLiAqL1xudmFyIFVpbnQ4QXJyYXkgPSBnZXROYXRpdmUoZ2xvYmFsLCAnVWludDhBcnJheScpO1xuXG4vKipcbiAqIENoZWNrcyBpZiBgdmFsdWVgIGlzIGNsYXNzaWZpZWQgYXMgYSBgRnVuY3Rpb25gIG9iamVjdC5cbiAqXG4gKiBAc3RhdGljXG4gKiBAbWVtYmVyT2YgX1xuICogQGNhdGVnb3J5IExhbmdcbiAqIEBwYXJhbSB7Kn0gdmFsdWUgVGhlIHZhbHVlIHRvIGNoZWNrLlxuICogQHJldHVybnMge2Jvb2xlYW59IFJldHVybnMgYHRydWVgIGlmIGB2YWx1ZWAgaXMgY29ycmVjdGx5IGNsYXNzaWZpZWQsIGVsc2UgYGZhbHNlYC5cbiAqIEBleGFtcGxlXG4gKlxuICogXy5pc0Z1bmN0aW9uKF8pO1xuICogLy8gPT4gdHJ1ZVxuICpcbiAqIF8uaXNGdW5jdGlvbigvYWJjLyk7XG4gKiAvLyA9PiBmYWxzZVxuICovXG52YXIgaXNGdW5jdGlvbiA9ICEoYmFzZUlzRnVuY3Rpb24oL3gvKSB8fCAoVWludDhBcnJheSAmJiAhYmFzZUlzRnVuY3Rpb24oVWludDhBcnJheSkpKSA/IGJhc2VJc0Z1bmN0aW9uIDogZnVuY3Rpb24odmFsdWUpIHtcbiAgLy8gVGhlIHVzZSBvZiBgT2JqZWN0I3RvU3RyaW5nYCBhdm9pZHMgaXNzdWVzIHdpdGggdGhlIGB0eXBlb2ZgIG9wZXJhdG9yXG4gIC8vIGluIG9sZGVyIHZlcnNpb25zIG9mIENocm9tZSBhbmQgU2FmYXJpIHdoaWNoIHJldHVybiAnZnVuY3Rpb24nIGZvciByZWdleGVzXG4gIC8vIGFuZCBTYWZhcmkgOCBlcXVpdmFsZW50cyB3aGljaCByZXR1cm4gJ29iamVjdCcgZm9yIHR5cGVkIGFycmF5IGNvbnN0cnVjdG9ycy5cbiAgcmV0dXJuIG9ialRvU3RyaW5nLmNhbGwodmFsdWUpID09IGZ1bmNUYWc7XG59O1xuXG5tb2R1bGUuZXhwb3J0cyA9IGlzRnVuY3Rpb247XG4iXX0=
-},{"448":448,"481":481}],505:[function(_dereq_,module,exports){
-arguments[4][60][0].apply(exports,arguments)
-},{"489":489,"513":513,"60":60}],506:[function(_dereq_,module,exports){
-arguments[4][61][0].apply(exports,arguments)
-},{"489":489,"61":61}],507:[function(_dereq_,module,exports){
-arguments[4][62][0].apply(exports,arguments)
-},{"62":62}],508:[function(_dereq_,module,exports){
-arguments[4][166][0].apply(exports,arguments)
-},{"166":166,"488":488,"489":489}],509:[function(_dereq_,module,exports){
-arguments[4][94][0].apply(exports,arguments)
-},{"436":436,"437":437,"464":464,"94":94}],510:[function(_dereq_,module,exports){
-arguments[4][63][0].apply(exports,arguments)
-},{"481":481,"483":483,"497":497,"507":507,"63":63}],511:[function(_dereq_,module,exports){
-arguments[4][64][0].apply(exports,arguments)
-},{"484":484,"488":488,"502":502,"503":503,"507":507,"64":64}],512:[function(_dereq_,module,exports){
-arguments[4][170][0].apply(exports,arguments)
-},{"170":170,"499":499,"510":510}],513:[function(_dereq_,module,exports){
-arguments[4][65][0].apply(exports,arguments)
-},{"457":457,"65":65}],514:[function(_dereq_,module,exports){
-/**
- * Creates a function that returns `value`.
- *
- * @static
- * @memberOf _
- * @category Utility
- * @param {*} value The value to return from the new function.
- * @returns {Function} Returns the new function.
- * @example
- *
- * var object = { 'user': 'fred' };
- * var getter = _.constant(object);
- *
- * getter() === object;
- * // => true
- */
-function constant(value) {
-  return function() {
-    return value;
-  };
-}
-
-module.exports = constant;
-
-},{}],515:[function(_dereq_,module,exports){
-arguments[4][66][0].apply(exports,arguments)
-},{"66":66}],516:[function(_dereq_,module,exports){
-/**
- * A no-operation function that returns `undefined` regardless of the
- * arguments it receives.
- *
- * @static
- * @memberOf _
- * @category Utility
- * @example
- *
- * var object = { 'user': 'fred' };
- *
- * _.noop(object) === undefined;
- * // => true
- */
-function noop() {
-  // No operation performed.
-}
-
-module.exports = noop;
-
-},{}],517:[function(_dereq_,module,exports){
-arguments[4][173][0].apply(exports,arguments)
-},{"173":173,"453":453,"454":454,"486":486}],518:[function(_dereq_,module,exports){
 
 var isArray = function(obj) {
   return Object.prototype.toString.call(obj) === '[object Array]';
@@ -15778,18 +14696,18 @@ exports.annotate = annotate;
 exports.parse = parse;
 exports.isArray = isArray;
 
-},{}],519:[function(_dereq_,module,exports){
+},{}],422:[function(_dereq_,module,exports){
 module.exports = {
-  annotate: _dereq_(518).annotate,
-  Module: _dereq_(521),
-  Injector: _dereq_(520)
+  annotate: _dereq_(421).annotate,
+  Module: _dereq_(424),
+  Injector: _dereq_(423)
 };
 
-},{"518":518,"520":520,"521":521}],520:[function(_dereq_,module,exports){
-var Module = _dereq_(521);
-var autoAnnotate = _dereq_(518).parse;
-var annotate = _dereq_(518).annotate;
-var isArray = _dereq_(518).isArray;
+},{"421":421,"423":423,"424":424}],423:[function(_dereq_,module,exports){
+var Module = _dereq_(424);
+var autoAnnotate = _dereq_(421).parse;
+var annotate = _dereq_(421).annotate;
+var isArray = _dereq_(421).isArray;
 
 
 var Injector = function(modules, parent) {
@@ -16001,7 +14919,7 @@ var Injector = function(modules, parent) {
 
 module.exports = Injector;
 
-},{"518":518,"521":521}],521:[function(_dereq_,module,exports){
+},{"421":421,"424":424}],424:[function(_dereq_,module,exports){
 var Module = function() {
   var providers = [];
 
@@ -16027,16 +14945,92 @@ var Module = function() {
 
 module.exports = Module;
 
-},{}],522:[function(_dereq_,module,exports){
+},{}],425:[function(_dereq_,module,exports){
 arguments[4][36][0].apply(exports,arguments)
-},{"36":36}],523:[function(_dereq_,module,exports){
+},{"36":36}],426:[function(_dereq_,module,exports){
 arguments[4][102][0].apply(exports,arguments)
-},{"102":102}],524:[function(_dereq_,module,exports){
-var arrayEvery = _dereq_(530),
-    baseCallback = _dereq_(534),
-    baseEvery = _dereq_(537),
-    isArray = _dereq_(572),
-    isIterateeCall = _dereq_(563);
+},{"102":102}],427:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(440),
+    baseUniq = _dereq_(457),
+    isIterateeCall = _dereq_(475),
+    sortedUniq = _dereq_(481);
+
+/**
+ * Creates a duplicate-free version of an array, using
+ * [`SameValueZero`](http://ecma-international.org/ecma-262/6.0/#sec-samevaluezero)
+ * for equality comparisons, in which only the first occurence of each element
+ * is kept. Providing `true` for `isSorted` performs a faster search algorithm
+ * for sorted arrays. If an iteratee function is provided it's invoked for
+ * each element in the array to generate the criterion by which uniqueness
+ * is computed. The `iteratee` is bound to `thisArg` and invoked with three
+ * arguments: (value, index, array).
+ *
+ * If a property name is provided for `iteratee` the created `_.property`
+ * style callback returns the property value of the given element.
+ *
+ * If a value is also provided for `thisArg` the created `_.matchesProperty`
+ * style callback returns `true` for elements that have a matching property
+ * value, else `false`.
+ *
+ * If an object is provided for `iteratee` the created `_.matches` style
+ * callback returns `true` for elements that have the properties of the given
+ * object, else `false`.
+ *
+ * @static
+ * @memberOf _
+ * @alias unique
+ * @category Array
+ * @param {Array} array The array to inspect.
+ * @param {boolean} [isSorted] Specify the array is sorted.
+ * @param {Function|Object|string} [iteratee] The function invoked per iteration.
+ * @param {*} [thisArg] The `this` binding of `iteratee`.
+ * @returns {Array} Returns the new duplicate-value-free array.
+ * @example
+ *
+ * _.uniq([2, 1, 2]);
+ * // => [2, 1]
+ *
+ * // using `isSorted`
+ * _.uniq([1, 1, 2], true);
+ * // => [1, 2]
+ *
+ * // using an iteratee function
+ * _.uniq([1, 2.5, 1.5, 2], function(n) {
+ *   return this.floor(n);
+ * }, Math);
+ * // => [1, 2.5]
+ *
+ * // using the `_.property` callback shorthand
+ * _.uniq([{ 'x': 1 }, { 'x': 2 }, { 'x': 1 }], 'x');
+ * // => [{ 'x': 1 }, { 'x': 2 }]
+ */
+function uniq(array, isSorted, iteratee, thisArg) {
+  var length = array ? array.length : 0;
+  if (!length) {
+    return [];
+  }
+  if (isSorted != null && typeof isSorted != 'boolean') {
+    thisArg = iteratee;
+    iteratee = isIterateeCall(array, isSorted, thisArg) ? undefined : isSorted;
+    isSorted = false;
+  }
+  iteratee = iteratee == null ? iteratee : baseCallback(iteratee, thisArg, 3);
+  return (isSorted)
+    ? sortedUniq(array, iteratee)
+    : baseUniq(array, iteratee);
+}
+
+module.exports = uniq;
+
+},{"440":440,"457":457,"475":475,"481":481}],428:[function(_dereq_,module,exports){
+module.exports = _dereq_(427);
+
+},{"427":427}],429:[function(_dereq_,module,exports){
+var arrayEvery = _dereq_(436),
+    baseCallback = _dereq_(440),
+    baseEvery = _dereq_(443),
+    isArray = _dereq_(485),
+    isIterateeCall = _dereq_(475);
 
 /**
  * Checks if `predicate` returns truthy for **all** elements of `collection`.
@@ -16089,7 +15083,7 @@ var arrayEvery = _dereq_(530),
 function every(collection, predicate, thisArg) {
   var func = isArray(collection) ? arrayEvery : baseEvery;
   if (thisArg && isIterateeCall(collection, predicate, thisArg)) {
-    predicate = null;
+    predicate = undefined;
   }
   if (typeof predicate != 'function' || thisArg !== undefined) {
     predicate = baseCallback(predicate, thisArg, 3);
@@ -16099,13 +15093,37 @@ function every(collection, predicate, thisArg) {
 
 module.exports = every;
 
-},{"530":530,"534":534,"537":537,"563":563,"572":572}],525:[function(_dereq_,module,exports){
+},{"436":436,"440":440,"443":443,"475":475,"485":485}],430:[function(_dereq_,module,exports){
 arguments[4][37][0].apply(exports,arguments)
-},{"37":37,"529":529,"536":536,"554":554}],526:[function(_dereq_,module,exports){
-arguments[4][427][0].apply(exports,arguments)
-},{"427":427,"560":560}],527:[function(_dereq_,module,exports){
-var isObject = _dereq_(575),
-    now = _dereq_(526);
+},{"37":37,"435":435,"442":442,"465":465}],431:[function(_dereq_,module,exports){
+var getNative = _dereq_(471);
+
+/* Native method references for those with the same name as other `lodash` methods. */
+var nativeNow = getNative(Date, 'now');
+
+/**
+ * Gets the number of milliseconds that have elapsed since the Unix epoch
+ * (1 January 1970 00:00:00 UTC).
+ *
+ * @static
+ * @memberOf _
+ * @category Date
+ * @example
+ *
+ * _.defer(function(stamp) {
+ *   console.log(_.now() - stamp);
+ * }, _.now());
+ * // => logs the number of milliseconds it took for the deferred function to be invoked
+ */
+var now = nativeNow || function() {
+  return new Date().getTime();
+};
+
+module.exports = now;
+
+},{"471":471}],432:[function(_dereq_,module,exports){
+var isObject = _dereq_(489),
+    now = _dereq_(431);
 
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
@@ -16138,7 +15156,7 @@ var nativeMax = Math.max;
  * @param {boolean} [options.leading=false] Specify invoking on the leading
  *  edge of the timeout.
  * @param {number} [options.maxWait] The maximum time `func` is allowed to be
- *  delayed before it is invoked.
+ *  delayed before it's invoked.
  * @param {boolean} [options.trailing=true] Specify invoking on the trailing
  *  edge of the timeout.
  * @returns {Function} Returns the new debounced function.
@@ -16196,9 +15214,9 @@ function debounce(func, wait, options) {
     var leading = true;
     trailing = false;
   } else if (isObject(options)) {
-    leading = options.leading;
+    leading = !!options.leading;
     maxWait = 'maxWait' in options && nativeMax(+options.maxWait || 0, wait);
-    trailing = 'trailing' in options ? options.trailing : trailing;
+    trailing = 'trailing' in options ? !!options.trailing : trailing;
   }
 
   function cancel() {
@@ -16208,41 +15226,35 @@ function debounce(func, wait, options) {
     if (maxTimeoutId) {
       clearTimeout(maxTimeoutId);
     }
+    lastCalled = 0;
     maxTimeoutId = timeoutId = trailingCall = undefined;
+  }
+
+  function complete(isCalled, id) {
+    if (id) {
+      clearTimeout(id);
+    }
+    maxTimeoutId = timeoutId = trailingCall = undefined;
+    if (isCalled) {
+      lastCalled = now();
+      result = func.apply(thisArg, args);
+      if (!timeoutId && !maxTimeoutId) {
+        args = thisArg = undefined;
+      }
+    }
   }
 
   function delayed() {
     var remaining = wait - (now() - stamp);
     if (remaining <= 0 || remaining > wait) {
-      if (maxTimeoutId) {
-        clearTimeout(maxTimeoutId);
-      }
-      var isCalled = trailingCall;
-      maxTimeoutId = timeoutId = trailingCall = undefined;
-      if (isCalled) {
-        lastCalled = now();
-        result = func.apply(thisArg, args);
-        if (!timeoutId && !maxTimeoutId) {
-          args = thisArg = null;
-        }
-      }
+      complete(trailingCall, maxTimeoutId);
     } else {
       timeoutId = setTimeout(delayed, remaining);
     }
   }
 
   function maxDelayed() {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
-    maxTimeoutId = timeoutId = trailingCall = undefined;
-    if (trailing || (maxWait !== wait)) {
-      lastCalled = now();
-      result = func.apply(thisArg, args);
-      if (!timeoutId && !maxTimeoutId) {
-        args = thisArg = null;
-      }
-    }
+    complete(trailing, timeoutId);
   }
 
   function debounced() {
@@ -16282,7 +15294,7 @@ function debounce(func, wait, options) {
       result = func.apply(thisArg, args);
     }
     if (isCalled && !timeoutId && !maxTimeoutId) {
-      args = thisArg = null;
+      args = thisArg = undefined;
     }
     return result;
   }
@@ -16292,11 +15304,45 @@ function debounce(func, wait, options) {
 
 module.exports = debounce;
 
-},{"526":526,"575":575}],528:[function(_dereq_,module,exports){
-arguments[4][71][0].apply(exports,arguments)
-},{"71":71}],529:[function(_dereq_,module,exports){
+},{"431":431,"489":489}],433:[function(_dereq_,module,exports){
+arguments[4][330][0].apply(exports,arguments)
+},{"330":330}],434:[function(_dereq_,module,exports){
+(function (global){
+var cachePush = _dereq_(460),
+    getNative = _dereq_(471);
+
+/** Native method references. */
+var Set = getNative(global, 'Set');
+
+/* Native method references for those with the same name as other `lodash` methods. */
+var nativeCreate = getNative(Object, 'create');
+
+/**
+ *
+ * Creates a cache object to store unique values.
+ *
+ * @private
+ * @param {Array} [values] The values to cache.
+ */
+function SetCache(values) {
+  var length = values ? values.length : 0;
+
+  this.data = { 'hash': nativeCreate(null), 'set': new Set };
+  while (length--) {
+    this.push(values[length]);
+  }
+}
+
+// Add functions to the `Set` cache.
+SetCache.prototype.push = cachePush;
+
+module.exports = SetCache;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+//# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy90YWJsZS1qcy9ub2RlX21vZHVsZXMvbG9kYXNoL2ludGVybmFsL1NldENhY2hlLmpzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7QUFBQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EiLCJmaWxlIjoiZ2VuZXJhdGVkLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXNDb250ZW50IjpbInZhciBjYWNoZVB1c2ggPSByZXF1aXJlKCcuL2NhY2hlUHVzaCcpLFxuICAgIGdldE5hdGl2ZSA9IHJlcXVpcmUoJy4vZ2V0TmF0aXZlJyk7XG5cbi8qKiBOYXRpdmUgbWV0aG9kIHJlZmVyZW5jZXMuICovXG52YXIgU2V0ID0gZ2V0TmF0aXZlKGdsb2JhbCwgJ1NldCcpO1xuXG4vKiBOYXRpdmUgbWV0aG9kIHJlZmVyZW5jZXMgZm9yIHRob3NlIHdpdGggdGhlIHNhbWUgbmFtZSBhcyBvdGhlciBgbG9kYXNoYCBtZXRob2RzLiAqL1xudmFyIG5hdGl2ZUNyZWF0ZSA9IGdldE5hdGl2ZShPYmplY3QsICdjcmVhdGUnKTtcblxuLyoqXG4gKlxuICogQ3JlYXRlcyBhIGNhY2hlIG9iamVjdCB0byBzdG9yZSB1bmlxdWUgdmFsdWVzLlxuICpcbiAqIEBwcml2YXRlXG4gKiBAcGFyYW0ge0FycmF5fSBbdmFsdWVzXSBUaGUgdmFsdWVzIHRvIGNhY2hlLlxuICovXG5mdW5jdGlvbiBTZXRDYWNoZSh2YWx1ZXMpIHtcbiAgdmFyIGxlbmd0aCA9IHZhbHVlcyA/IHZhbHVlcy5sZW5ndGggOiAwO1xuXG4gIHRoaXMuZGF0YSA9IHsgJ2hhc2gnOiBuYXRpdmVDcmVhdGUobnVsbCksICdzZXQnOiBuZXcgU2V0IH07XG4gIHdoaWxlIChsZW5ndGgtLSkge1xuICAgIHRoaXMucHVzaCh2YWx1ZXNbbGVuZ3RoXSk7XG4gIH1cbn1cblxuLy8gQWRkIGZ1bmN0aW9ucyB0byB0aGUgYFNldGAgY2FjaGUuXG5TZXRDYWNoZS5wcm90b3R5cGUucHVzaCA9IGNhY2hlUHVzaDtcblxubW9kdWxlLmV4cG9ydHMgPSBTZXRDYWNoZTtcbiJdfQ==
+},{"460":460,"471":471}],435:[function(_dereq_,module,exports){
 arguments[4][38][0].apply(exports,arguments)
-},{"38":38}],530:[function(_dereq_,module,exports){
+},{"38":38}],436:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.every` for arrays without support for callback
  * shorthands and `this` binding.
@@ -16321,20 +15367,20 @@ function arrayEvery(array, predicate) {
 
 module.exports = arrayEvery;
 
-},{}],531:[function(_dereq_,module,exports){
+},{}],437:[function(_dereq_,module,exports){
 arguments[4][114][0].apply(exports,arguments)
-},{"114":114}],532:[function(_dereq_,module,exports){
+},{"114":114}],438:[function(_dereq_,module,exports){
 arguments[4][72][0].apply(exports,arguments)
-},{"578":578,"72":72}],533:[function(_dereq_,module,exports){
+},{"492":492,"72":72}],439:[function(_dereq_,module,exports){
 arguments[4][73][0].apply(exports,arguments)
-},{"535":535,"578":578,"73":73}],534:[function(_dereq_,module,exports){
+},{"441":441,"492":492,"73":73}],440:[function(_dereq_,module,exports){
 arguments[4][117][0].apply(exports,arguments)
-},{"117":117,"544":544,"545":545,"550":550,"582":582,"583":583}],535:[function(_dereq_,module,exports){
+},{"117":117,"451":451,"452":452,"458":458,"495":495,"496":496}],441:[function(_dereq_,module,exports){
 arguments[4][74][0].apply(exports,arguments)
-},{"74":74}],536:[function(_dereq_,module,exports){
+},{"74":74}],442:[function(_dereq_,module,exports){
 arguments[4][39][0].apply(exports,arguments)
-},{"39":39,"539":539,"552":552}],537:[function(_dereq_,module,exports){
-var baseEach = _dereq_(536);
+},{"39":39,"445":445,"462":462}],443:[function(_dereq_,module,exports){
+var baseEach = _dereq_(442);
 
 /**
  * The base implementation of `_.every` without support for callback
@@ -16357,112 +15403,416 @@ function baseEvery(collection, predicate) {
 
 module.exports = baseEvery;
 
-},{"536":536}],538:[function(_dereq_,module,exports){
+},{"442":442}],444:[function(_dereq_,module,exports){
 arguments[4][40][0].apply(exports,arguments)
-},{"40":40,"553":553}],539:[function(_dereq_,module,exports){
+},{"40":40,"463":463}],445:[function(_dereq_,module,exports){
 arguments[4][41][0].apply(exports,arguments)
-},{"41":41,"538":538,"578":578}],540:[function(_dereq_,module,exports){
+},{"41":41,"444":444,"492":492}],446:[function(_dereq_,module,exports){
 arguments[4][126][0].apply(exports,arguments)
-},{"126":126,"569":569}],541:[function(_dereq_,module,exports){
+},{"126":126,"482":482}],447:[function(_dereq_,module,exports){
+arguments[4][344][0].apply(exports,arguments)
+},{"344":344,"472":472}],448:[function(_dereq_,module,exports){
 arguments[4][127][0].apply(exports,arguments)
-},{"127":127,"542":542,"566":566,"575":575}],542:[function(_dereq_,module,exports){
-arguments[4][128][0].apply(exports,arguments)
-},{"128":128,"555":555,"556":556,"557":557,"572":572,"576":576}],543:[function(_dereq_,module,exports){
+},{"127":127,"449":449,"478":478,"489":489}],449:[function(_dereq_,module,exports){
+var equalArrays = _dereq_(466),
+    equalByTag = _dereq_(467),
+    equalObjects = _dereq_(468),
+    isArray = _dereq_(485),
+    isTypedArray = _dereq_(490);
+
+/** `Object#toString` result references. */
+var argsTag = '[object Arguments]',
+    arrayTag = '[object Array]',
+    objectTag = '[object Object]';
+
+/** Used for native method references. */
+var objectProto = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/**
+ * Used to resolve the [`toStringTag`](http://ecma-international.org/ecma-262/6.0/#sec-object.prototype.tostring)
+ * of values.
+ */
+var objToString = objectProto.toString;
+
+/**
+ * A specialized version of `baseIsEqual` for arrays and objects which performs
+ * deep comparisons and tracks traversed objects enabling objects with circular
+ * references to be compared.
+ *
+ * @private
+ * @param {Object} object The object to compare.
+ * @param {Object} other The other object to compare.
+ * @param {Function} equalFunc The function to determine equivalents of values.
+ * @param {Function} [customizer] The function to customize comparing objects.
+ * @param {boolean} [isLoose] Specify performing partial comparisons.
+ * @param {Array} [stackA=[]] Tracks traversed `value` objects.
+ * @param {Array} [stackB=[]] Tracks traversed `other` objects.
+ * @returns {boolean} Returns `true` if the objects are equivalent, else `false`.
+ */
+function baseIsEqualDeep(object, other, equalFunc, customizer, isLoose, stackA, stackB) {
+  var objIsArr = isArray(object),
+      othIsArr = isArray(other),
+      objTag = arrayTag,
+      othTag = arrayTag;
+
+  if (!objIsArr) {
+    objTag = objToString.call(object);
+    if (objTag == argsTag) {
+      objTag = objectTag;
+    } else if (objTag != objectTag) {
+      objIsArr = isTypedArray(object);
+    }
+  }
+  if (!othIsArr) {
+    othTag = objToString.call(other);
+    if (othTag == argsTag) {
+      othTag = objectTag;
+    } else if (othTag != objectTag) {
+      othIsArr = isTypedArray(other);
+    }
+  }
+  var objIsObj = objTag == objectTag,
+      othIsObj = othTag == objectTag,
+      isSameTag = objTag == othTag;
+
+  if (isSameTag && !(objIsArr || objIsObj)) {
+    return equalByTag(object, other, objTag);
+  }
+  if (!isLoose) {
+    var objIsWrapped = objIsObj && hasOwnProperty.call(object, '__wrapped__'),
+        othIsWrapped = othIsObj && hasOwnProperty.call(other, '__wrapped__');
+
+    if (objIsWrapped || othIsWrapped) {
+      return equalFunc(objIsWrapped ? object.value() : object, othIsWrapped ? other.value() : other, customizer, isLoose, stackA, stackB);
+    }
+  }
+  if (!isSameTag) {
+    return false;
+  }
+  // Assume cyclic values are equal.
+  // For more information on detecting circular references see https://es5.github.io/#JO.
+  stackA || (stackA = []);
+  stackB || (stackB = []);
+
+  var length = stackA.length;
+  while (length--) {
+    if (stackA[length] == object) {
+      return stackB[length] == other;
+    }
+  }
+  // Add `object` and `other` to the stack of traversed objects.
+  stackA.push(object);
+  stackB.push(other);
+
+  var result = (objIsArr ? equalArrays : equalObjects)(object, other, equalFunc, customizer, isLoose, stackA, stackB);
+
+  stackA.pop();
+  stackB.pop();
+
+  return result;
+}
+
+module.exports = baseIsEqualDeep;
+
+},{"466":466,"467":467,"468":468,"485":485,"490":490}],450:[function(_dereq_,module,exports){
 arguments[4][129][0].apply(exports,arguments)
-},{"129":129,"541":541,"569":569}],544:[function(_dereq_,module,exports){
+},{"129":129,"448":448,"482":482}],451:[function(_dereq_,module,exports){
 arguments[4][131][0].apply(exports,arguments)
-},{"131":131,"543":543,"559":559,"569":569}],545:[function(_dereq_,module,exports){
+},{"131":131,"450":450,"470":470,"482":482}],452:[function(_dereq_,module,exports){
 arguments[4][132][0].apply(exports,arguments)
-},{"132":132,"523":523,"540":540,"541":541,"548":548,"564":564,"567":567,"569":569,"570":570,"572":572}],546:[function(_dereq_,module,exports){
+},{"132":132,"426":426,"446":446,"448":448,"455":455,"476":476,"479":479,"482":482,"483":483,"485":485}],453:[function(_dereq_,module,exports){
 arguments[4][43][0].apply(exports,arguments)
-},{"43":43}],547:[function(_dereq_,module,exports){
+},{"43":43}],454:[function(_dereq_,module,exports){
 arguments[4][134][0].apply(exports,arguments)
-},{"134":134,"540":540,"570":570}],548:[function(_dereq_,module,exports){
+},{"134":134,"446":446,"483":483}],455:[function(_dereq_,module,exports){
 arguments[4][136][0].apply(exports,arguments)
-},{"136":136}],549:[function(_dereq_,module,exports){
-arguments[4][44][0].apply(exports,arguments)
-},{"44":44}],550:[function(_dereq_,module,exports){
+},{"136":136}],456:[function(_dereq_,module,exports){
+/**
+ * Converts `value` to a string if it's not one. An empty string is returned
+ * for `null` or `undefined` values.
+ *
+ * @private
+ * @param {*} value The value to process.
+ * @returns {string} Returns the string.
+ */
+function baseToString(value) {
+  return value == null ? '' : (value + '');
+}
+
+module.exports = baseToString;
+
+},{}],457:[function(_dereq_,module,exports){
+arguments[4][346][0].apply(exports,arguments)
+},{"346":346,"447":447,"459":459,"464":464}],458:[function(_dereq_,module,exports){
 arguments[4][45][0].apply(exports,arguments)
-},{"45":45,"582":582}],551:[function(_dereq_,module,exports){
-arguments[4][79][0].apply(exports,arguments)
-},{"528":528,"550":550,"563":563,"79":79}],552:[function(_dereq_,module,exports){
+},{"45":45,"495":495}],459:[function(_dereq_,module,exports){
+arguments[4][348][0].apply(exports,arguments)
+},{"348":348,"489":489}],460:[function(_dereq_,module,exports){
+arguments[4][349][0].apply(exports,arguments)
+},{"349":349,"489":489}],461:[function(_dereq_,module,exports){
+arguments[4][350][0].apply(exports,arguments)
+},{"350":350,"433":433,"458":458,"475":475}],462:[function(_dereq_,module,exports){
 arguments[4][46][0].apply(exports,arguments)
-},{"46":46,"558":558,"565":565,"569":569}],553:[function(_dereq_,module,exports){
+},{"46":46,"469":469,"477":477,"482":482}],463:[function(_dereq_,module,exports){
 arguments[4][47][0].apply(exports,arguments)
-},{"47":47,"569":569}],554:[function(_dereq_,module,exports){
+},{"47":47,"482":482}],464:[function(_dereq_,module,exports){
+(function (global){
+var SetCache = _dereq_(434),
+    getNative = _dereq_(471);
+
+/** Native method references. */
+var Set = getNative(global, 'Set');
+
+/* Native method references for those with the same name as other `lodash` methods. */
+var nativeCreate = getNative(Object, 'create');
+
+/**
+ * Creates a `Set` cache object to optimize linear searches of large arrays.
+ *
+ * @private
+ * @param {Array} [values] The values to cache.
+ * @returns {null|Object} Returns the new cache object if `Set` is supported, else `null`.
+ */
+function createCache(values) {
+  return (nativeCreate && Set) ? new SetCache(values) : null;
+}
+
+module.exports = createCache;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+//# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy90YWJsZS1qcy9ub2RlX21vZHVsZXMvbG9kYXNoL2ludGVybmFsL2NyZWF0ZUNhY2hlLmpzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7QUFBQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSIsImZpbGUiOiJnZW5lcmF0ZWQuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlc0NvbnRlbnQiOlsidmFyIFNldENhY2hlID0gcmVxdWlyZSgnLi9TZXRDYWNoZScpLFxuICAgIGdldE5hdGl2ZSA9IHJlcXVpcmUoJy4vZ2V0TmF0aXZlJyk7XG5cbi8qKiBOYXRpdmUgbWV0aG9kIHJlZmVyZW5jZXMuICovXG52YXIgU2V0ID0gZ2V0TmF0aXZlKGdsb2JhbCwgJ1NldCcpO1xuXG4vKiBOYXRpdmUgbWV0aG9kIHJlZmVyZW5jZXMgZm9yIHRob3NlIHdpdGggdGhlIHNhbWUgbmFtZSBhcyBvdGhlciBgbG9kYXNoYCBtZXRob2RzLiAqL1xudmFyIG5hdGl2ZUNyZWF0ZSA9IGdldE5hdGl2ZShPYmplY3QsICdjcmVhdGUnKTtcblxuLyoqXG4gKiBDcmVhdGVzIGEgYFNldGAgY2FjaGUgb2JqZWN0IHRvIG9wdGltaXplIGxpbmVhciBzZWFyY2hlcyBvZiBsYXJnZSBhcnJheXMuXG4gKlxuICogQHByaXZhdGVcbiAqIEBwYXJhbSB7QXJyYXl9IFt2YWx1ZXNdIFRoZSB2YWx1ZXMgdG8gY2FjaGUuXG4gKiBAcmV0dXJucyB7bnVsbHxPYmplY3R9IFJldHVybnMgdGhlIG5ldyBjYWNoZSBvYmplY3QgaWYgYFNldGAgaXMgc3VwcG9ydGVkLCBlbHNlIGBudWxsYC5cbiAqL1xuZnVuY3Rpb24gY3JlYXRlQ2FjaGUodmFsdWVzKSB7XG4gIHJldHVybiAobmF0aXZlQ3JlYXRlICYmIFNldCkgPyBuZXcgU2V0Q2FjaGUodmFsdWVzKSA6IG51bGw7XG59XG5cbm1vZHVsZS5leHBvcnRzID0gY3JlYXRlQ2FjaGU7XG4iXX0=
+},{"434":434,"471":471}],465:[function(_dereq_,module,exports){
 arguments[4][48][0].apply(exports,arguments)
-},{"48":48,"550":550,"572":572}],555:[function(_dereq_,module,exports){
+},{"458":458,"48":48,"485":485}],466:[function(_dereq_,module,exports){
 arguments[4][145][0].apply(exports,arguments)
-},{"145":145,"531":531}],556:[function(_dereq_,module,exports){
-arguments[4][146][0].apply(exports,arguments)
-},{"146":146}],557:[function(_dereq_,module,exports){
+},{"145":145,"437":437}],467:[function(_dereq_,module,exports){
+/** `Object#toString` result references. */
+var boolTag = '[object Boolean]',
+    dateTag = '[object Date]',
+    errorTag = '[object Error]',
+    numberTag = '[object Number]',
+    regexpTag = '[object RegExp]',
+    stringTag = '[object String]';
+
+/**
+ * A specialized version of `baseIsEqualDeep` for comparing objects of
+ * the same `toStringTag`.
+ *
+ * **Note:** This function only supports comparing values with tags of
+ * `Boolean`, `Date`, `Error`, `Number`, `RegExp`, or `String`.
+ *
+ * @private
+ * @param {Object} object The object to compare.
+ * @param {Object} other The other object to compare.
+ * @param {string} tag The `toStringTag` of the objects to compare.
+ * @returns {boolean} Returns `true` if the objects are equivalent, else `false`.
+ */
+function equalByTag(object, other, tag) {
+  switch (tag) {
+    case boolTag:
+    case dateTag:
+      // Coerce dates and booleans to numbers, dates to milliseconds and booleans
+      // to `1` or `0` treating invalid dates coerced to `NaN` as not equal.
+      return +object == +other;
+
+    case errorTag:
+      return object.name == other.name && object.message == other.message;
+
+    case numberTag:
+      // Treat `NaN` vs. `NaN` as equal.
+      return (object != +object)
+        ? other != +other
+        : object == +other;
+
+    case regexpTag:
+    case stringTag:
+      // Coerce regexes to strings and treat strings primitives and string
+      // objects as equal. See https://es5.github.io/#x15.10.6.4 for more details.
+      return object == (other + '');
+  }
+  return false;
+}
+
+module.exports = equalByTag;
+
+},{}],468:[function(_dereq_,module,exports){
 arguments[4][147][0].apply(exports,arguments)
-},{"147":147,"578":578}],558:[function(_dereq_,module,exports){
+},{"147":147,"492":492}],469:[function(_dereq_,module,exports){
 arguments[4][49][0].apply(exports,arguments)
-},{"49":49,"546":546}],559:[function(_dereq_,module,exports){
+},{"453":453,"49":49}],470:[function(_dereq_,module,exports){
 arguments[4][149][0].apply(exports,arguments)
-},{"149":149,"567":567,"580":580}],560:[function(_dereq_,module,exports){
+},{"149":149,"479":479,"494":494}],471:[function(_dereq_,module,exports){
 arguments[4][50][0].apply(exports,arguments)
-},{"50":50,"573":573}],561:[function(_dereq_,module,exports){
+},{"487":487,"50":50}],472:[function(_dereq_,module,exports){
+arguments[4][357][0].apply(exports,arguments)
+},{"357":357}],473:[function(_dereq_,module,exports){
 arguments[4][51][0].apply(exports,arguments)
-},{"51":51,"558":558,"565":565}],562:[function(_dereq_,module,exports){
-arguments[4][52][0].apply(exports,arguments)
-},{"52":52}],563:[function(_dereq_,module,exports){
+},{"469":469,"477":477,"51":51}],474:[function(_dereq_,module,exports){
+arguments[4][359][0].apply(exports,arguments)
+},{"359":359}],475:[function(_dereq_,module,exports){
 arguments[4][84][0].apply(exports,arguments)
-},{"561":561,"562":562,"575":575,"84":84}],564:[function(_dereq_,module,exports){
+},{"473":473,"474":474,"489":489,"84":84}],476:[function(_dereq_,module,exports){
 arguments[4][154][0].apply(exports,arguments)
-},{"154":154,"569":569,"572":572}],565:[function(_dereq_,module,exports){
-arguments[4][53][0].apply(exports,arguments)
-},{"53":53}],566:[function(_dereq_,module,exports){
+},{"154":154,"482":482,"485":485}],477:[function(_dereq_,module,exports){
+arguments[4][361][0].apply(exports,arguments)
+},{"361":361}],478:[function(_dereq_,module,exports){
 arguments[4][54][0].apply(exports,arguments)
-},{"54":54}],567:[function(_dereq_,module,exports){
+},{"54":54}],479:[function(_dereq_,module,exports){
 arguments[4][157][0].apply(exports,arguments)
-},{"157":157,"575":575}],568:[function(_dereq_,module,exports){
+},{"157":157,"489":489}],480:[function(_dereq_,module,exports){
 arguments[4][55][0].apply(exports,arguments)
-},{"55":55,"562":562,"565":565,"571":571,"572":572,"579":579}],569:[function(_dereq_,module,exports){
+},{"474":474,"477":477,"484":484,"485":485,"493":493,"55":55}],481:[function(_dereq_,module,exports){
+/**
+ * An implementation of `_.uniq` optimized for sorted arrays without support
+ * for callback shorthands and `this` binding.
+ *
+ * @private
+ * @param {Array} array The array to inspect.
+ * @param {Function} [iteratee] The function invoked per iteration.
+ * @returns {Array} Returns the new duplicate free array.
+ */
+function sortedUniq(array, iteratee) {
+  var seen,
+      index = -1,
+      length = array.length,
+      resIndex = -1,
+      result = [];
+
+  while (++index < length) {
+    var value = array[index],
+        computed = iteratee ? iteratee(value, index, array) : value;
+
+    if (!index || seen !== computed) {
+      seen = computed;
+      result[++resIndex] = value;
+    }
+  }
+  return result;
+}
+
+module.exports = sortedUniq;
+
+},{}],482:[function(_dereq_,module,exports){
 arguments[4][56][0].apply(exports,arguments)
-},{"56":56,"575":575}],570:[function(_dereq_,module,exports){
+},{"489":489,"56":56}],483:[function(_dereq_,module,exports){
 arguments[4][160][0].apply(exports,arguments)
-},{"160":160,"549":549,"572":572}],571:[function(_dereq_,module,exports){
-arguments[4][57][0].apply(exports,arguments)
-},{"561":561,"566":566,"57":57}],572:[function(_dereq_,module,exports){
-arguments[4][58][0].apply(exports,arguments)
-},{"560":560,"565":565,"566":566,"58":58}],573:[function(_dereq_,module,exports){
-arguments[4][60][0].apply(exports,arguments)
-},{"566":566,"581":581,"60":60}],574:[function(_dereq_,module,exports){
-arguments[4][61][0].apply(exports,arguments)
-},{"566":566,"61":61}],575:[function(_dereq_,module,exports){
+},{"160":160,"456":456,"485":485}],484:[function(_dereq_,module,exports){
+arguments[4][367][0].apply(exports,arguments)
+},{"367":367,"473":473,"478":478}],485:[function(_dereq_,module,exports){
+arguments[4][368][0].apply(exports,arguments)
+},{"368":368,"471":471,"477":477,"478":478}],486:[function(_dereq_,module,exports){
+arguments[4][369][0].apply(exports,arguments)
+},{"369":369,"489":489}],487:[function(_dereq_,module,exports){
+arguments[4][370][0].apply(exports,arguments)
+},{"370":370,"478":478,"486":486}],488:[function(_dereq_,module,exports){
+arguments[4][371][0].apply(exports,arguments)
+},{"371":371,"478":478}],489:[function(_dereq_,module,exports){
 arguments[4][62][0].apply(exports,arguments)
-},{"62":62}],576:[function(_dereq_,module,exports){
-arguments[4][166][0].apply(exports,arguments)
-},{"166":166,"565":565,"566":566}],577:[function(_dereq_,module,exports){
-arguments[4][94][0].apply(exports,arguments)
-},{"532":532,"533":533,"551":551,"94":94}],578:[function(_dereq_,module,exports){
-arguments[4][63][0].apply(exports,arguments)
-},{"560":560,"561":561,"568":568,"575":575,"63":63}],579:[function(_dereq_,module,exports){
+},{"62":62}],490:[function(_dereq_,module,exports){
+var isLength = _dereq_(477),
+    isObjectLike = _dereq_(478);
+
+/** `Object#toString` result references. */
+var argsTag = '[object Arguments]',
+    arrayTag = '[object Array]',
+    boolTag = '[object Boolean]',
+    dateTag = '[object Date]',
+    errorTag = '[object Error]',
+    funcTag = '[object Function]',
+    mapTag = '[object Map]',
+    numberTag = '[object Number]',
+    objectTag = '[object Object]',
+    regexpTag = '[object RegExp]',
+    setTag = '[object Set]',
+    stringTag = '[object String]',
+    weakMapTag = '[object WeakMap]';
+
+var arrayBufferTag = '[object ArrayBuffer]',
+    float32Tag = '[object Float32Array]',
+    float64Tag = '[object Float64Array]',
+    int8Tag = '[object Int8Array]',
+    int16Tag = '[object Int16Array]',
+    int32Tag = '[object Int32Array]',
+    uint8Tag = '[object Uint8Array]',
+    uint8ClampedTag = '[object Uint8ClampedArray]',
+    uint16Tag = '[object Uint16Array]',
+    uint32Tag = '[object Uint32Array]';
+
+/** Used to identify `toStringTag` values of typed arrays. */
+var typedArrayTags = {};
+typedArrayTags[float32Tag] = typedArrayTags[float64Tag] =
+typedArrayTags[int8Tag] = typedArrayTags[int16Tag] =
+typedArrayTags[int32Tag] = typedArrayTags[uint8Tag] =
+typedArrayTags[uint8ClampedTag] = typedArrayTags[uint16Tag] =
+typedArrayTags[uint32Tag] = true;
+typedArrayTags[argsTag] = typedArrayTags[arrayTag] =
+typedArrayTags[arrayBufferTag] = typedArrayTags[boolTag] =
+typedArrayTags[dateTag] = typedArrayTags[errorTag] =
+typedArrayTags[funcTag] = typedArrayTags[mapTag] =
+typedArrayTags[numberTag] = typedArrayTags[objectTag] =
+typedArrayTags[regexpTag] = typedArrayTags[setTag] =
+typedArrayTags[stringTag] = typedArrayTags[weakMapTag] = false;
+
+/** Used for native method references. */
+var objectProto = Object.prototype;
+
+/**
+ * Used to resolve the [`toStringTag`](http://ecma-international.org/ecma-262/6.0/#sec-object.prototype.tostring)
+ * of values.
+ */
+var objToString = objectProto.toString;
+
+/**
+ * Checks if `value` is classified as a typed array.
+ *
+ * @static
+ * @memberOf _
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is correctly classified, else `false`.
+ * @example
+ *
+ * _.isTypedArray(new Uint8Array);
+ * // => true
+ *
+ * _.isTypedArray([]);
+ * // => false
+ */
+function isTypedArray(value) {
+  return isObjectLike(value) && isLength(value.length) && !!typedArrayTags[objToString.call(value)];
+}
+
+module.exports = isTypedArray;
+
+},{"477":477,"478":478}],491:[function(_dereq_,module,exports){
+arguments[4][374][0].apply(exports,arguments)
+},{"374":374,"438":438,"439":439,"461":461}],492:[function(_dereq_,module,exports){
+arguments[4][375][0].apply(exports,arguments)
+},{"375":375,"471":471,"473":473,"480":480,"489":489}],493:[function(_dereq_,module,exports){
 arguments[4][64][0].apply(exports,arguments)
-},{"562":562,"565":565,"571":571,"572":572,"575":575,"64":64}],580:[function(_dereq_,module,exports){
+},{"474":474,"477":477,"484":484,"485":485,"489":489,"64":64}],494:[function(_dereq_,module,exports){
 arguments[4][170][0].apply(exports,arguments)
-},{"170":170,"569":569,"578":578}],581:[function(_dereq_,module,exports){
-arguments[4][65][0].apply(exports,arguments)
-},{"549":549,"65":65}],582:[function(_dereq_,module,exports){
+},{"170":170,"482":482,"492":492}],495:[function(_dereq_,module,exports){
 arguments[4][66][0].apply(exports,arguments)
-},{"66":66}],583:[function(_dereq_,module,exports){
+},{"66":66}],496:[function(_dereq_,module,exports){
 arguments[4][173][0].apply(exports,arguments)
-},{"173":173,"546":546,"547":547,"564":564}],584:[function(_dereq_,module,exports){
+},{"173":173,"453":453,"454":454,"476":476}],497:[function(_dereq_,module,exports){
 arguments[4][379][0].apply(exports,arguments)
-},{"379":379,"588":588}],585:[function(_dereq_,module,exports){
-module.exports = _dereq_(591);
-},{"591":591}],586:[function(_dereq_,module,exports){
+},{"379":379,"501":501}],498:[function(_dereq_,module,exports){
+module.exports = _dereq_(504);
+},{"504":504}],499:[function(_dereq_,module,exports){
 arguments[4][380][0].apply(exports,arguments)
-},{"380":380,"595":595}],587:[function(_dereq_,module,exports){
+},{"380":380,"508":508}],500:[function(_dereq_,module,exports){
 arguments[4][382][0].apply(exports,arguments)
-},{"382":382}],588:[function(_dereq_,module,exports){
+},{"382":382}],501:[function(_dereq_,module,exports){
 arguments[4][383][0].apply(exports,arguments)
-},{"383":383,"589":589}],589:[function(_dereq_,module,exports){
+},{"383":383,"502":502}],502:[function(_dereq_,module,exports){
 arguments[4][384][0].apply(exports,arguments)
-},{"384":384}],590:[function(_dereq_,module,exports){
-var matches = _dereq_(593)
+},{"384":384}],503:[function(_dereq_,module,exports){
+var matches = _dereq_(506)
 
 module.exports = function (element, selector, checkYoSelf, root) {
   element = checkYoSelf ? {parentNode: element} : element
@@ -16482,13 +15832,13 @@ module.exports = function (element, selector, checkYoSelf, root) {
   }
 }
 
-},{"593":593}],591:[function(_dereq_,module,exports){
+},{"506":506}],504:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
-var closest = _dereq_(590)
-  , event = _dereq_(592);
+var closest = _dereq_(503)
+  , event = _dereq_(505);
 
 /**
  * Delegate event `type` to `selector`
@@ -16526,7 +15876,7 @@ exports.unbind = function(el, type, fn, capture){
   event.unbind(el, type, fn, capture);
 };
 
-},{"590":590,"592":592}],592:[function(_dereq_,module,exports){
+},{"503":503,"505":505}],505:[function(_dereq_,module,exports){
 var bind = window.addEventListener ? 'addEventListener' : 'attachEvent',
     unbind = window.removeEventListener ? 'removeEventListener' : 'detachEvent',
     prefix = bind !== 'addEventListener' ? 'on' : '';
@@ -16562,12 +15912,12 @@ exports.unbind = function(el, type, fn, capture){
   el[unbind](prefix + type, fn, capture || false);
   return fn;
 };
-},{}],593:[function(_dereq_,module,exports){
+},{}],506:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
-var query = _dereq_(594);
+var query = _dereq_(507);
 
 /**
  * Element prototype.
@@ -16610,118 +15960,10 @@ function match(el, selector) {
   return false;
 }
 
-},{"594":594}],594:[function(_dereq_,module,exports){
+},{"507":507}],507:[function(_dereq_,module,exports){
 arguments[4][385][0].apply(exports,arguments)
-},{"385":385}],595:[function(_dereq_,module,exports){
-
-/**
- * Expose `parse`.
- */
-
-module.exports = parse;
-
-/**
- * Tests for browser support.
- */
-
-var div = document.createElement('div');
-// Setup
-div.innerHTML = '  <link/><table></table><a href="/a">a</a><input type="checkbox"/>';
-// Make sure that link elements get serialized correctly by innerHTML
-// This requires a wrapper element in IE
-var innerHTMLBug = !div.getElementsByTagName('link').length;
-div = undefined;
-
-/**
- * Wrap map from jquery.
- */
-
-var map = {
-  legend: [1, '<fieldset>', '</fieldset>'],
-  tr: [2, '<table><tbody>', '</tbody></table>'],
-  col: [2, '<table><tbody></tbody><colgroup>', '</colgroup></table>'],
-  // for script/link/style tags to work in IE6-8, you have to wrap
-  // in a div with a non-whitespace character in front, ha!
-  _default: innerHTMLBug ? [1, 'X<div>', '</div>'] : [0, '', '']
-};
-
-map.td =
-map.th = [3, '<table><tbody><tr>', '</tr></tbody></table>'];
-
-map.option =
-map.optgroup = [1, '<select multiple="multiple">', '</select>'];
-
-map.thead =
-map.tbody =
-map.colgroup =
-map.caption =
-map.tfoot = [1, '<table>', '</table>'];
-
-map.polyline =
-map.ellipse =
-map.polygon =
-map.circle =
-map.text =
-map.line =
-map.path =
-map.rect =
-map.g = [1, '<svg xmlns="http://www.w3.org/2000/svg" version="1.1">','</svg>'];
-
-/**
- * Parse `html` and return a DOM Node instance, which could be a TextNode,
- * HTML DOM Node of some kind (<div> for example), or a DocumentFragment
- * instance, depending on the contents of the `html` string.
- *
- * @param {String} html - HTML string to "domify"
- * @param {Document} doc - The `document` instance to create the Node for
- * @return {DOMNode} the TextNode, DOM Node, or DocumentFragment instance
- * @api private
- */
-
-function parse(html, doc) {
-  if ('string' != typeof html) throw new TypeError('String expected');
-
-  // default to the global `document` object
-  if (!doc) doc = document;
-
-  // tag name
-  var m = /<([\w:]+)/.exec(html);
-  if (!m) return doc.createTextNode(html);
-
-  html = html.replace(/^\s+|\s+$/g, ''); // Remove leading/trailing whitespace
-
-  var tag = m[1];
-
-  // body support
-  if (tag == 'body') {
-    var el = doc.createElement('html');
-    el.innerHTML = html;
-    return el.removeChild(el.lastChild);
-  }
-
-  // wrap map
-  var wrap = map[tag] || map._default;
-  var depth = wrap[0];
-  var prefix = wrap[1];
-  var suffix = wrap[2];
-  var el = doc.createElement('div');
-  el.innerHTML = prefix + html + suffix;
-  while (depth--) el = el.lastChild;
-
-  // one element
-  if (el.firstChild == el.lastChild) {
-    return el.removeChild(el.firstChild);
-  }
-
-  // several elements
-  var fragment = doc.createDocumentFragment();
-  while (el.firstChild) {
-    fragment.appendChild(el.removeChild(el.firstChild));
-  }
-
-  return fragment;
-}
-
-},{}]},{},[1])(1)
+},{"385":385}],508:[function(_dereq_,module,exports){
+arguments[4][386][0].apply(exports,arguments)
+},{"386":386}]},{},[1])(1)
 });
 //# sourceMappingURL=dmn-viewer.js.map

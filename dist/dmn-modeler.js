@@ -1,5 +1,5 @@
 /*!
- * dmn-js - dmn-modeler v0.3.1
+ * dmn-js - dmn-modeler v0.4.0
 
  * Copyright 2015 camunda Services GmbH and other contributors
  *
@@ -8,13 +8,13 @@
  *
  * Source Code: https://github.com/dmn-io/dmn-js
  *
- * Date: 2015-12-11
+ * Date: 2016-01-06
  */
 
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.DmnJS=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(342);
+var inherits = _dereq_(345);
 
 var Viewer = _dereq_(2);
 
@@ -122,11 +122,13 @@ Modeler.prototype.createTemplate = function(done) {
 
 Modeler.prototype._modelingModules = [
   // modeling components
-  _dereq_(429),
-  _dereq_(12),
-  _dereq_(36),
-  _dereq_(10),
-  _dereq_(435)
+  _dereq_(433),
+  _dereq_(15),
+  _dereq_(39),
+  _dereq_(13),
+  _dereq_(439),
+  _dereq_(457),
+  _dereq_(11)
 ];
 
 
@@ -143,27 +145,27 @@ Modeler.prototype._modules = [].concat(
 
 module.exports = Modeler;
 
-},{"10":10,"12":12,"2":2,"342":342,"36":36,"429":429,"435":435}],2:[function(_dereq_,module,exports){
+},{"11":11,"13":13,"15":15,"2":2,"345":345,"39":39,"433":433,"439":439,"457":457}],2:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(394),
-    omit = _dereq_(397),
-    isString = _dereq_(393),
-    isNumber = _dereq_(391);
+var assign = _dereq_(397),
+    omit = _dereq_(400),
+    isString = _dereq_(396),
+    isNumber = _dereq_(394);
 
-var domify = _dereq_(400),
-    domQuery = _dereq_(401),
-    domRemove = _dereq_(402);
+var domify = _dereq_(403),
+    domQuery = _dereq_(404),
+    domRemove = _dereq_(405);
 
-var Table = _dereq_(407),
-    DmnModdle = _dereq_(82);
+var Table = _dereq_(411),
+    DmnModdle = _dereq_(85);
 
-var IdSupport = _dereq_(84),
-    Ids = _dereq_(340);
+var IdSupport = _dereq_(87),
+    Ids = _dereq_(343);
 
-var Importer = _dereq_(44);
+var Importer = _dereq_(47);
 
-var ComboBox = _dereq_(421);
+var ComboBox = _dereq_(425);
 
 
 function initListeners(table, listeners) {
@@ -446,33 +448,33 @@ Viewer.prototype.on = function(event, handler) {
 // modules the viewer is composed of
 Viewer.prototype._modules = [
   _dereq_(3),
-  _dereq_(437),
-  _dereq_(24),
-  _dereq_(38),
-  _dereq_(8),
+  _dereq_(441),
   _dereq_(27),
   _dereq_(41),
-  _dereq_(17),
+  _dereq_(8),
+  _dereq_(30),
+  _dereq_(44),
   _dereq_(20),
-  _dereq_(433),
-  _dereq_(425),
-  _dereq_(423)
+  _dereq_(23),
+  _dereq_(437),
+  _dereq_(429),
+  _dereq_(427)
 ];
 
 module.exports = Viewer;
 
-},{"17":17,"20":20,"24":24,"27":27,"3":3,"340":340,"38":38,"391":391,"393":393,"394":394,"397":397,"400":400,"401":401,"402":402,"407":407,"41":41,"421":421,"423":423,"425":425,"433":433,"437":437,"44":44,"8":8,"82":82,"84":84}],3:[function(_dereq_,module,exports){
+},{"20":20,"23":23,"27":27,"3":3,"30":30,"343":343,"394":394,"396":396,"397":397,"400":400,"403":403,"404":404,"405":405,"41":41,"411":411,"425":425,"427":427,"429":429,"437":437,"44":44,"441":441,"47":47,"8":8,"85":85,"87":87}],3:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(46),
+    _dereq_(49),
     _dereq_(5)
   ]
 };
 
-},{"46":46,"5":5}],4:[function(_dereq_,module,exports){
+},{"49":49,"5":5}],4:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(399);
+var domClasses = _dereq_(402);
 
 function DmnRenderer(eventBus) {
 
@@ -513,7 +515,7 @@ DmnRenderer.$inject = [ 'eventBus' ];
 
 module.exports = DmnRenderer;
 
-},{"399":399}],5:[function(_dereq_,module,exports){
+},{"402":402}],5:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'dmnRenderer' ],
   dmnRenderer: [ 'type', _dereq_(4) ]
@@ -522,7 +524,7 @@ module.exports = {
 },{"4":4}],6:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(400);
+var domify = _dereq_(403);
 
 /**
  * Adds an annotation column to the table
@@ -599,10 +601,10 @@ Annotations.prototype.getColumn = function() {
   return this.column;
 };
 
-},{"400":400}],7:[function(_dereq_,module,exports){
+},{"403":403}],7:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(399);
+var domClasses = _dereq_(402);
 
 function AnnotationsRenderer(
     eventBus,
@@ -626,7 +628,7 @@ AnnotationsRenderer.$inject = [
 
 module.exports = AnnotationsRenderer;
 
-},{"399":399}],8:[function(_dereq_,module,exports){
+},{"402":402}],8:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'annotations', 'annotationsRenderer'],
   __depends__: [
@@ -638,7 +640,292 @@ module.exports = {
 },{"6":6,"7":7}],9:[function(_dereq_,module,exports){
 'use strict';
 
-var getEntriesType = _dereq_(47).getEntriesType;
+var domify = _dereq_(403);
+var domClasses = _dereq_(402);
+var forEach = _dereq_(347);
+
+var DRAG_THRESHOLD = 10;
+
+function isOfSameType(element1, element2) {
+  return element1.column.type === element2.column.type;
+}
+
+function ColumnDrag(eventBus, sheet, elementRegistry, modeling) {
+
+  this._sheet = sheet;
+  this._elementRegistry = elementRegistry;
+  this._utilityColumn = null;
+  this._modeling = modeling;
+  this._eventBus = eventBus;
+
+  var self = this;
+
+  eventBus.on('utilityColumn.added', function(event) {
+    var column = event.column;
+    self._utilityColumn = column;
+  });
+
+  this.dragDistance = 0;
+  this.draggedElement = null;
+  this.previousCoordinates = {
+    x: 0,
+    y: 0
+  };
+  this.highlightedBorder = null;
+  this.moveLeft = false;
+
+  eventBus.on('element.mousedown', function(event) {
+    if(event.originalEvent.target.getAttribute('class') === 'drag-handle') {
+      event.preventDefault();
+      self.startDragging(event.element);
+      self.setLastDragPoint(event.originalEvent);
+    }
+  });
+  document.body.addEventListener('mouseup', function(event) {
+    if(self.isDragging()) {
+      self.stopDragging();
+    }
+  });
+  document.body.addEventListener('mousemove', function(event) {
+    if(self.isDragging()) {
+      event.preventDefault();
+      self.updateDragDistance(event);
+      if(self.dragDistance > DRAG_THRESHOLD) {
+        self.updateVisuals(event);
+      }
+    }
+  });
+}
+
+ColumnDrag.$inject = [ 'eventBus', 'sheet', 'elementRegistry', 'modeling' ];
+
+module.exports = ColumnDrag;
+
+ColumnDrag.prototype.setLastDragPoint = function(event) {
+  this.previousCoordinates.x = event.clientX;
+  this.previousCoordinates.y = event.clientY;
+};
+
+ColumnDrag.prototype.highlightColumn = function(domNode, position) {
+
+  var elementRegistry = this._elementRegistry;
+
+  var cellId = domNode.getAttribute('data-element-id');
+  var element = elementRegistry.get(cellId);
+  var column = element.column;
+
+  var cellsInColumn = elementRegistry.filter(function(element) {
+    return element._type === 'cell' && element.column === column;
+  });
+
+  forEach(cellsInColumn, function(cell) {
+    var gfx = elementRegistry.getGraphics(cell);
+    domClasses(gfx).add('drop');
+    domClasses(gfx).add(position);
+  });
+};
+
+ColumnDrag.prototype.clearHighlight = function() {
+  var elements = document.querySelectorAll('.drop');
+  forEach(elements, function(element) {
+    domClasses(element).remove('drop');
+    domClasses(element).remove('left');
+    domClasses(element).remove('right');
+  });
+};
+
+ColumnDrag.prototype.updateVisuals = function(event) {
+
+  if(!this.dragVisual) {
+    this.dragVisual = this.createDragVisual(this.draggedElement);
+  }
+
+  var container = this._sheet.getContainer();
+  container.appendChild(this.dragVisual);
+
+  this.dragVisual.style.position = 'fixed';
+  this.dragVisual.style.left = (this.previousCoordinates.x + 5) + 'px';
+  this.dragVisual.style.top = (this.previousCoordinates.y + 5) + 'px';
+
+  // clear the indicator for the previous run
+  this.clearHighlight();
+  this.highlightedBorder = null;
+
+  // get the element we are hovering over
+  var td = event.target;
+  while(td && (td.tagName || '').toLowerCase() !== 'td') {
+    td = td.parentNode;
+  }
+  if(td && isOfSameType(this.draggedElement, this._elementRegistry.get(td.getAttribute('data-element-id')))) {
+      // check if we hover over the left or the right half of the column
+      var e = td;
+      var offset = {x:0,y:0};
+      while (e)
+      {
+          offset.x += e.offsetLeft;
+          offset.y += e.offsetTop;
+          e = e.offsetParent;
+      }
+      if(event.clientX < offset.x + td.clientWidth / 2) {
+        this.highlightColumn(td, 'left');
+        this.moveLeft = true;
+      } else {
+        this.highlightColumn(td, 'right');
+        this.moveLeft = false;
+      }
+
+    this.highlightedBorder = td;
+  }
+};
+
+ColumnDrag.prototype.updateDragDistance = function(event) {
+  this.dragDistance +=
+      Math.abs(event.clientX - this.previousCoordinates.x) +
+      Math.abs(event.clientY - this.previousCoordinates.y);
+
+  this.setLastDragPoint(event);
+};
+
+ColumnDrag.prototype.startDragging = function(element) {
+  this.draggedElement = element;
+  this.dragDistance = 0;
+
+  this.dragVisual = null;
+  this._eventBus.fire('column.drag.started');
+};
+
+ColumnDrag.prototype.createDragVisual = function(element) {
+
+  var node,
+      rowClone,
+      cellClone;
+
+  // get the html element of the dragged element
+  var gfx = this._elementRegistry.getGraphics(element);
+
+  // get the index of the element
+  var idx = [].indexOf.call(gfx.parentNode.childNodes, gfx); // childNodes is a NodeList and not an array :(
+
+  var table = domify('<table>');
+
+  // iterate over the rest of the head
+  var thead = domify('<thead>');
+  node = gfx.parentNode;
+  do {
+    // clone row
+    rowClone = node.cloneNode(true);
+
+    // clone cell with correct idx
+    cellClone = rowClone.childNodes.item(idx).cloneNode(true);
+
+    cellClone.style.height = rowClone.childNodes.item(idx).clientHeight + 'px';
+
+    // remove all childNodes from the rowClone
+    while(rowClone.firstChild) {
+      rowClone.removeChild(rowClone.firstChild);
+    }
+
+    // add the cellclone as only child of the row
+    rowClone.appendChild(cellClone);
+    thead.appendChild(rowClone);
+  } while (!!(node = node.nextSibling));
+  table.appendChild(thead);
+
+  // iterate over the body
+  var tbody = domify('<tbody>');
+  node = this._sheet.getBody().firstChild;
+  do {
+    // clone row
+    rowClone = node.cloneNode(true);
+
+    // clone cell with correct idx
+    cellClone = rowClone.childNodes.item(idx).cloneNode(true);
+
+    cellClone.style.height = node.childNodes.item(idx).clientHeight + 'px';
+
+    // remove all childNodes from the rowClone
+    while(rowClone.firstChild) {
+      rowClone.removeChild(rowClone.firstChild);
+    }
+
+    // add the cellclone as only child of the row
+    rowClone.appendChild(cellClone);
+    tbody.appendChild(rowClone);
+  } while (!!(node = node.nextSibling));
+  table.appendChild(tbody);
+
+
+  // put it in a table tbody
+  table.setAttribute('class','dragTable');
+  table.style.width = gfx.clientWidth + 'px';
+
+  // fade the original element
+  domClasses(gfx).add('dragged');
+  return table;
+};
+
+ColumnDrag.prototype.stopDragging = function() {
+  if(this.highlightedBorder) {
+    // make sure we drop it to the element we have previously highlighted
+    var targetElement = this._elementRegistry.get(this.highlightedBorder.getAttribute('data-element-id'));
+    this._modeling.moveColumn(this.draggedElement.column, targetElement.column, this.moveLeft);
+  }
+  if(this.dragVisual) {
+    this.dragVisual.parentNode.removeChild(this.dragVisual);
+    // restore opacity of the element
+    domClasses(this._elementRegistry.getGraphics(this.draggedElement)).remove('dragged');
+    this._elementRegistry.getGraphics(this.draggedElement).style.opacity = '';
+  }
+  this.clearHighlight();
+  this.highlightedBorder = null;
+
+  this.draggedElement = null;
+  this._eventBus.fire('column.drag.stopped');
+};
+
+ColumnDrag.prototype.isDragging = function() {
+  return !!this.draggedElement;
+};
+
+},{"347":347,"402":402,"403":403}],10:[function(_dereq_,module,exports){
+'use strict';
+
+var domClasses = _dereq_(402);
+var domify = _dereq_(403);
+
+function DragRenderer(
+    eventBus,
+    utilityColumn) {
+
+  eventBus.on('cell.render', function(event) {
+    if (event.data.row.isClauseRow) {
+      domClasses(event.gfx).add('draggable');
+      if(event.gfx.lastChild.getAttribute('class') !== 'drag-handle') {
+        event.gfx.appendChild(domify('<span class="drag-handle"></span>'));
+      }
+    }
+  });
+}
+
+DragRenderer.$inject = [
+  'eventBus',
+  'utilityColumn'
+];
+
+module.exports = DragRenderer;
+
+},{"402":402,"403":403}],11:[function(_dereq_,module,exports){
+module.exports = {
+  __init__: [ 'columnDrag', 'columnDragRenderer' ],
+  __depends__: [],
+  columnDrag: [ 'type', _dereq_(9) ],
+  columnDragRenderer: [ 'type', _dereq_(10) ]
+};
+
+},{"10":10,"9":9}],12:[function(_dereq_,module,exports){
+'use strict';
+
+var getEntriesType = _dereq_(50).getEntriesType;
 
 function ContextMenu(popupMenu, eventBus, modeling, elementRegistry, editorActions, selection) {
 
@@ -828,19 +1115,19 @@ ContextMenu.prototype.ruleClearAction = function() {
   this.close();
 };
 
-},{"47":47}],10:[function(_dereq_,module,exports){
+},{"50":50}],13:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'contextMenu' ],
   __depends__: [
-    _dereq_(448)
+    _dereq_(454)
   ],
-  contextMenu: [ 'type', _dereq_(9) ]
+  contextMenu: [ 'type', _dereq_(12) ]
 };
 
-},{"448":448,"9":9}],11:[function(_dereq_,module,exports){
+},{"12":12,"454":454}],14:[function(_dereq_,module,exports){
 'use strict';
 
-var ids = new (_dereq_(50))('table');
+var ids = new (_dereq_(53))('table');
 
 function DmnEditorActions(modeling, elementRegistry, selection, editorActions) {
 
@@ -976,13 +1263,13 @@ DmnEditorActions.$inject = [ 'modeling', 'elementRegistry', 'selection', 'editor
 
 module.exports = DmnEditorActions;
 
-},{"50":50}],12:[function(_dereq_,module,exports){
+},{"53":53}],15:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'dmnEditorActions' ],
-  dmnEditorActions: [ 'type', _dereq_(11) ]
+  dmnEditorActions: [ 'type', _dereq_(14) ]
 };
 
-},{"11":11}],13:[function(_dereq_,module,exports){
+},{"14":14}],16:[function(_dereq_,module,exports){
 'use strict';
 
 function DmnFactory(moddle) {
@@ -1075,12 +1362,12 @@ DmnFactory.prototype.createOutputEntry = function(text, clause, rule) {
 
 module.exports = DmnFactory;
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(342);
+var inherits = _dereq_(345);
 
-var BaseElementFactory = _dereq_(409);
+var BaseElementFactory = _dereq_(413);
 
 
 /**
@@ -1136,18 +1423,18 @@ ElementFactory.prototype.create = function(elementType, attrs) {
 
 };
 
-},{"342":342,"409":409}],15:[function(_dereq_,module,exports){
+},{"345":345,"413":413}],18:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ ],
   __depends__: [ ],
-  dmnFactory: [ 'type', _dereq_(13) ],
-  elementFactory: [ 'type', _dereq_(14) ]
+  dmnFactory: [ 'type', _dereq_(16) ],
+  elementFactory: [ 'type', _dereq_(17) ]
 };
 
-},{"13":13,"14":14}],16:[function(_dereq_,module,exports){
+},{"16":16,"17":17}],19:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(399);
+var domClasses = _dereq_(402);
 /**
  *  The controls module adds a container to the top-right corner of the table which holds
  *  some control elements
@@ -1205,19 +1492,19 @@ HideTechControl.prototype.isHidden = function() {
   return this.hidden;
 };
 
-},{"399":399}],17:[function(_dereq_,module,exports){
+},{"402":402}],20:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'hideTechControl' ],
   __depends__: [],
-  hideTechControl: [ 'type', _dereq_(16) ]
+  hideTechControl: [ 'type', _dereq_(19) ]
 };
 
-},{"16":16}],18:[function(_dereq_,module,exports){
+},{"19":19}],21:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(400),
-    ComboBox = _dereq_(421),
-    domClasses = _dereq_(399);
+var domify = _dereq_(403),
+    ComboBox = _dereq_(425),
+    domClasses = _dereq_(402);
 
 /**
  * Adds behavior to display and set the hit policy of a table
@@ -1371,7 +1658,7 @@ HitPolicy.prototype.getAggregation = function() {
 module.exports = HitPolicy;
 
 
-},{"399":399,"400":400,"421":421}],19:[function(_dereq_,module,exports){
+},{"402":402,"403":403,"425":425}],22:[function(_dereq_,module,exports){
 'use strict';
 
 function convertOperators(operator) {
@@ -1406,25 +1693,25 @@ HitPolicyRenderer.$inject = [
 
 module.exports = HitPolicyRenderer;
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'hitPolicy', 'hitPolicyRenderer' ],
   __depends__: [
-    _dereq_(453),
-    _dereq_(24),
+    _dereq_(462),
+    _dereq_(27),
   ],
-  hitPolicy: [ 'type', _dereq_(18) ],
-  hitPolicyRenderer: [ 'type', _dereq_(19) ],
+  hitPolicy: [ 'type', _dereq_(21) ],
+  hitPolicyRenderer: [ 'type', _dereq_(22) ],
 };
 
-},{"18":18,"19":19,"24":24,"453":453}],21:[function(_dereq_,module,exports){
+},{"21":21,"22":22,"27":27,"462":462}],24:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(400),
-    forEach = _dereq_(344);
+var domify = _dereq_(403),
+    forEach = _dereq_(347);
 
 // document wide unique overlay ids
-var ids = new (_dereq_(50))('clause');
+var ids = new (_dereq_(53))('clause');
 
 /**
  * Adds a control to the table to add more columns
@@ -1462,91 +1749,98 @@ function IoLabel(eventBus, sheet, elementRegistry, graphicsFactory, rules) {
   });
 
   function updateColspans(evt) {
-    if(evt._type === 'column') {
-      var cells = elementRegistry.filter(function(element) {
-        return element._type === 'cell' && element.row === self.row;
-      });
+    var cells = elementRegistry.filter(function(element) {
+      return element._type === 'cell' && element.row === self.row;
+    });
 
-      var inputs = cells.filter(function(cell) {
-        return cell.column.businessObject && cell.column.businessObject.inputExpression;
-      });
+    var inputs = cells.filter(function(cell) {
+      return cell.column.businessObject && cell.column.businessObject.inputExpression;
+    });
 
-      forEach(inputs, function(input) {
-        if(!input.column.previous.businessObject) {
-          // first cell of the inputs array has the colspan attribute set
-          input.colspan = inputs.length;
+    forEach(inputs, function(input) {
+      if(!input.column.previous.businessObject) {
+        // first cell of the inputs array has the colspan attribute set
+        input.colspan = inputs.length;
 
-          var node;
-          if(rules.allowed('column.create')) {
-            node = domify('Input <a class="dmn-icon-plus"></a>');
-            node.querySelector('a').addEventListener('mouseup', function() {
-              var col = input.column;
-              while(col.next && col.next.businessObject.$type === 'dmn:InputClause') {
-                col = col.next;
-              }
+        var node;
+        if(rules.allowed('column.create')) {
+          node = domify('Input <a class="dmn-icon-plus"></a>');
+          node.querySelector('a').addEventListener('mouseup', function() {
+            var col = input.column;
+            while(col.next && col.next.businessObject.$type === 'dmn:InputClause') {
+              col = col.next;
+            }
 
-              var newColumn = {
-                id: ids.next(),
-                previous: col,
-                name: '',
-                isInput: true
-              };
+            var newColumn = {
+              id: ids.next(),
+              previous: col,
+              name: '',
+              isInput: true
+            };
 
-              eventBus.fire('ioLabel.createColumn', {
-                newColumn: newColumn
-              });
+            eventBus.fire('ioLabel.createColumn', {
+              newColumn: newColumn
             });
-          } else {
-            node = domify('Input');
-          }
-
-          input.content = node;
+          });
+        } else {
+          node = domify('Input');
         }
-      });
 
-      var outputs = cells.filter(function(cell) {
-        return cell.column.businessObject && cell.column.businessObject.$instanceOf('dmn:OutputClause');
-      });
-
-      forEach(outputs, function(output) {
-        if(output.column.previous.businessObject.inputExpression) {
-          // first cell of the outputs array has the colspan attribute set
-          output.colspan = outputs.length;
-
-          var node;
-          if(rules.allowed('column.create')) {
-            node = domify('Output <a class="dmn-icon-plus"></a>');
-            node.querySelector('a').addEventListener('mouseup', function() {
-              var col = output.column;
-              while(col.next && col.next.businessObject && col.next.businessObject.$type === 'dmn:OutputClause') {
-                col = col.next;
-              }
-
-              var newColumn = {
-                id: ids.next(),
-                previous: col,
-                name: '',
-                isInput: false
-              };
-
-              eventBus.fire('ioLabel.createColumn', {
-                newColumn: newColumn
-              });
-            });
-          } else {
-            node = domify('Output');
-          }
-
-          output.content = node;
-        }
-      });
-
-      if(cells.length > 0) {
-        graphicsFactory.update('row', cells[0].row, elementRegistry.getGraphics(cells[0].row.id));
+        input.content = node;
+      } else {
+        input.colspan = 1;
       }
+    });
+
+    var outputs = cells.filter(function(cell) {
+      return cell.column.businessObject && cell.column.businessObject.$instanceOf('dmn:OutputClause');
+    });
+
+    forEach(outputs, function(output) {
+      if(output.column.previous.businessObject.inputExpression) {
+        // first cell of the outputs array has the colspan attribute set
+        output.colspan = outputs.length;
+
+        var node;
+        if(rules.allowed('column.create')) {
+          node = domify('Output <a class="dmn-icon-plus"></a>');
+          node.querySelector('a').addEventListener('mouseup', function() {
+            var col = output.column;
+            while(col.next && col.next.businessObject && col.next.businessObject.$type === 'dmn:OutputClause') {
+              col = col.next;
+            }
+
+            var newColumn = {
+              id: ids.next(),
+              previous: col,
+              name: '',
+              isInput: false
+            };
+
+            eventBus.fire('ioLabel.createColumn', {
+              newColumn: newColumn
+            });
+          });
+        } else {
+          node = domify('Output');
+        }
+
+        output.content = node;
+      } else {
+        output.colspan = 1;
+      }
+    });
+
+    if(cells.length > 0) {
+      graphicsFactory.update('row', cells[0].row, elementRegistry.getGraphics(cells[0].row.id));
     }
   }
-  eventBus.on(['cells.added', 'cells.removed'], updateColspans);
+  eventBus.on(['cells.added', 'cells.removed'], function(evt) {
+    if(evt._type === 'column') {
+      updateColspans();
+    }
+  });
+  eventBus.on(['column.move.applied'], updateColspans);
 }
 
 IoLabel.$inject = [ 'eventBus', 'sheet', 'elementRegistry', 'graphicsFactory', 'rules' ];
@@ -1557,7 +1851,7 @@ IoLabel.prototype.getRow = function() {
   return this.row;
 };
 
-},{"344":344,"400":400,"50":50}],22:[function(_dereq_,module,exports){
+},{"347":347,"403":403,"53":53}],25:[function(_dereq_,module,exports){
 'use strict';
 
 function IoLabelRenderer(
@@ -1581,12 +1875,12 @@ IoLabelRenderer.$inject = [
 
 module.exports = IoLabelRenderer;
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(342);
+var inherits = _dereq_(345);
 
-var RuleProvider = _dereq_(49);
+var RuleProvider = _dereq_(52);
 
 /**
  * LineNumber specific modeling rule
@@ -1613,24 +1907,24 @@ IoLabelRules.prototype.init = function() {
 
 };
 
-},{"342":342,"49":49}],24:[function(_dereq_,module,exports){
+},{"345":345,"52":52}],27:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'ioLabel', 'ioLabelRules', 'ioLabelRenderer' ],
   __depends__: [],
-  ioLabel: [ 'type', _dereq_(21) ],
-  ioLabelRules: [ 'type', _dereq_(23) ],
-  ioLabelRenderer: [ 'type', _dereq_(22) ]
+  ioLabel: [ 'type', _dereq_(24) ],
+  ioLabelRules: [ 'type', _dereq_(26) ],
+  ioLabelRenderer: [ 'type', _dereq_(25) ]
 };
 
-},{"21":21,"22":22,"23":23}],25:[function(_dereq_,module,exports){
+},{"24":24,"25":25,"26":26}],28:[function(_dereq_,module,exports){
 'use strict';
 
 
 
-var domify = _dereq_(400),
-    domClasses = _dereq_(399),
-    assign = _dereq_(394),
-    ComboBox = _dereq_(421);
+var domify = _dereq_(403),
+    domClasses = _dereq_(402),
+    assign = _dereq_(397),
+    ComboBox = _dereq_(425);
 
 /**
  * Adds a control to the table to define the input- and output-mappings for clauses
@@ -1889,10 +2183,10 @@ MappingsRow.prototype.getRow = function() {
   return this.row;
 };
 
-},{"394":394,"399":399,"400":400,"421":421}],26:[function(_dereq_,module,exports){
+},{"397":397,"402":402,"403":403,"425":425}],29:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(399);
+var domClasses = _dereq_(402);
 
 function MappingsRowRenderer(
     eventBus,
@@ -1929,21 +2223,21 @@ MappingsRowRenderer.$inject = [
 
 module.exports = MappingsRowRenderer;
 
-},{"399":399}],27:[function(_dereq_,module,exports){
+},{"402":402}],30:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'mappingsRow', 'mappingsRowRenderer' ],
-  __depends__: [ _dereq_(423) ],
-  mappingsRow: [ 'type', _dereq_(25) ],
-  mappingsRowRenderer: [ 'type', _dereq_(26) ]
+  __depends__: [ _dereq_(427) ],
+  mappingsRow: [ 'type', _dereq_(28) ],
+  mappingsRowRenderer: [ 'type', _dereq_(29) ]
 };
 
-},{"25":25,"26":26,"423":423}],28:[function(_dereq_,module,exports){
+},{"28":28,"29":29,"427":427}],31:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(342),
-    forEach = _dereq_(345);
+var inherits = _dereq_(345),
+    forEach = _dereq_(348);
 
-var CommandInterceptor = _dereq_(48);
+var CommandInterceptor = _dereq_(51);
 
 
 /**
@@ -2078,15 +2372,97 @@ function DmnUpdater(eventBus, moddle, elementRegistry, dmnFactory, tableName) {
       businessObject.$parent.rule.indexOf(businessObject), 1);
   }
 
+  function moveRow(event) {
+    var source = event.context.source.businessObject;
+    var target = event.context.target.businessObject;
+    var rulesArray = source.$parent.rule;
+    var targetIdx;
+
+    // remove source from list
+    var sourceIdx = rulesArray.indexOf(source);
+    rulesArray.splice(sourceIdx, 1);
+
+    if(event.type.indexOf('.executed') !== -1) {
+      // add source at target position
+      targetIdx = rulesArray.indexOf(target);
+      rulesArray.splice(targetIdx + (event.context.above ? 0 : 1), 0, source);
+    } else if (event.type.indexOf('.reverted') !== -1) {
+      // add source at previousBelow
+      var previousBelow = event.context.previousBelow.businessObject;
+      if(previousBelow) {
+        targetIdx = rulesArray.indexOf(previousBelow);
+        rulesArray.splice(targetIdx, 0, source);
+      } else {
+        rulesArray.push(source);
+      }
+    }
+  }
+
+  function moveColumn(event) {
+    var source = event.context.source.businessObject;
+    var target = event.context.target.businessObject;
+    var isInput = source.$type === 'dmn:InputClause';
+    var targetIdx;
+
+    var columns = source.$parent[isInput ? 'input' : 'output'];
+    var rules = source.$parent.rule;
+
+    // remove source from columns
+    var sourceIdx = columns.indexOf(source);
+    columns.splice(sourceIdx, 1);
+
+    if(event.type.indexOf('.executed') !== -1) {
+      // add source at target position
+      targetIdx = columns.indexOf(target);
+      columns.splice(targetIdx + !event.context.left, 0, source);
+
+      // move all entries in the rules array
+      forEach(rules, function(rule) {
+        var array = rule[isInput ? 'inputEntry' : 'outputEntry'];
+
+        var element = array.splice(sourceIdx, 1)[0];
+        array.splice(targetIdx + !event.context.left, 0, element);
+      });
+    } else if (event.type.indexOf('.reverted') !== -1) {
+      // add source at previousRight
+      var previousRight = event.context.previousRight.businessObject;
+      if(previousRight && previousRight.$type === source.$type) {
+        targetIdx = columns.indexOf(previousRight);
+        columns.splice(targetIdx, 0, source);
+        forEach(rules, function(rule) {
+          var array = rule[isInput ? 'inputEntry' : 'outputEntry'];
+
+          var element = array.splice(sourceIdx, 1)[0];
+          array.splice(targetIdx, 0, element);
+        });
+      } else {
+        columns.push(source);
+        forEach(rules, function(rule) {
+          var array = rule[isInput ? 'inputEntry' : 'outputEntry'];
+
+          var element = array.splice(sourceIdx, 1)[0];
+          array.push(element);
+        });
+      }
+    }
+
+    eventBus.fire('column.move.applied');
+
+  }
+
   this.executed([ 'column.create' ], setColumnParent);
   this.executed([ 'row.create' ], setParent);
   this.executed([ 'column.delete' ], unsetParent);
   this.executed([ 'row.delete' ], deleteRule);
+  this.executed([ 'row.move' ], moveRow);
+  this.executed([ 'column.move' ], moveColumn);
 
   this.reverted([ 'column.create' ], unsetParent);
   this.reverted([ 'row.create' ], deleteRule);
   this.reverted([ 'column.delete' ], setColumnParent);
-  this.reverted([ 'row.delete'], setParent);
+  this.reverted([ 'row.delete' ], setParent);
+  this.reverted([ 'row.move' ], moveRow);
+  this.reverted([ 'column.move' ], moveColumn);
 }
 
 inherits(DmnUpdater, CommandInterceptor);
@@ -2095,19 +2471,19 @@ module.exports = DmnUpdater;
 
 DmnUpdater.$inject = [ 'eventBus', 'moddle', 'elementRegistry', 'dmnFactory', 'tableName' ];
 
-},{"342":342,"345":345,"48":48}],29:[function(_dereq_,module,exports){
+},{"345":345,"348":348,"51":51}],32:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(342);
+var inherits = _dereq_(345);
 
-var BaseModeling = _dereq_(438);
+var BaseModeling = _dereq_(442);
 
-var EditCellHandler = _dereq_(31);
-var ClearRowHandler = _dereq_(30);
-var EditInputMappingHandler = _dereq_(34);
-var EditIdHandler = _dereq_(33);
-var EditTypeHandler = _dereq_(35);
-var EditHitPolicyHandler = _dereq_(32);
+var EditCellHandler = _dereq_(34);
+var ClearRowHandler = _dereq_(33);
+var EditInputMappingHandler = _dereq_(37);
+var EditIdHandler = _dereq_(36);
+var EditTypeHandler = _dereq_(38);
+var EditHitPolicyHandler = _dereq_(35);
 
 
 /**
@@ -2191,19 +2567,19 @@ Modeling.prototype.editCell = function(row, column, content) {
   })[0];
 
   if(cell.row.isClauseRow) {
-    // change the clause name
-    if(cell.column.businessObject.name !== content) {
+    // change the clause label
+    if(cell.column.businessObject.label !== content) {
       this._commandStack.execute('cell.edit', context);
     }
   } else if(cell.row.isMappingsRow) {
-    if(cell.content.output !== content) {
+    if(cell.content.name !== content.trim()) {
       this._commandStack.execute('cell.edit', context);
     }
   } else if(!cell.row.isHead) {
     var previousContent = cell.content;
-    if((!cell.column.isAnnotationsColumn && (!previousContent && context.content !== '') ||
-       (previousContent && context.content !== previousContent.text)) ||
-       (cell.column.isAnnotationsColumn && cell.row.businessObject.description !== context.content)) {
+    if((!cell.column.isAnnotationsColumn && (!previousContent && context.content.trim() !== '') ||
+       (previousContent && context.content.trim() !== previousContent.text)) ||
+       (cell.column.isAnnotationsColumn && cell.row.businessObject.description !== context.content.trim())) {
       // only execute edit command if content changed
       this._commandStack.execute('cell.edit', context);
     }
@@ -2300,10 +2676,10 @@ Modeling.prototype.editDataType = function(cell, newType, allowedValues) {
   return context;
 };
 
-},{"30":30,"31":31,"32":32,"33":33,"34":34,"342":342,"35":35,"438":438}],30:[function(_dereq_,module,exports){
+},{"33":33,"34":34,"345":345,"35":35,"36":36,"37":37,"38":38,"442":442}],33:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(344);
+var forEach = _dereq_(347);
 
 /**
  * A handler that implements reversible clear of rows
@@ -2373,8 +2749,42 @@ ClearRowHandler.prototype.revert = function(context) {
   });
 };
 
-},{"344":344}],31:[function(_dereq_,module,exports){
+},{"347":347}],34:[function(_dereq_,module,exports){
 'use strict';
+
+var calculateSelectionUpdate = _dereq_(410);
+
+function getSelection(node) {
+
+  var selectObj = document.getSelection();
+  if(selectObj.rangeCount > 0) {
+    var range = selectObj.getRangeAt(0);
+
+    return {
+      start: range.startOffset,
+      end: range.endOffset
+    };
+  }
+  return {
+    start: 0,
+    end: 0
+  };
+}
+
+function updateSelection(newSelection, gfx) {
+  var range = document.createRange();
+  var sel = document.getSelection();
+  if(gfx.childNodes[0].firstChild) {
+    range.setStart(gfx.childNodes[0].firstChild, newSelection.start);
+    range.setEnd(gfx.childNodes[0].firstChild, newSelection.end);
+  } else {
+    range.setStart(gfx.childNodes[0], 0);
+    range.setEnd(gfx.childNodes[0], 0);
+  }
+
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
 
 /**
  * A handler that implements reversible addition of rows.
@@ -2437,7 +2847,10 @@ EditCellHandler.prototype.execute = function(context) {
     }
   }
 
+  var selection = getSelection();
+  var newSelection = calculateSelectionUpdate(selection, gfx.textContent, context.content);
   this._graphicsFactory.update('cell', el, gfx);
+  updateSelection(newSelection, gfx);
 
   return context;
 };
@@ -2458,9 +2871,7 @@ EditCellHandler.prototype.revert = function(context) {
       // revert clause name
       el.column.businessObject.label = context.oldContent;
     }
-
   } else {
-
     if(el.column.isAnnotationsColumn) {
       // revert the annotations of a rule
       el.row.businessObject.description = context.oldContent;
@@ -2475,15 +2886,17 @@ EditCellHandler.prototype.revert = function(context) {
         el.content.text = context.oldContent;
       }
     }
-
   }
 
+  var selection = getSelection();
+  var newSelection = calculateSelectionUpdate(selection, gfx.textContent, context.oldContent);
   this._graphicsFactory.update('cell', el, gfx);
+  updateSelection(newSelection, gfx);
 
   return context;
 };
 
-},{}],32:[function(_dereq_,module,exports){
+},{"410":410}],35:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -2542,7 +2955,7 @@ EditHitPolicyHandler.prototype.revert = function(context) {
   return context;
 };
 
-},{}],33:[function(_dereq_,module,exports){
+},{}],36:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -2583,7 +2996,7 @@ EditIdHandler.prototype.revert = function(context) {
   return context;
 };
 
-},{}],34:[function(_dereq_,module,exports){
+},{}],37:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -2649,7 +3062,7 @@ EditInputMappingHandler.prototype.revert = function(context) {
   return context;
 };
 
-},{}],35:[function(_dereq_,module,exports){
+},{}],38:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -2712,26 +3125,26 @@ EditTypeHandler.prototype.revert = function(context) {
   return context;
 };
 
-},{}],36:[function(_dereq_,module,exports){
+},{}],39:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'modeling', 'dmnUpdater' ],
   __depends__: [
-    _dereq_(446),
-    _dereq_(418),
-    _dereq_(15)
+    _dereq_(452),
+    _dereq_(422),
+    _dereq_(18)
   ],
-  modeling: [ 'type', _dereq_(29) ],
-  dmnUpdater: [ 'type', _dereq_(28) ],
+  modeling: [ 'type', _dereq_(32) ],
+  dmnUpdater: [ 'type', _dereq_(31) ],
 };
 
-},{"15":15,"28":28,"29":29,"418":418,"446":446}],37:[function(_dereq_,module,exports){
+},{"18":18,"31":31,"32":32,"422":422,"452":452}],40:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(400);
+var domify = _dereq_(403);
 
-var inherits = _dereq_(342);
+var inherits = _dereq_(345);
 
-var BaseModule = _dereq_(449);
+var BaseModule = _dereq_(458);
 /**
  * Adds a header to the table containing the table name
  *
@@ -2795,21 +3208,21 @@ TableName.prototype.getId = function() {
   return this.semantic.id;
 };
 
-},{"342":342,"400":400,"449":449}],38:[function(_dereq_,module,exports){
+},{"345":345,"403":403,"458":458}],41:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'tableName' ],
   __depends__: [],
-  tableName: [ 'type', _dereq_(37) ]
+  tableName: [ 'type', _dereq_(40) ]
 };
 
-},{"37":37}],39:[function(_dereq_,module,exports){
+},{"40":40}],42:[function(_dereq_,module,exports){
 'use strict';
 
 
 
-var domify = _dereq_(400),
-    domClasses = _dereq_(399),
-    ComboBox = _dereq_(421);
+var domify = _dereq_(403),
+    domClasses = _dereq_(402),
+    ComboBox = _dereq_(425);
 
 /**
  * Adds a control to the table to define the datatypes for clauses
@@ -2947,10 +3360,10 @@ TypeRow.prototype.getRow = function() {
   return this.row;
 };
 
-},{"399":399,"400":400,"421":421}],40:[function(_dereq_,module,exports){
+},{"402":402,"403":403,"425":425}],43:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(399);
+var domClasses = _dereq_(402);
 
 function TypeRowRenderer(
     eventBus,
@@ -2984,21 +3397,21 @@ TypeRowRenderer.$inject = [
 
 module.exports = TypeRowRenderer;
 
-},{"399":399}],41:[function(_dereq_,module,exports){
+},{"402":402}],44:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'typeRow', 'typeRowRenderer' ],
-  __depends__: [ _dereq_(423) ],
-  typeRow: [ 'type', _dereq_(39) ],
-  typeRowRenderer: [ 'type', _dereq_(40) ]
+  __depends__: [ _dereq_(427) ],
+  typeRow: [ 'type', _dereq_(42) ],
+  typeRowRenderer: [ 'type', _dereq_(43) ]
 };
 
-},{"39":39,"40":40,"423":423}],42:[function(_dereq_,module,exports){
+},{"42":42,"427":427,"43":43}],45:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(394),
-    union  = _dereq_(343);
+var assign = _dereq_(397),
+    union  = _dereq_(346);
 
-var elementToString = _dereq_(45).elementToString;
+var elementToString = _dereq_(48).elementToString;
 
 
 function elementData(semantic, attrs) {
@@ -3142,12 +3555,12 @@ DmnImporter.prototype.add = function(semantic, parentElement, definitions) {
   return element;
 };
 
-},{"343":343,"394":394,"45":45}],43:[function(_dereq_,module,exports){
+},{"346":346,"397":397,"48":48}],46:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(344);
+var forEach = _dereq_(347);
 
-var elementToString = _dereq_(45).elementToString;
+var elementToString = _dereq_(48).elementToString;
 
 function DmnTreeWalker(handler) {
 
@@ -3237,10 +3650,10 @@ function DmnTreeWalker(handler) {
 
 module.exports = DmnTreeWalker;
 
-},{"344":344,"45":45}],44:[function(_dereq_,module,exports){
+},{"347":347,"48":48}],47:[function(_dereq_,module,exports){
 'use strict';
 
-var DmnTreeWalker = _dereq_(43);
+var DmnTreeWalker = _dereq_(46);
 
 
 /**
@@ -3297,7 +3710,7 @@ function importDmnTable(sheet, definitions, done) {
 
 module.exports.importDmnTable = importDmnTable;
 
-},{"43":43}],45:[function(_dereq_,module,exports){
+},{"46":46}],48:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports.elementToString = function(e) {
@@ -3307,15 +3720,15 @@ module.exports.elementToString = function(e) {
 
   return '<' + e.$type + (e.id ? ' id="' + e.id : '') + '" />';
 };
-},{}],46:[function(_dereq_,module,exports){
+},{}],49:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(15)
+    _dereq_(18)
   ],
-  dmnImporter: [ 'type', _dereq_(42) ]
+  dmnImporter: [ 'type', _dereq_(45) ]
 };
 
-},{"15":15,"42":42}],47:[function(_dereq_,module,exports){
+},{"18":18,"45":45}],50:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -3337,11 +3750,14 @@ function getEntriesType(context) {
   }
 
   entriesType.rule = !!(context.row && context.row.businessObject &&
-         !context.row.businessObject.$instanceOf('dmn:DecisionTable'));
+         !context.row.businessObject.$instanceOf('dmn:DecisionTable') &&
+          context.column.id !== 'utilityColumn');
 
   if (context.column &&
       context.column.id !== 'utilityColumn' &&
       context.column.id !== 'annotations' &&
+      context.row.id !== 'mappingsRow' &&
+      context.row.id !== 'typeRow' &&
      !context.row.isLabelRow) {
     if (context.column.businessObject.inputExpression) {
       entriesType.input = true;
@@ -3355,13 +3771,13 @@ function getEntriesType(context) {
 
 module.exports.getEntriesType = getEntriesType;
 
-},{}],48:[function(_dereq_,module,exports){
+},{}],51:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(52),
-    isFunction = _dereq_(74),
-    isArray = _dereq_(73),
-    isNumber = _dereq_(76);
+var forEach = _dereq_(55),
+    isFunction = _dereq_(77),
+    isArray = _dereq_(76),
+    isNumber = _dereq_(79);
 
 
 var DEFAULT_PRIORITY = 1000;
@@ -3506,12 +3922,12 @@ forEach(hooks, function(hook) {
   };
 });
 
-},{"52":52,"73":73,"74":74,"76":76}],49:[function(_dereq_,module,exports){
+},{"55":55,"76":76,"77":77,"79":79}],52:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(51);
+var inherits = _dereq_(54);
 
-var CommandInterceptor = _dereq_(48);
+var CommandInterceptor = _dereq_(51);
 
 /**
  * A basic provider that may be extended to implement modeling rules.
@@ -3581,7 +3997,7 @@ RuleProvider.prototype.addRule = function(actions, priority, fn) {
     }, true);
   });
 };
-},{"48":48,"51":51}],50:[function(_dereq_,module,exports){
+},{"51":51,"54":54}],53:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -3614,7 +4030,7 @@ IdGenerator.prototype.next = function() {
   return this._prefix + (++this._counter);
 };
 
-},{}],51:[function(_dereq_,module,exports){
+},{}],54:[function(_dereq_,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -3639,10 +4055,10 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],52:[function(_dereq_,module,exports){
-var arrayEach = _dereq_(53),
-    baseEach = _dereq_(54),
-    createForEach = _dereq_(63);
+},{}],55:[function(_dereq_,module,exports){
+var arrayEach = _dereq_(56),
+    baseEach = _dereq_(57),
+    createForEach = _dereq_(66);
 
 /**
  * Iterates over elements of `collection` invoking `iteratee` for each element.
@@ -3678,7 +4094,7 @@ var forEach = createForEach(arrayEach, baseEach);
 
 module.exports = forEach;
 
-},{"53":53,"54":54,"63":63}],53:[function(_dereq_,module,exports){
+},{"56":56,"57":57,"66":66}],56:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.forEach` for arrays without support for callback
  * shorthands and `this` binding.
@@ -3702,9 +4118,9 @@ function arrayEach(array, iteratee) {
 
 module.exports = arrayEach;
 
-},{}],54:[function(_dereq_,module,exports){
-var baseForOwn = _dereq_(56),
-    createBaseEach = _dereq_(61);
+},{}],57:[function(_dereq_,module,exports){
+var baseForOwn = _dereq_(59),
+    createBaseEach = _dereq_(64);
 
 /**
  * The base implementation of `_.forEach` without support for callback
@@ -3719,8 +4135,8 @@ var baseEach = createBaseEach(baseForOwn);
 
 module.exports = baseEach;
 
-},{"56":56,"61":61}],55:[function(_dereq_,module,exports){
-var createBaseFor = _dereq_(62);
+},{"59":59,"64":64}],58:[function(_dereq_,module,exports){
+var createBaseFor = _dereq_(65);
 
 /**
  * The base implementation of `baseForIn` and `baseForOwn` which iterates
@@ -3738,9 +4154,9 @@ var baseFor = createBaseFor();
 
 module.exports = baseFor;
 
-},{"62":62}],56:[function(_dereq_,module,exports){
-var baseFor = _dereq_(55),
-    keys = _dereq_(78);
+},{"65":65}],59:[function(_dereq_,module,exports){
+var baseFor = _dereq_(58),
+    keys = _dereq_(81);
 
 /**
  * The base implementation of `_.forOwn` without support for callback
@@ -3757,7 +4173,7 @@ function baseForOwn(object, iteratee) {
 
 module.exports = baseForOwn;
 
-},{"55":55,"78":78}],57:[function(_dereq_,module,exports){
+},{"58":58,"81":81}],60:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.isFunction` without support for environments
  * with incorrect `typeof` results.
@@ -3774,7 +4190,7 @@ function baseIsFunction(value) {
 
 module.exports = baseIsFunction;
 
-},{}],58:[function(_dereq_,module,exports){
+},{}],61:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.property` without support for deep paths.
  *
@@ -3790,7 +4206,7 @@ function baseProperty(key) {
 
 module.exports = baseProperty;
 
-},{}],59:[function(_dereq_,module,exports){
+},{}],62:[function(_dereq_,module,exports){
 /**
  * Converts `value` to a string if it's not one. An empty string is returned
  * for `null` or `undefined` values.
@@ -3808,8 +4224,8 @@ function baseToString(value) {
 
 module.exports = baseToString;
 
-},{}],60:[function(_dereq_,module,exports){
-var identity = _dereq_(81);
+},{}],63:[function(_dereq_,module,exports){
+var identity = _dereq_(84);
 
 /**
  * A specialized version of `baseCallback` which only supports `this` binding
@@ -3849,10 +4265,10 @@ function bindCallback(func, thisArg, argCount) {
 
 module.exports = bindCallback;
 
-},{"81":81}],61:[function(_dereq_,module,exports){
-var getLength = _dereq_(64),
-    isLength = _dereq_(68),
-    toObject = _dereq_(71);
+},{"84":84}],64:[function(_dereq_,module,exports){
+var getLength = _dereq_(67),
+    isLength = _dereq_(71),
+    toObject = _dereq_(74);
 
 /**
  * Creates a `baseEach` or `baseEachRight` function.
@@ -3882,8 +4298,8 @@ function createBaseEach(eachFunc, fromRight) {
 
 module.exports = createBaseEach;
 
-},{"64":64,"68":68,"71":71}],62:[function(_dereq_,module,exports){
-var toObject = _dereq_(71);
+},{"67":67,"71":71,"74":74}],65:[function(_dereq_,module,exports){
+var toObject = _dereq_(74);
 
 /**
  * Creates a base function for `_.forIn` or `_.forInRight`.
@@ -3911,9 +4327,9 @@ function createBaseFor(fromRight) {
 
 module.exports = createBaseFor;
 
-},{"71":71}],63:[function(_dereq_,module,exports){
-var bindCallback = _dereq_(60),
-    isArray = _dereq_(73);
+},{"74":74}],66:[function(_dereq_,module,exports){
+var bindCallback = _dereq_(63),
+    isArray = _dereq_(76);
 
 /**
  * Creates a function for `_.forEach` or `_.forEachRight`.
@@ -3933,8 +4349,8 @@ function createForEach(arrayFunc, eachFunc) {
 
 module.exports = createForEach;
 
-},{"60":60,"73":73}],64:[function(_dereq_,module,exports){
-var baseProperty = _dereq_(58);
+},{"63":63,"76":76}],67:[function(_dereq_,module,exports){
+var baseProperty = _dereq_(61);
 
 /**
  * Gets the "length" property value of `object`.
@@ -3950,8 +4366,8 @@ var getLength = baseProperty('length');
 
 module.exports = getLength;
 
-},{"58":58}],65:[function(_dereq_,module,exports){
-var isNative = _dereq_(75);
+},{"61":61}],68:[function(_dereq_,module,exports){
+var isNative = _dereq_(78);
 
 /**
  * Gets the native function at `key` of `object`.
@@ -3968,9 +4384,9 @@ function getNative(object, key) {
 
 module.exports = getNative;
 
-},{"75":75}],66:[function(_dereq_,module,exports){
-var getLength = _dereq_(64),
-    isLength = _dereq_(68);
+},{"78":78}],69:[function(_dereq_,module,exports){
+var getLength = _dereq_(67),
+    isLength = _dereq_(71);
 
 /**
  * Checks if `value` is array-like.
@@ -3985,7 +4401,7 @@ function isArrayLike(value) {
 
 module.exports = isArrayLike;
 
-},{"64":64,"68":68}],67:[function(_dereq_,module,exports){
+},{"67":67,"71":71}],70:[function(_dereq_,module,exports){
 /** Used to detect unsigned integer values. */
 var reIsUint = /^\d+$/;
 
@@ -4011,7 +4427,7 @@ function isIndex(value, length) {
 
 module.exports = isIndex;
 
-},{}],68:[function(_dereq_,module,exports){
+},{}],71:[function(_dereq_,module,exports){
 /**
  * Used as the [maximum length](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-number.max_safe_integer)
  * of an array-like value.
@@ -4033,7 +4449,7 @@ function isLength(value) {
 
 module.exports = isLength;
 
-},{}],69:[function(_dereq_,module,exports){
+},{}],72:[function(_dereq_,module,exports){
 /**
  * Checks if `value` is object-like.
  *
@@ -4047,12 +4463,12 @@ function isObjectLike(value) {
 
 module.exports = isObjectLike;
 
-},{}],70:[function(_dereq_,module,exports){
-var isArguments = _dereq_(72),
-    isArray = _dereq_(73),
-    isIndex = _dereq_(67),
-    isLength = _dereq_(68),
-    keysIn = _dereq_(79);
+},{}],73:[function(_dereq_,module,exports){
+var isArguments = _dereq_(75),
+    isArray = _dereq_(76),
+    isIndex = _dereq_(70),
+    isLength = _dereq_(71),
+    keysIn = _dereq_(82);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -4090,8 +4506,8 @@ function shimKeys(object) {
 
 module.exports = shimKeys;
 
-},{"67":67,"68":68,"72":72,"73":73,"79":79}],71:[function(_dereq_,module,exports){
-var isObject = _dereq_(77);
+},{"70":70,"71":71,"75":75,"76":76,"82":82}],74:[function(_dereq_,module,exports){
+var isObject = _dereq_(80);
 
 /**
  * Converts `value` to an object if it's not one.
@@ -4106,9 +4522,9 @@ function toObject(value) {
 
 module.exports = toObject;
 
-},{"77":77}],72:[function(_dereq_,module,exports){
-var isArrayLike = _dereq_(66),
-    isObjectLike = _dereq_(69);
+},{"80":80}],75:[function(_dereq_,module,exports){
+var isArrayLike = _dereq_(69),
+    isObjectLike = _dereq_(72);
 
 /** `Object#toString` result references. */
 var argsTag = '[object Arguments]';
@@ -4144,10 +4560,10 @@ function isArguments(value) {
 
 module.exports = isArguments;
 
-},{"66":66,"69":69}],73:[function(_dereq_,module,exports){
-var getNative = _dereq_(65),
-    isLength = _dereq_(68),
-    isObjectLike = _dereq_(69);
+},{"69":69,"72":72}],76:[function(_dereq_,module,exports){
+var getNative = _dereq_(68),
+    isLength = _dereq_(71),
+    isObjectLike = _dereq_(72);
 
 /** `Object#toString` result references. */
 var arrayTag = '[object Array]';
@@ -4186,10 +4602,10 @@ var isArray = nativeIsArray || function(value) {
 
 module.exports = isArray;
 
-},{"65":65,"68":68,"69":69}],74:[function(_dereq_,module,exports){
+},{"68":68,"71":71,"72":72}],77:[function(_dereq_,module,exports){
 (function (global){
-var baseIsFunction = _dereq_(57),
-    getNative = _dereq_(65);
+var baseIsFunction = _dereq_(60),
+    getNative = _dereq_(68);
 
 /** `Object#toString` result references. */
 var funcTag = '[object Function]';
@@ -4233,9 +4649,9 @@ module.exports = isFunction;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 //# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy9kaWFncmFtLWpzL25vZGVfbW9kdWxlcy9sb2Rhc2gvbGFuZy9pc0Z1bmN0aW9uLmpzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7QUFBQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSIsImZpbGUiOiJnZW5lcmF0ZWQuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlc0NvbnRlbnQiOlsidmFyIGJhc2VJc0Z1bmN0aW9uID0gcmVxdWlyZSgnLi4vaW50ZXJuYWwvYmFzZUlzRnVuY3Rpb24nKSxcbiAgICBnZXROYXRpdmUgPSByZXF1aXJlKCcuLi9pbnRlcm5hbC9nZXROYXRpdmUnKTtcblxuLyoqIGBPYmplY3QjdG9TdHJpbmdgIHJlc3VsdCByZWZlcmVuY2VzLiAqL1xudmFyIGZ1bmNUYWcgPSAnW29iamVjdCBGdW5jdGlvbl0nO1xuXG4vKiogVXNlZCBmb3IgbmF0aXZlIG1ldGhvZCByZWZlcmVuY2VzLiAqL1xudmFyIG9iamVjdFByb3RvID0gT2JqZWN0LnByb3RvdHlwZTtcblxuLyoqXG4gKiBVc2VkIHRvIHJlc29sdmUgdGhlIFtgdG9TdHJpbmdUYWdgXShodHRwczovL3Blb3BsZS5tb3ppbGxhLm9yZy9+am9yZW5kb3JmZi9lczYtZHJhZnQuaHRtbCNzZWMtb2JqZWN0LnByb3RvdHlwZS50b3N0cmluZylcbiAqIG9mIHZhbHVlcy5cbiAqL1xudmFyIG9ialRvU3RyaW5nID0gb2JqZWN0UHJvdG8udG9TdHJpbmc7XG5cbi8qKiBOYXRpdmUgbWV0aG9kIHJlZmVyZW5jZXMuICovXG52YXIgVWludDhBcnJheSA9IGdldE5hdGl2ZShnbG9iYWwsICdVaW50OEFycmF5Jyk7XG5cbi8qKlxuICogQ2hlY2tzIGlmIGB2YWx1ZWAgaXMgY2xhc3NpZmllZCBhcyBhIGBGdW5jdGlvbmAgb2JqZWN0LlxuICpcbiAqIEBzdGF0aWNcbiAqIEBtZW1iZXJPZiBfXG4gKiBAY2F0ZWdvcnkgTGFuZ1xuICogQHBhcmFtIHsqfSB2YWx1ZSBUaGUgdmFsdWUgdG8gY2hlY2suXG4gKiBAcmV0dXJucyB7Ym9vbGVhbn0gUmV0dXJucyBgdHJ1ZWAgaWYgYHZhbHVlYCBpcyBjb3JyZWN0bHkgY2xhc3NpZmllZCwgZWxzZSBgZmFsc2VgLlxuICogQGV4YW1wbGVcbiAqXG4gKiBfLmlzRnVuY3Rpb24oXyk7XG4gKiAvLyA9PiB0cnVlXG4gKlxuICogXy5pc0Z1bmN0aW9uKC9hYmMvKTtcbiAqIC8vID0+IGZhbHNlXG4gKi9cbnZhciBpc0Z1bmN0aW9uID0gIShiYXNlSXNGdW5jdGlvbigveC8pIHx8IChVaW50OEFycmF5ICYmICFiYXNlSXNGdW5jdGlvbihVaW50OEFycmF5KSkpID8gYmFzZUlzRnVuY3Rpb24gOiBmdW5jdGlvbih2YWx1ZSkge1xuICAvLyBUaGUgdXNlIG9mIGBPYmplY3QjdG9TdHJpbmdgIGF2b2lkcyBpc3N1ZXMgd2l0aCB0aGUgYHR5cGVvZmAgb3BlcmF0b3JcbiAgLy8gaW4gb2xkZXIgdmVyc2lvbnMgb2YgQ2hyb21lIGFuZCBTYWZhcmkgd2hpY2ggcmV0dXJuICdmdW5jdGlvbicgZm9yIHJlZ2V4ZXNcbiAgLy8gYW5kIFNhZmFyaSA4IGVxdWl2YWxlbnRzIHdoaWNoIHJldHVybiAnb2JqZWN0JyBmb3IgdHlwZWQgYXJyYXkgY29uc3RydWN0b3JzLlxuICByZXR1cm4gb2JqVG9TdHJpbmcuY2FsbCh2YWx1ZSkgPT0gZnVuY1RhZztcbn07XG5cbm1vZHVsZS5leHBvcnRzID0gaXNGdW5jdGlvbjtcbiJdfQ==
-},{"57":57,"65":65}],75:[function(_dereq_,module,exports){
-var escapeRegExp = _dereq_(80),
-    isObjectLike = _dereq_(69);
+},{"60":60,"68":68}],78:[function(_dereq_,module,exports){
+var escapeRegExp = _dereq_(83),
+    isObjectLike = _dereq_(72);
 
 /** `Object#toString` result references. */
 var funcTag = '[object Function]';
@@ -4292,8 +4708,8 @@ function isNative(value) {
 
 module.exports = isNative;
 
-},{"69":69,"80":80}],76:[function(_dereq_,module,exports){
-var isObjectLike = _dereq_(69);
+},{"72":72,"83":83}],79:[function(_dereq_,module,exports){
+var isObjectLike = _dereq_(72);
 
 /** `Object#toString` result references. */
 var numberTag = '[object Number]';
@@ -4335,7 +4751,7 @@ function isNumber(value) {
 
 module.exports = isNumber;
 
-},{"69":69}],77:[function(_dereq_,module,exports){
+},{"72":72}],80:[function(_dereq_,module,exports){
 /**
  * Checks if `value` is the [language type](https://es5.github.io/#x8) of `Object`.
  * (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
@@ -4365,11 +4781,11 @@ function isObject(value) {
 
 module.exports = isObject;
 
-},{}],78:[function(_dereq_,module,exports){
-var getNative = _dereq_(65),
-    isArrayLike = _dereq_(66),
-    isObject = _dereq_(77),
-    shimKeys = _dereq_(70);
+},{}],81:[function(_dereq_,module,exports){
+var getNative = _dereq_(68),
+    isArrayLike = _dereq_(69),
+    isObject = _dereq_(80),
+    shimKeys = _dereq_(73);
 
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeKeys = getNative(Object, 'keys');
@@ -4412,12 +4828,12 @@ var keys = !nativeKeys ? shimKeys : function(object) {
 
 module.exports = keys;
 
-},{"65":65,"66":66,"70":70,"77":77}],79:[function(_dereq_,module,exports){
-var isArguments = _dereq_(72),
-    isArray = _dereq_(73),
-    isIndex = _dereq_(67),
-    isLength = _dereq_(68),
-    isObject = _dereq_(77);
+},{"68":68,"69":69,"73":73,"80":80}],82:[function(_dereq_,module,exports){
+var isArguments = _dereq_(75),
+    isArray = _dereq_(76),
+    isIndex = _dereq_(70),
+    isLength = _dereq_(71),
+    isObject = _dereq_(80);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -4478,8 +4894,8 @@ function keysIn(object) {
 
 module.exports = keysIn;
 
-},{"67":67,"68":68,"72":72,"73":73,"77":77}],80:[function(_dereq_,module,exports){
-var baseToString = _dereq_(59);
+},{"70":70,"71":71,"75":75,"76":76,"80":80}],83:[function(_dereq_,module,exports){
+var baseToString = _dereq_(62);
 
 /**
  * Used to match `RegExp` [special characters](http://www.regular-expressions.info/characters.html#special).
@@ -4512,7 +4928,7 @@ function escapeRegExp(string) {
 
 module.exports = escapeRegExp;
 
-},{"59":59}],81:[function(_dereq_,module,exports){
+},{"62":62}],84:[function(_dereq_,module,exports){
 /**
  * This method returns the first argument provided to it.
  *
@@ -4534,18 +4950,18 @@ function identity(value) {
 
 module.exports = identity;
 
-},{}],82:[function(_dereq_,module,exports){
-module.exports = _dereq_(85);
-},{"85":85}],83:[function(_dereq_,module,exports){
+},{}],85:[function(_dereq_,module,exports){
+module.exports = _dereq_(88);
+},{"88":88}],86:[function(_dereq_,module,exports){
 'use strict';
 
-var isString = _dereq_(108),
-    isFunction = _dereq_(105),
-    assign = _dereq_(109);
+var isString = _dereq_(111),
+    isFunction = _dereq_(108),
+    assign = _dereq_(112);
 
-var Moddle = _dereq_(265),
-    XmlReader = _dereq_(115),
-    XmlWriter = _dereq_(116);
+var Moddle = _dereq_(268),
+    XmlReader = _dereq_(118),
+    XmlWriter = _dereq_(119);
 
 /**
  * A sub class of {@link Moddle} with support for import and export of DMN xml files.
@@ -4617,7 +5033,7 @@ DmnModdle.prototype.toXML = function(element, options, done) {
   }
 };
 
-},{"105":105,"108":108,"109":109,"115":115,"116":116,"265":265}],84:[function(_dereq_,module,exports){
+},{"108":108,"111":111,"112":112,"118":118,"119":119,"268":268}],87:[function(_dereq_,module,exports){
 'use strict';
 
 var ID_PATTERN = /^(.*:)?id$/;
@@ -4674,22 +5090,22 @@ module.exports.extend = function(model, ids) {
   return model;
 };
 
-},{}],85:[function(_dereq_,module,exports){
+},{}],88:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(109);
+var assign = _dereq_(112);
 
-var DmnModdle = _dereq_(83);
+var DmnModdle = _dereq_(86);
 
 var packages = {
-  dmn: _dereq_(339)
+  dmn: _dereq_(342)
 };
 
 module.exports = function(additionalPackages, options) {
   return new DmnModdle(assign({}, packages, additionalPackages), options);
 };
 
-},{"109":109,"339":339,"83":83}],86:[function(_dereq_,module,exports){
+},{"112":112,"342":342,"86":86}],89:[function(_dereq_,module,exports){
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
 
@@ -4749,8 +5165,8 @@ function restParam(func, start) {
 
 module.exports = restParam;
 
-},{}],87:[function(_dereq_,module,exports){
-var keys = _dereq_(110);
+},{}],90:[function(_dereq_,module,exports){
+var keys = _dereq_(113);
 
 /**
  * A specialized version of `_.assign` for customizing assigned values without
@@ -4783,9 +5199,9 @@ function assignWith(object, source, customizer) {
 
 module.exports = assignWith;
 
-},{"110":110}],88:[function(_dereq_,module,exports){
-var baseCopy = _dereq_(89),
-    keys = _dereq_(110);
+},{"113":113}],91:[function(_dereq_,module,exports){
+var baseCopy = _dereq_(92),
+    keys = _dereq_(113);
 
 /**
  * The base implementation of `_.assign` without support for argument juggling,
@@ -4804,7 +5220,7 @@ function baseAssign(object, source) {
 
 module.exports = baseAssign;
 
-},{"110":110,"89":89}],89:[function(_dereq_,module,exports){
+},{"113":113,"92":92}],92:[function(_dereq_,module,exports){
 /**
  * Copies properties of `source` to `object`.
  *
@@ -4829,18 +5245,18 @@ function baseCopy(source, props, object) {
 
 module.exports = baseCopy;
 
-},{}],90:[function(_dereq_,module,exports){
-arguments[4][57][0].apply(exports,arguments)
-},{"57":57}],91:[function(_dereq_,module,exports){
-arguments[4][58][0].apply(exports,arguments)
-},{"58":58}],92:[function(_dereq_,module,exports){
-arguments[4][59][0].apply(exports,arguments)
-},{"59":59}],93:[function(_dereq_,module,exports){
+},{}],93:[function(_dereq_,module,exports){
 arguments[4][60][0].apply(exports,arguments)
-},{"113":113,"60":60}],94:[function(_dereq_,module,exports){
-var bindCallback = _dereq_(93),
-    isIterateeCall = _dereq_(99),
-    restParam = _dereq_(86);
+},{"60":60}],94:[function(_dereq_,module,exports){
+arguments[4][61][0].apply(exports,arguments)
+},{"61":61}],95:[function(_dereq_,module,exports){
+arguments[4][62][0].apply(exports,arguments)
+},{"62":62}],96:[function(_dereq_,module,exports){
+arguments[4][63][0].apply(exports,arguments)
+},{"116":116,"63":63}],97:[function(_dereq_,module,exports){
+var bindCallback = _dereq_(96),
+    isIterateeCall = _dereq_(102),
+    restParam = _dereq_(89);
 
 /**
  * Creates a function that assigns properties of source object(s) to a given
@@ -4883,18 +5299,18 @@ function createAssigner(assigner) {
 
 module.exports = createAssigner;
 
-},{"86":86,"93":93,"99":99}],95:[function(_dereq_,module,exports){
-arguments[4][64][0].apply(exports,arguments)
-},{"64":64,"91":91}],96:[function(_dereq_,module,exports){
-arguments[4][65][0].apply(exports,arguments)
-},{"106":106,"65":65}],97:[function(_dereq_,module,exports){
-arguments[4][66][0].apply(exports,arguments)
-},{"100":100,"66":66,"95":95}],98:[function(_dereq_,module,exports){
+},{"102":102,"89":89,"96":96}],98:[function(_dereq_,module,exports){
 arguments[4][67][0].apply(exports,arguments)
-},{"67":67}],99:[function(_dereq_,module,exports){
-var isArrayLike = _dereq_(97),
-    isIndex = _dereq_(98),
-    isObject = _dereq_(107);
+},{"67":67,"94":94}],99:[function(_dereq_,module,exports){
+arguments[4][68][0].apply(exports,arguments)
+},{"109":109,"68":68}],100:[function(_dereq_,module,exports){
+arguments[4][69][0].apply(exports,arguments)
+},{"103":103,"69":69,"98":98}],101:[function(_dereq_,module,exports){
+arguments[4][70][0].apply(exports,arguments)
+},{"70":70}],102:[function(_dereq_,module,exports){
+var isArrayLike = _dereq_(100),
+    isIndex = _dereq_(101),
+    isObject = _dereq_(110);
 
 /**
  * Checks if the provided arguments are from an iteratee call.
@@ -4921,20 +5337,20 @@ function isIterateeCall(value, index, object) {
 
 module.exports = isIterateeCall;
 
-},{"107":107,"97":97,"98":98}],100:[function(_dereq_,module,exports){
-arguments[4][68][0].apply(exports,arguments)
-},{"68":68}],101:[function(_dereq_,module,exports){
-arguments[4][69][0].apply(exports,arguments)
-},{"69":69}],102:[function(_dereq_,module,exports){
-arguments[4][70][0].apply(exports,arguments)
-},{"100":100,"103":103,"104":104,"111":111,"70":70,"98":98}],103:[function(_dereq_,module,exports){
+},{"100":100,"101":101,"110":110}],103:[function(_dereq_,module,exports){
+arguments[4][71][0].apply(exports,arguments)
+},{"71":71}],104:[function(_dereq_,module,exports){
 arguments[4][72][0].apply(exports,arguments)
-},{"101":101,"72":72,"97":97}],104:[function(_dereq_,module,exports){
+},{"72":72}],105:[function(_dereq_,module,exports){
 arguments[4][73][0].apply(exports,arguments)
-},{"100":100,"101":101,"73":73,"96":96}],105:[function(_dereq_,module,exports){
+},{"101":101,"103":103,"106":106,"107":107,"114":114,"73":73}],106:[function(_dereq_,module,exports){
+arguments[4][75][0].apply(exports,arguments)
+},{"100":100,"104":104,"75":75}],107:[function(_dereq_,module,exports){
+arguments[4][76][0].apply(exports,arguments)
+},{"103":103,"104":104,"76":76,"99":99}],108:[function(_dereq_,module,exports){
 (function (global){
-var baseIsFunction = _dereq_(90),
-    getNative = _dereq_(96);
+var baseIsFunction = _dereq_(93),
+    getNative = _dereq_(99);
 
 /** `Object#toString` result references. */
 var funcTag = '[object Function]';
@@ -4978,12 +5394,12 @@ module.exports = isFunction;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 //# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy9kbW4tbW9kZGxlL25vZGVfbW9kdWxlcy9sb2Rhc2gvbGFuZy9pc0Z1bmN0aW9uLmpzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7QUFBQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSIsImZpbGUiOiJnZW5lcmF0ZWQuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlc0NvbnRlbnQiOlsidmFyIGJhc2VJc0Z1bmN0aW9uID0gcmVxdWlyZSgnLi4vaW50ZXJuYWwvYmFzZUlzRnVuY3Rpb24nKSxcbiAgICBnZXROYXRpdmUgPSByZXF1aXJlKCcuLi9pbnRlcm5hbC9nZXROYXRpdmUnKTtcblxuLyoqIGBPYmplY3QjdG9TdHJpbmdgIHJlc3VsdCByZWZlcmVuY2VzLiAqL1xudmFyIGZ1bmNUYWcgPSAnW29iamVjdCBGdW5jdGlvbl0nO1xuXG4vKiogVXNlZCBmb3IgbmF0aXZlIG1ldGhvZCByZWZlcmVuY2VzLiAqL1xudmFyIG9iamVjdFByb3RvID0gT2JqZWN0LnByb3RvdHlwZTtcblxuLyoqXG4gKiBVc2VkIHRvIHJlc29sdmUgdGhlIFtgdG9TdHJpbmdUYWdgXShodHRwczovL3Blb3BsZS5tb3ppbGxhLm9yZy9+am9yZW5kb3JmZi9lczYtZHJhZnQuaHRtbCNzZWMtb2JqZWN0LnByb3RvdHlwZS50b3N0cmluZylcbiAqIG9mIHZhbHVlcy5cbiAqL1xudmFyIG9ialRvU3RyaW5nID0gb2JqZWN0UHJvdG8udG9TdHJpbmc7XG5cbi8qKiBOYXRpdmUgbWV0aG9kIHJlZmVyZW5jZXMuICovXG52YXIgVWludDhBcnJheSA9IGdldE5hdGl2ZShnbG9iYWwsICdVaW50OEFycmF5Jyk7XG5cbi8qKlxuICogQ2hlY2tzIGlmIGB2YWx1ZWAgaXMgY2xhc3NpZmllZCBhcyBhIGBGdW5jdGlvbmAgb2JqZWN0LlxuICpcbiAqIEBzdGF0aWNcbiAqIEBtZW1iZXJPZiBfXG4gKiBAY2F0ZWdvcnkgTGFuZ1xuICogQHBhcmFtIHsqfSB2YWx1ZSBUaGUgdmFsdWUgdG8gY2hlY2suXG4gKiBAcmV0dXJucyB7Ym9vbGVhbn0gUmV0dXJucyBgdHJ1ZWAgaWYgYHZhbHVlYCBpcyBjb3JyZWN0bHkgY2xhc3NpZmllZCwgZWxzZSBgZmFsc2VgLlxuICogQGV4YW1wbGVcbiAqXG4gKiBfLmlzRnVuY3Rpb24oXyk7XG4gKiAvLyA9PiB0cnVlXG4gKlxuICogXy5pc0Z1bmN0aW9uKC9hYmMvKTtcbiAqIC8vID0+IGZhbHNlXG4gKi9cbnZhciBpc0Z1bmN0aW9uID0gIShiYXNlSXNGdW5jdGlvbigveC8pIHx8IChVaW50OEFycmF5ICYmICFiYXNlSXNGdW5jdGlvbihVaW50OEFycmF5KSkpID8gYmFzZUlzRnVuY3Rpb24gOiBmdW5jdGlvbih2YWx1ZSkge1xuICAvLyBUaGUgdXNlIG9mIGBPYmplY3QjdG9TdHJpbmdgIGF2b2lkcyBpc3N1ZXMgd2l0aCB0aGUgYHR5cGVvZmAgb3BlcmF0b3JcbiAgLy8gaW4gb2xkZXIgdmVyc2lvbnMgb2YgQ2hyb21lIGFuZCBTYWZhcmkgd2hpY2ggcmV0dXJuICdmdW5jdGlvbicgZm9yIHJlZ2V4ZXNcbiAgLy8gYW5kIFNhZmFyaSA4IGVxdWl2YWxlbnRzIHdoaWNoIHJldHVybiAnb2JqZWN0JyBmb3IgdHlwZWQgYXJyYXkgY29uc3RydWN0b3JzLlxuICByZXR1cm4gb2JqVG9TdHJpbmcuY2FsbCh2YWx1ZSkgPT0gZnVuY1RhZztcbn07XG5cbm1vZHVsZS5leHBvcnRzID0gaXNGdW5jdGlvbjtcbiJdfQ==
-},{"90":90,"96":96}],106:[function(_dereq_,module,exports){
-arguments[4][75][0].apply(exports,arguments)
-},{"101":101,"112":112,"75":75}],107:[function(_dereq_,module,exports){
-arguments[4][77][0].apply(exports,arguments)
-},{"77":77}],108:[function(_dereq_,module,exports){
-var isObjectLike = _dereq_(101);
+},{"93":93,"99":99}],109:[function(_dereq_,module,exports){
+arguments[4][78][0].apply(exports,arguments)
+},{"104":104,"115":115,"78":78}],110:[function(_dereq_,module,exports){
+arguments[4][80][0].apply(exports,arguments)
+},{"80":80}],111:[function(_dereq_,module,exports){
+var isObjectLike = _dereq_(104);
 
 /** `Object#toString` result references. */
 var stringTag = '[object String]';
@@ -5019,10 +5435,10 @@ function isString(value) {
 
 module.exports = isString;
 
-},{"101":101}],109:[function(_dereq_,module,exports){
-var assignWith = _dereq_(87),
-    baseAssign = _dereq_(88),
-    createAssigner = _dereq_(94);
+},{"104":104}],112:[function(_dereq_,module,exports){
+var assignWith = _dereq_(90),
+    baseAssign = _dereq_(91),
+    createAssigner = _dereq_(97);
 
 /**
  * Assigns own enumerable properties of source object(s) to the destination
@@ -5064,15 +5480,15 @@ var assign = createAssigner(function(object, source, customizer) {
 
 module.exports = assign;
 
-},{"87":87,"88":88,"94":94}],110:[function(_dereq_,module,exports){
-arguments[4][78][0].apply(exports,arguments)
-},{"102":102,"107":107,"78":78,"96":96,"97":97}],111:[function(_dereq_,module,exports){
-arguments[4][79][0].apply(exports,arguments)
-},{"100":100,"103":103,"104":104,"107":107,"79":79,"98":98}],112:[function(_dereq_,module,exports){
-arguments[4][80][0].apply(exports,arguments)
-},{"80":80,"92":92}],113:[function(_dereq_,module,exports){
+},{"90":90,"91":91,"97":97}],113:[function(_dereq_,module,exports){
 arguments[4][81][0].apply(exports,arguments)
-},{"81":81}],114:[function(_dereq_,module,exports){
+},{"100":100,"105":105,"110":110,"81":81,"99":99}],114:[function(_dereq_,module,exports){
+arguments[4][82][0].apply(exports,arguments)
+},{"101":101,"103":103,"106":106,"107":107,"110":110,"82":82}],115:[function(_dereq_,module,exports){
+arguments[4][83][0].apply(exports,arguments)
+},{"83":83,"95":95}],116:[function(_dereq_,module,exports){
+arguments[4][84][0].apply(exports,arguments)
+},{"84":84}],117:[function(_dereq_,module,exports){
 'use strict';
 
 function capitalize(string) {
@@ -5121,23 +5537,23 @@ module.exports.serializeAsType = function(element) {
 module.exports.serializeAsProperty = function(element) {
   return serializeFormat(element) === 'property';
 };
-},{}],115:[function(_dereq_,module,exports){
+},{}],118:[function(_dereq_,module,exports){
 'use strict';
 
-var reduce = _dereq_(122),
-    forEach = _dereq_(120),
-    find = _dereq_(119),
-    assign = _dereq_(182),
-    defer = _dereq_(123);
+var reduce = _dereq_(125),
+    forEach = _dereq_(123),
+    find = _dereq_(122),
+    assign = _dereq_(185),
+    defer = _dereq_(126);
 
-var Stack = _dereq_(264),
-    SaxParser = _dereq_(263).parser,
-    Moddle = _dereq_(189),
-    parseNameNs = _dereq_(194).parseName,
-    Types = _dereq_(197),
+var Stack = _dereq_(267),
+    SaxParser = _dereq_(266).parser,
+    Moddle = _dereq_(192),
+    parseNameNs = _dereq_(197).parseName,
+    Types = _dereq_(200),
     coerceType = Types.coerceType,
     isSimpleType = Types.isSimple,
-    common = _dereq_(114),
+    common = _dereq_(117),
     XSI_TYPE = common.XSI_TYPE,
     XSI_URI = common.DEFAULT_NS_MAP.xsi,
     serializeAsType = common.serializeAsType,
@@ -5783,18 +6199,18 @@ XMLReader.prototype.handler = function(name) {
 
 module.exports = XMLReader;
 module.exports.ElementHandler = ElementHandler;
-},{"114":114,"119":119,"120":120,"122":122,"123":123,"182":182,"189":189,"194":194,"197":197,"263":263,"264":264}],116:[function(_dereq_,module,exports){
+},{"117":117,"122":122,"123":123,"125":125,"126":126,"185":185,"192":192,"197":197,"200":200,"266":266,"267":267}],119:[function(_dereq_,module,exports){
 'use strict';
 
-var map = _dereq_(121),
-    forEach = _dereq_(120),
-    isString = _dereq_(180),
-    filter = _dereq_(118),
-    assign = _dereq_(182);
+var map = _dereq_(124),
+    forEach = _dereq_(123),
+    isString = _dereq_(183),
+    filter = _dereq_(121),
+    assign = _dereq_(185);
 
-var Types = _dereq_(197),
-    parseNameNs = _dereq_(194).parseName,
-    common = _dereq_(114),
+var Types = _dereq_(200),
+    parseNameNs = _dereq_(197).parseName,
+    common = _dereq_(117),
     nameToAlias = common.nameToAlias,
     serializeAsType = common.serializeAsType,
     serializeAsProperty = common.serializeAsProperty;
@@ -6410,7 +6826,7 @@ function XMLWriter(options) {
 
 module.exports = XMLWriter;
 
-},{"114":114,"118":118,"120":120,"121":121,"180":180,"182":182,"194":194,"197":197}],117:[function(_dereq_,module,exports){
+},{"117":117,"121":121,"123":123,"124":124,"183":183,"185":185,"197":197,"200":200}],120:[function(_dereq_,module,exports){
 /**
  * Gets the last element of `array`.
  *
@@ -6431,11 +6847,11 @@ function last(array) {
 
 module.exports = last;
 
-},{}],118:[function(_dereq_,module,exports){
-var arrayFilter = _dereq_(126),
-    baseCallback = _dereq_(132),
-    baseFilter = _dereq_(136),
-    isArray = _dereq_(177);
+},{}],121:[function(_dereq_,module,exports){
+var arrayFilter = _dereq_(129),
+    baseCallback = _dereq_(135),
+    baseFilter = _dereq_(139),
+    isArray = _dereq_(180);
 
 /**
  * Iterates over elements of `collection`, returning an array of all elements
@@ -6494,9 +6910,9 @@ function filter(collection, predicate, thisArg) {
 
 module.exports = filter;
 
-},{"126":126,"132":132,"136":136,"177":177}],119:[function(_dereq_,module,exports){
-var baseEach = _dereq_(135),
-    createFind = _dereq_(157);
+},{"129":129,"135":135,"139":139,"180":180}],122:[function(_dereq_,module,exports){
+var baseEach = _dereq_(138),
+    createFind = _dereq_(160);
 
 /**
  * Iterates over elements of `collection`, returning the first element
@@ -6552,13 +6968,13 @@ var find = createFind(baseEach);
 
 module.exports = find;
 
-},{"135":135,"157":157}],120:[function(_dereq_,module,exports){
-arguments[4][52][0].apply(exports,arguments)
-},{"125":125,"135":135,"158":158,"52":52}],121:[function(_dereq_,module,exports){
-var arrayMap = _dereq_(127),
-    baseCallback = _dereq_(132),
-    baseMap = _dereq_(145),
-    isArray = _dereq_(177);
+},{"138":138,"160":160}],123:[function(_dereq_,module,exports){
+arguments[4][55][0].apply(exports,arguments)
+},{"128":128,"138":138,"161":161,"55":55}],124:[function(_dereq_,module,exports){
+var arrayMap = _dereq_(130),
+    baseCallback = _dereq_(135),
+    baseMap = _dereq_(148),
+    isArray = _dereq_(180);
 
 /**
  * Creates an array of values by running each element in `collection` through
@@ -6624,10 +7040,10 @@ function map(collection, iteratee, thisArg) {
 
 module.exports = map;
 
-},{"127":127,"132":132,"145":145,"177":177}],122:[function(_dereq_,module,exports){
-var arrayReduce = _dereq_(128),
-    baseEach = _dereq_(135),
-    createReduce = _dereq_(159);
+},{"130":130,"135":135,"148":148,"180":180}],125:[function(_dereq_,module,exports){
+var arrayReduce = _dereq_(131),
+    baseEach = _dereq_(138),
+    createReduce = _dereq_(162);
 
 /**
  * Reduces `collection` to a value which is the accumulated result of running
@@ -6669,9 +7085,9 @@ var reduce = createReduce(arrayReduce, baseEach);
 
 module.exports = reduce;
 
-},{"128":128,"135":135,"159":159}],123:[function(_dereq_,module,exports){
-var baseDelay = _dereq_(134),
-    restParam = _dereq_(124);
+},{"131":131,"138":138,"162":162}],126:[function(_dereq_,module,exports){
+var baseDelay = _dereq_(137),
+    restParam = _dereq_(127);
 
 /**
  * Defers invoking the `func` until the current call stack has cleared. Any
@@ -6696,11 +7112,11 @@ var defer = restParam(function(func, args) {
 
 module.exports = defer;
 
-},{"124":124,"134":134}],124:[function(_dereq_,module,exports){
-arguments[4][86][0].apply(exports,arguments)
-},{"86":86}],125:[function(_dereq_,module,exports){
-arguments[4][53][0].apply(exports,arguments)
-},{"53":53}],126:[function(_dereq_,module,exports){
+},{"127":127,"137":137}],127:[function(_dereq_,module,exports){
+arguments[4][89][0].apply(exports,arguments)
+},{"89":89}],128:[function(_dereq_,module,exports){
+arguments[4][56][0].apply(exports,arguments)
+},{"56":56}],129:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.filter` for arrays without support for callback
  * shorthands and `this` binding.
@@ -6727,7 +7143,7 @@ function arrayFilter(array, predicate) {
 
 module.exports = arrayFilter;
 
-},{}],127:[function(_dereq_,module,exports){
+},{}],130:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.map` for arrays without support for callback
  * shorthands and `this` binding.
@@ -6750,7 +7166,7 @@ function arrayMap(array, iteratee) {
 
 module.exports = arrayMap;
 
-},{}],128:[function(_dereq_,module,exports){
+},{}],131:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.reduce` for arrays without support for callback
  * shorthands and `this` binding.
@@ -6778,7 +7194,7 @@ function arrayReduce(array, iteratee, accumulator, initFromArray) {
 
 module.exports = arrayReduce;
 
-},{}],129:[function(_dereq_,module,exports){
+},{}],132:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.some` for arrays without support for callback
  * shorthands and `this` binding.
@@ -6803,16 +7219,16 @@ function arraySome(array, predicate) {
 
 module.exports = arraySome;
 
-},{}],130:[function(_dereq_,module,exports){
-arguments[4][87][0].apply(exports,arguments)
-},{"183":183,"87":87}],131:[function(_dereq_,module,exports){
-arguments[4][88][0].apply(exports,arguments)
-},{"133":133,"183":183,"88":88}],132:[function(_dereq_,module,exports){
-var baseMatches = _dereq_(146),
-    baseMatchesProperty = _dereq_(147),
-    bindCallback = _dereq_(153),
-    identity = _dereq_(187),
-    property = _dereq_(188);
+},{}],133:[function(_dereq_,module,exports){
+arguments[4][90][0].apply(exports,arguments)
+},{"186":186,"90":90}],134:[function(_dereq_,module,exports){
+arguments[4][91][0].apply(exports,arguments)
+},{"136":136,"186":186,"91":91}],135:[function(_dereq_,module,exports){
+var baseMatches = _dereq_(149),
+    baseMatchesProperty = _dereq_(150),
+    bindCallback = _dereq_(156),
+    identity = _dereq_(190),
+    property = _dereq_(191);
 
 /**
  * The base implementation of `_.callback` which supports specifying the
@@ -6844,9 +7260,9 @@ function baseCallback(func, thisArg, argCount) {
 
 module.exports = baseCallback;
 
-},{"146":146,"147":147,"153":153,"187":187,"188":188}],133:[function(_dereq_,module,exports){
-arguments[4][89][0].apply(exports,arguments)
-},{"89":89}],134:[function(_dereq_,module,exports){
+},{"149":149,"150":150,"156":156,"190":190,"191":191}],136:[function(_dereq_,module,exports){
+arguments[4][92][0].apply(exports,arguments)
+},{"92":92}],137:[function(_dereq_,module,exports){
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
 
@@ -6869,10 +7285,10 @@ function baseDelay(func, wait, args) {
 
 module.exports = baseDelay;
 
-},{}],135:[function(_dereq_,module,exports){
-arguments[4][54][0].apply(exports,arguments)
-},{"140":140,"155":155,"54":54}],136:[function(_dereq_,module,exports){
-var baseEach = _dereq_(135);
+},{}],138:[function(_dereq_,module,exports){
+arguments[4][57][0].apply(exports,arguments)
+},{"143":143,"158":158,"57":57}],139:[function(_dereq_,module,exports){
+var baseEach = _dereq_(138);
 
 /**
  * The base implementation of `_.filter` without support for callback
@@ -6895,7 +7311,7 @@ function baseFilter(collection, predicate) {
 
 module.exports = baseFilter;
 
-},{"135":135}],137:[function(_dereq_,module,exports){
+},{"138":138}],140:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.find`, `_.findLast`, `_.findKey`, and `_.findLastKey`,
  * without support for callback shorthands and `this` binding, which iterates
@@ -6922,7 +7338,7 @@ function baseFind(collection, predicate, eachFunc, retKey) {
 
 module.exports = baseFind;
 
-},{}],138:[function(_dereq_,module,exports){
+},{}],141:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.findIndex` and `_.findLastIndex` without
  * support for callback shorthands and `this` binding.
@@ -6947,12 +7363,12 @@ function baseFindIndex(array, predicate, fromRight) {
 
 module.exports = baseFindIndex;
 
-},{}],139:[function(_dereq_,module,exports){
-arguments[4][55][0].apply(exports,arguments)
-},{"156":156,"55":55}],140:[function(_dereq_,module,exports){
-arguments[4][56][0].apply(exports,arguments)
-},{"139":139,"183":183,"56":56}],141:[function(_dereq_,module,exports){
-var toObject = _dereq_(174);
+},{}],142:[function(_dereq_,module,exports){
+arguments[4][58][0].apply(exports,arguments)
+},{"159":159,"58":58}],143:[function(_dereq_,module,exports){
+arguments[4][59][0].apply(exports,arguments)
+},{"142":142,"186":186,"59":59}],144:[function(_dereq_,module,exports){
+var toObject = _dereq_(177);
 
 /**
  * The base implementation of `get` without support for string paths
@@ -6982,10 +7398,10 @@ function baseGet(object, path, pathKey) {
 
 module.exports = baseGet;
 
-},{"174":174}],142:[function(_dereq_,module,exports){
-var baseIsEqualDeep = _dereq_(143),
-    isObject = _dereq_(179),
-    isObjectLike = _dereq_(171);
+},{"177":177}],145:[function(_dereq_,module,exports){
+var baseIsEqualDeep = _dereq_(146),
+    isObject = _dereq_(182),
+    isObjectLike = _dereq_(174);
 
 /**
  * The base implementation of `_.isEqual` without support for `this` binding
@@ -7012,12 +7428,12 @@ function baseIsEqual(value, other, customizer, isLoose, stackA, stackB) {
 
 module.exports = baseIsEqual;
 
-},{"143":143,"171":171,"179":179}],143:[function(_dereq_,module,exports){
-var equalArrays = _dereq_(160),
-    equalByTag = _dereq_(161),
-    equalObjects = _dereq_(162),
-    isArray = _dereq_(177),
-    isTypedArray = _dereq_(181);
+},{"146":146,"174":174,"182":182}],146:[function(_dereq_,module,exports){
+var equalArrays = _dereq_(163),
+    equalByTag = _dereq_(164),
+    equalObjects = _dereq_(165),
+    isArray = _dereq_(180),
+    isTypedArray = _dereq_(184);
 
 /** `Object#toString` result references. */
 var argsTag = '[object Arguments]',
@@ -7116,9 +7532,9 @@ function baseIsEqualDeep(object, other, equalFunc, customizer, isLoose, stackA, 
 
 module.exports = baseIsEqualDeep;
 
-},{"160":160,"161":161,"162":162,"177":177,"181":181}],144:[function(_dereq_,module,exports){
-var baseIsEqual = _dereq_(142),
-    toObject = _dereq_(174);
+},{"163":163,"164":164,"165":165,"180":180,"184":184}],147:[function(_dereq_,module,exports){
+var baseIsEqual = _dereq_(145),
+    toObject = _dereq_(177);
 
 /**
  * The base implementation of `_.isMatch` without support for callback
@@ -7170,9 +7586,9 @@ function baseIsMatch(object, matchData, customizer) {
 
 module.exports = baseIsMatch;
 
-},{"142":142,"174":174}],145:[function(_dereq_,module,exports){
-var baseEach = _dereq_(135),
-    isArrayLike = _dereq_(166);
+},{"145":145,"177":177}],148:[function(_dereq_,module,exports){
+var baseEach = _dereq_(138),
+    isArrayLike = _dereq_(169);
 
 /**
  * The base implementation of `_.map` without support for callback shorthands
@@ -7195,10 +7611,10 @@ function baseMap(collection, iteratee) {
 
 module.exports = baseMap;
 
-},{"135":135,"166":166}],146:[function(_dereq_,module,exports){
-var baseIsMatch = _dereq_(144),
-    getMatchData = _dereq_(164),
-    toObject = _dereq_(174);
+},{"138":138,"169":169}],149:[function(_dereq_,module,exports){
+var baseIsMatch = _dereq_(147),
+    getMatchData = _dereq_(167),
+    toObject = _dereq_(177);
 
 /**
  * The base implementation of `_.matches` which does not clone `source`.
@@ -7227,16 +7643,16 @@ function baseMatches(source) {
 
 module.exports = baseMatches;
 
-},{"144":144,"164":164,"174":174}],147:[function(_dereq_,module,exports){
-var baseGet = _dereq_(141),
-    baseIsEqual = _dereq_(142),
-    baseSlice = _dereq_(151),
-    isArray = _dereq_(177),
-    isKey = _dereq_(169),
-    isStrictComparable = _dereq_(172),
-    last = _dereq_(117),
-    toObject = _dereq_(174),
-    toPath = _dereq_(175);
+},{"147":147,"167":167,"177":177}],150:[function(_dereq_,module,exports){
+var baseGet = _dereq_(144),
+    baseIsEqual = _dereq_(145),
+    baseSlice = _dereq_(154),
+    isArray = _dereq_(180),
+    isKey = _dereq_(172),
+    isStrictComparable = _dereq_(175),
+    last = _dereq_(120),
+    toObject = _dereq_(177),
+    toPath = _dereq_(178);
 
 /**
  * The base implementation of `_.matchesProperty` which does not clone `srcValue`.
@@ -7274,11 +7690,11 @@ function baseMatchesProperty(path, srcValue) {
 
 module.exports = baseMatchesProperty;
 
-},{"117":117,"141":141,"142":142,"151":151,"169":169,"172":172,"174":174,"175":175,"177":177}],148:[function(_dereq_,module,exports){
-arguments[4][58][0].apply(exports,arguments)
-},{"58":58}],149:[function(_dereq_,module,exports){
-var baseGet = _dereq_(141),
-    toPath = _dereq_(175);
+},{"120":120,"144":144,"145":145,"154":154,"172":172,"175":175,"177":177,"178":178,"180":180}],151:[function(_dereq_,module,exports){
+arguments[4][61][0].apply(exports,arguments)
+},{"61":61}],152:[function(_dereq_,module,exports){
+var baseGet = _dereq_(144),
+    toPath = _dereq_(178);
 
 /**
  * A specialized version of `baseProperty` which supports deep paths.
@@ -7297,7 +7713,7 @@ function basePropertyDeep(path) {
 
 module.exports = basePropertyDeep;
 
-},{"141":141,"175":175}],150:[function(_dereq_,module,exports){
+},{"144":144,"178":178}],153:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.reduce` and `_.reduceRight` without support
  * for callback shorthands and `this` binding, which iterates over `collection`
@@ -7323,7 +7739,7 @@ function baseReduce(collection, iteratee, accumulator, initFromCollection, eachF
 
 module.exports = baseReduce;
 
-},{}],151:[function(_dereq_,module,exports){
+},{}],154:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.slice` without an iteratee call guard.
  *
@@ -7357,21 +7773,21 @@ function baseSlice(array, start, end) {
 
 module.exports = baseSlice;
 
-},{}],152:[function(_dereq_,module,exports){
-arguments[4][59][0].apply(exports,arguments)
-},{"59":59}],153:[function(_dereq_,module,exports){
-arguments[4][60][0].apply(exports,arguments)
-},{"187":187,"60":60}],154:[function(_dereq_,module,exports){
-arguments[4][94][0].apply(exports,arguments)
-},{"124":124,"153":153,"168":168,"94":94}],155:[function(_dereq_,module,exports){
-arguments[4][61][0].apply(exports,arguments)
-},{"163":163,"170":170,"174":174,"61":61}],156:[function(_dereq_,module,exports){
+},{}],155:[function(_dereq_,module,exports){
 arguments[4][62][0].apply(exports,arguments)
-},{"174":174,"62":62}],157:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(132),
-    baseFind = _dereq_(137),
-    baseFindIndex = _dereq_(138),
-    isArray = _dereq_(177);
+},{"62":62}],156:[function(_dereq_,module,exports){
+arguments[4][63][0].apply(exports,arguments)
+},{"190":190,"63":63}],157:[function(_dereq_,module,exports){
+arguments[4][97][0].apply(exports,arguments)
+},{"127":127,"156":156,"171":171,"97":97}],158:[function(_dereq_,module,exports){
+arguments[4][64][0].apply(exports,arguments)
+},{"166":166,"173":173,"177":177,"64":64}],159:[function(_dereq_,module,exports){
+arguments[4][65][0].apply(exports,arguments)
+},{"177":177,"65":65}],160:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(135),
+    baseFind = _dereq_(140),
+    baseFindIndex = _dereq_(141),
+    isArray = _dereq_(180);
 
 /**
  * Creates a `_.find` or `_.findLast` function.
@@ -7394,12 +7810,12 @@ function createFind(eachFunc, fromRight) {
 
 module.exports = createFind;
 
-},{"132":132,"137":137,"138":138,"177":177}],158:[function(_dereq_,module,exports){
-arguments[4][63][0].apply(exports,arguments)
-},{"153":153,"177":177,"63":63}],159:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(132),
-    baseReduce = _dereq_(150),
-    isArray = _dereq_(177);
+},{"135":135,"140":140,"141":141,"180":180}],161:[function(_dereq_,module,exports){
+arguments[4][66][0].apply(exports,arguments)
+},{"156":156,"180":180,"66":66}],162:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(135),
+    baseReduce = _dereq_(153),
+    isArray = _dereq_(180);
 
 /**
  * Creates a function for `_.reduce` or `_.reduceRight`.
@@ -7420,8 +7836,8 @@ function createReduce(arrayFunc, eachFunc) {
 
 module.exports = createReduce;
 
-},{"132":132,"150":150,"177":177}],160:[function(_dereq_,module,exports){
-var arraySome = _dereq_(129);
+},{"135":135,"153":153,"180":180}],163:[function(_dereq_,module,exports){
+var arraySome = _dereq_(132);
 
 /**
  * A specialized version of `baseIsEqualDeep` for arrays with support for
@@ -7473,7 +7889,7 @@ function equalArrays(array, other, equalFunc, customizer, isLoose, stackA, stack
 
 module.exports = equalArrays;
 
-},{"129":129}],161:[function(_dereq_,module,exports){
+},{"132":132}],164:[function(_dereq_,module,exports){
 /** `Object#toString` result references. */
 var boolTag = '[object Boolean]',
     dateTag = '[object Date]',
@@ -7523,8 +7939,8 @@ function equalByTag(object, other, tag) {
 
 module.exports = equalByTag;
 
-},{}],162:[function(_dereq_,module,exports){
-var keys = _dereq_(183);
+},{}],165:[function(_dereq_,module,exports){
+var keys = _dereq_(186);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -7592,11 +8008,11 @@ function equalObjects(object, other, equalFunc, customizer, isLoose, stackA, sta
 
 module.exports = equalObjects;
 
-},{"183":183}],163:[function(_dereq_,module,exports){
-arguments[4][64][0].apply(exports,arguments)
-},{"148":148,"64":64}],164:[function(_dereq_,module,exports){
-var isStrictComparable = _dereq_(172),
-    pairs = _dereq_(185);
+},{"186":186}],166:[function(_dereq_,module,exports){
+arguments[4][67][0].apply(exports,arguments)
+},{"151":151,"67":67}],167:[function(_dereq_,module,exports){
+var isStrictComparable = _dereq_(175),
+    pairs = _dereq_(188);
 
 /**
  * Gets the propery names, values, and compare flags of `object`.
@@ -7617,17 +8033,17 @@ function getMatchData(object) {
 
 module.exports = getMatchData;
 
-},{"172":172,"185":185}],165:[function(_dereq_,module,exports){
-arguments[4][65][0].apply(exports,arguments)
-},{"178":178,"65":65}],166:[function(_dereq_,module,exports){
-arguments[4][66][0].apply(exports,arguments)
-},{"163":163,"170":170,"66":66}],167:[function(_dereq_,module,exports){
-arguments[4][67][0].apply(exports,arguments)
-},{"67":67}],168:[function(_dereq_,module,exports){
-arguments[4][99][0].apply(exports,arguments)
-},{"166":166,"167":167,"179":179,"99":99}],169:[function(_dereq_,module,exports){
-var isArray = _dereq_(177),
-    toObject = _dereq_(174);
+},{"175":175,"188":188}],168:[function(_dereq_,module,exports){
+arguments[4][68][0].apply(exports,arguments)
+},{"181":181,"68":68}],169:[function(_dereq_,module,exports){
+arguments[4][69][0].apply(exports,arguments)
+},{"166":166,"173":173,"69":69}],170:[function(_dereq_,module,exports){
+arguments[4][70][0].apply(exports,arguments)
+},{"70":70}],171:[function(_dereq_,module,exports){
+arguments[4][102][0].apply(exports,arguments)
+},{"102":102,"169":169,"170":170,"182":182}],172:[function(_dereq_,module,exports){
+var isArray = _dereq_(180),
+    toObject = _dereq_(177);
 
 /** Used to match property names within property paths. */
 var reIsDeepProp = /\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\n\\]|\\.)*?\1)\]/,
@@ -7655,12 +8071,12 @@ function isKey(value, object) {
 
 module.exports = isKey;
 
-},{"174":174,"177":177}],170:[function(_dereq_,module,exports){
-arguments[4][68][0].apply(exports,arguments)
-},{"68":68}],171:[function(_dereq_,module,exports){
-arguments[4][69][0].apply(exports,arguments)
-},{"69":69}],172:[function(_dereq_,module,exports){
-var isObject = _dereq_(179);
+},{"177":177,"180":180}],173:[function(_dereq_,module,exports){
+arguments[4][71][0].apply(exports,arguments)
+},{"71":71}],174:[function(_dereq_,module,exports){
+arguments[4][72][0].apply(exports,arguments)
+},{"72":72}],175:[function(_dereq_,module,exports){
+var isObject = _dereq_(182);
 
 /**
  * Checks if `value` is suitable for strict equality comparisons, i.e. `===`.
@@ -7676,13 +8092,13 @@ function isStrictComparable(value) {
 
 module.exports = isStrictComparable;
 
-},{"179":179}],173:[function(_dereq_,module,exports){
-arguments[4][70][0].apply(exports,arguments)
-},{"167":167,"170":170,"176":176,"177":177,"184":184,"70":70}],174:[function(_dereq_,module,exports){
-arguments[4][71][0].apply(exports,arguments)
-},{"179":179,"71":71}],175:[function(_dereq_,module,exports){
-var baseToString = _dereq_(152),
-    isArray = _dereq_(177);
+},{"182":182}],176:[function(_dereq_,module,exports){
+arguments[4][73][0].apply(exports,arguments)
+},{"170":170,"173":173,"179":179,"180":180,"187":187,"73":73}],177:[function(_dereq_,module,exports){
+arguments[4][74][0].apply(exports,arguments)
+},{"182":182,"74":74}],178:[function(_dereq_,module,exports){
+var baseToString = _dereq_(155),
+    isArray = _dereq_(180);
 
 /** Used to match property names within property paths. */
 var rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\n\\]|\\.)*?)\2)\]/g;
@@ -7710,19 +8126,19 @@ function toPath(value) {
 
 module.exports = toPath;
 
-},{"152":152,"177":177}],176:[function(_dereq_,module,exports){
-arguments[4][72][0].apply(exports,arguments)
-},{"166":166,"171":171,"72":72}],177:[function(_dereq_,module,exports){
-arguments[4][73][0].apply(exports,arguments)
-},{"165":165,"170":170,"171":171,"73":73}],178:[function(_dereq_,module,exports){
+},{"155":155,"180":180}],179:[function(_dereq_,module,exports){
 arguments[4][75][0].apply(exports,arguments)
-},{"171":171,"186":186,"75":75}],179:[function(_dereq_,module,exports){
-arguments[4][77][0].apply(exports,arguments)
-},{"77":77}],180:[function(_dereq_,module,exports){
-arguments[4][108][0].apply(exports,arguments)
-},{"108":108,"171":171}],181:[function(_dereq_,module,exports){
-var isLength = _dereq_(170),
-    isObjectLike = _dereq_(171);
+},{"169":169,"174":174,"75":75}],180:[function(_dereq_,module,exports){
+arguments[4][76][0].apply(exports,arguments)
+},{"168":168,"173":173,"174":174,"76":76}],181:[function(_dereq_,module,exports){
+arguments[4][78][0].apply(exports,arguments)
+},{"174":174,"189":189,"78":78}],182:[function(_dereq_,module,exports){
+arguments[4][80][0].apply(exports,arguments)
+},{"80":80}],183:[function(_dereq_,module,exports){
+arguments[4][111][0].apply(exports,arguments)
+},{"111":111,"174":174}],184:[function(_dereq_,module,exports){
+var isLength = _dereq_(173),
+    isObjectLike = _dereq_(174);
 
 /** `Object#toString` result references. */
 var argsTag = '[object Arguments]',
@@ -7796,15 +8212,15 @@ function isTypedArray(value) {
 
 module.exports = isTypedArray;
 
-},{"170":170,"171":171}],182:[function(_dereq_,module,exports){
-arguments[4][109][0].apply(exports,arguments)
-},{"109":109,"130":130,"131":131,"154":154}],183:[function(_dereq_,module,exports){
-arguments[4][78][0].apply(exports,arguments)
-},{"165":165,"166":166,"173":173,"179":179,"78":78}],184:[function(_dereq_,module,exports){
-arguments[4][79][0].apply(exports,arguments)
-},{"167":167,"170":170,"176":176,"177":177,"179":179,"79":79}],185:[function(_dereq_,module,exports){
-var keys = _dereq_(183),
-    toObject = _dereq_(174);
+},{"173":173,"174":174}],185:[function(_dereq_,module,exports){
+arguments[4][112][0].apply(exports,arguments)
+},{"112":112,"133":133,"134":134,"157":157}],186:[function(_dereq_,module,exports){
+arguments[4][81][0].apply(exports,arguments)
+},{"168":168,"169":169,"176":176,"182":182,"81":81}],187:[function(_dereq_,module,exports){
+arguments[4][82][0].apply(exports,arguments)
+},{"170":170,"173":173,"179":179,"180":180,"182":182,"82":82}],188:[function(_dereq_,module,exports){
+var keys = _dereq_(186),
+    toObject = _dereq_(177);
 
 /**
  * Creates a two dimensional array of the key-value pairs for `object`,
@@ -7837,14 +8253,14 @@ function pairs(object) {
 
 module.exports = pairs;
 
-},{"174":174,"183":183}],186:[function(_dereq_,module,exports){
-arguments[4][80][0].apply(exports,arguments)
-},{"152":152,"80":80}],187:[function(_dereq_,module,exports){
-arguments[4][81][0].apply(exports,arguments)
-},{"81":81}],188:[function(_dereq_,module,exports){
-var baseProperty = _dereq_(148),
-    basePropertyDeep = _dereq_(149),
-    isKey = _dereq_(169);
+},{"177":177,"186":186}],189:[function(_dereq_,module,exports){
+arguments[4][83][0].apply(exports,arguments)
+},{"155":155,"83":83}],190:[function(_dereq_,module,exports){
+arguments[4][84][0].apply(exports,arguments)
+},{"84":84}],191:[function(_dereq_,module,exports){
+var baseProperty = _dereq_(151),
+    basePropertyDeep = _dereq_(152),
+    isKey = _dereq_(172);
 
 /**
  * Creates a function that returns the property value at `path` on a
@@ -7874,9 +8290,9 @@ function property(path) {
 
 module.exports = property;
 
-},{"148":148,"149":149,"169":169}],189:[function(_dereq_,module,exports){
-module.exports = _dereq_(193);
-},{"193":193}],190:[function(_dereq_,module,exports){
+},{"151":151,"152":152,"172":172}],192:[function(_dereq_,module,exports){
+module.exports = _dereq_(196);
+},{"196":196}],193:[function(_dereq_,module,exports){
 'use strict';
 
 function Base() { }
@@ -7891,14 +8307,14 @@ Base.prototype.set = function(name, value) {
 
 
 module.exports = Base;
-},{}],191:[function(_dereq_,module,exports){
+},{}],194:[function(_dereq_,module,exports){
 'use strict';
 
-var pick = _dereq_(259),
-    assign = _dereq_(255),
-    forEach = _dereq_(200);
+var pick = _dereq_(262),
+    assign = _dereq_(258),
+    forEach = _dereq_(203);
 
-var parseNameNs = _dereq_(194).parseName;
+var parseNameNs = _dereq_(197).parseName;
 
 
 function DescriptorBuilder(nameNs) {
@@ -8077,12 +8493,12 @@ DescriptorBuilder.prototype.addTrait = function(t) {
   allTypes.push(t);
 };
 
-},{"194":194,"200":200,"255":255,"259":259}],192:[function(_dereq_,module,exports){
+},{"197":197,"203":203,"258":258,"262":262}],195:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(200);
+var forEach = _dereq_(203);
 
-var Base = _dereq_(190);
+var Base = _dereq_(193);
 
 
 function Factory(model, properties) {
@@ -8135,20 +8551,20 @@ Factory.prototype.createType = function(descriptor) {
 
   return ModdleElement;
 };
-},{"190":190,"200":200}],193:[function(_dereq_,module,exports){
+},{"193":193,"203":203}],196:[function(_dereq_,module,exports){
 'use strict';
 
-var isString = _dereq_(253),
-    isObject = _dereq_(252),
-    forEach = _dereq_(200),
-    find = _dereq_(199);
+var isString = _dereq_(256),
+    isObject = _dereq_(255),
+    forEach = _dereq_(203),
+    find = _dereq_(202);
 
 
-var Factory = _dereq_(192),
-    Registry = _dereq_(196),
-    Properties = _dereq_(195);
+var Factory = _dereq_(195),
+    Registry = _dereq_(199),
+    Properties = _dereq_(198);
 
-var parseNameNs = _dereq_(194).parseName;
+var parseNameNs = _dereq_(197).parseName;
 
 
 //// Moddle implementation /////////////////////////////////////////////////
@@ -8357,7 +8773,7 @@ Moddle.prototype.getPropertyDescriptor = function(element, property) {
   return this.getElementDescriptor(element).propertiesByName[property];
 };
 
-},{"192":192,"194":194,"195":195,"196":196,"199":199,"200":200,"252":252,"253":253}],194:[function(_dereq_,module,exports){
+},{"195":195,"197":197,"198":198,"199":199,"202":202,"203":203,"255":255,"256":256}],197:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -8394,7 +8810,7 @@ module.exports.parseName = function(name, defaultPrefix) {
     localName: localName
   };
 };
-},{}],195:[function(_dereq_,module,exports){
+},{}],198:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -8488,16 +8904,16 @@ Properties.prototype.defineDescriptor = function(target, descriptor) {
 Properties.prototype.defineModel = function(target, model) {
   this.define(target, '$model', { value: model });
 };
-},{}],196:[function(_dereq_,module,exports){
+},{}],199:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(255),
-    forEach = _dereq_(200);
+var assign = _dereq_(258),
+    forEach = _dereq_(203);
 
-var Types = _dereq_(197),
-    DescriptorBuilder = _dereq_(191);
+var Types = _dereq_(200),
+    DescriptorBuilder = _dereq_(194);
 
-var parseNameNs = _dereq_(194).parseName,
+var parseNameNs = _dereq_(197).parseName,
     isBuiltInType = Types.isBuiltIn;
 
 
@@ -8664,7 +9080,7 @@ Registry.prototype.getEffectiveDescriptor = function(name) {
 Registry.prototype.definePackage = function(target, pkg) {
   this.properties.define(target, '$pkg', { value: pkg });
 };
-},{"191":191,"194":194,"197":197,"200":200,"255":255}],197:[function(_dereq_,module,exports){
+},{"194":194,"197":197,"200":200,"203":203,"258":258}],200:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -8715,37 +9131,37 @@ module.exports.isBuiltIn = function(type) {
 module.exports.isSimple = function(type) {
   return !!TYPE_CONVERTERS[type];
 };
-},{}],198:[function(_dereq_,module,exports){
-arguments[4][117][0].apply(exports,arguments)
-},{"117":117}],199:[function(_dereq_,module,exports){
-arguments[4][119][0].apply(exports,arguments)
-},{"119":119,"208":208,"229":229}],200:[function(_dereq_,module,exports){
-arguments[4][52][0].apply(exports,arguments)
-},{"202":202,"208":208,"230":230,"52":52}],201:[function(_dereq_,module,exports){
-arguments[4][86][0].apply(exports,arguments)
-},{"86":86}],202:[function(_dereq_,module,exports){
-arguments[4][53][0].apply(exports,arguments)
-},{"53":53}],203:[function(_dereq_,module,exports){
-arguments[4][129][0].apply(exports,arguments)
-},{"129":129}],204:[function(_dereq_,module,exports){
-arguments[4][87][0].apply(exports,arguments)
-},{"256":256,"87":87}],205:[function(_dereq_,module,exports){
-arguments[4][88][0].apply(exports,arguments)
-},{"207":207,"256":256,"88":88}],206:[function(_dereq_,module,exports){
-arguments[4][132][0].apply(exports,arguments)
-},{"132":132,"219":219,"220":220,"225":225,"261":261,"262":262}],207:[function(_dereq_,module,exports){
+},{}],201:[function(_dereq_,module,exports){
+arguments[4][120][0].apply(exports,arguments)
+},{"120":120}],202:[function(_dereq_,module,exports){
+arguments[4][122][0].apply(exports,arguments)
+},{"122":122,"211":211,"232":232}],203:[function(_dereq_,module,exports){
+arguments[4][55][0].apply(exports,arguments)
+},{"205":205,"211":211,"233":233,"55":55}],204:[function(_dereq_,module,exports){
 arguments[4][89][0].apply(exports,arguments)
-},{"89":89}],208:[function(_dereq_,module,exports){
-arguments[4][54][0].apply(exports,arguments)
-},{"214":214,"227":227,"54":54}],209:[function(_dereq_,module,exports){
-arguments[4][137][0].apply(exports,arguments)
-},{"137":137}],210:[function(_dereq_,module,exports){
-arguments[4][138][0].apply(exports,arguments)
-},{"138":138}],211:[function(_dereq_,module,exports){
-var isArguments = _dereq_(249),
-    isArray = _dereq_(250),
-    isArrayLike = _dereq_(237),
-    isObjectLike = _dereq_(242);
+},{"89":89}],205:[function(_dereq_,module,exports){
+arguments[4][56][0].apply(exports,arguments)
+},{"56":56}],206:[function(_dereq_,module,exports){
+arguments[4][132][0].apply(exports,arguments)
+},{"132":132}],207:[function(_dereq_,module,exports){
+arguments[4][90][0].apply(exports,arguments)
+},{"259":259,"90":90}],208:[function(_dereq_,module,exports){
+arguments[4][91][0].apply(exports,arguments)
+},{"210":210,"259":259,"91":91}],209:[function(_dereq_,module,exports){
+arguments[4][135][0].apply(exports,arguments)
+},{"135":135,"222":222,"223":223,"228":228,"264":264,"265":265}],210:[function(_dereq_,module,exports){
+arguments[4][92][0].apply(exports,arguments)
+},{"92":92}],211:[function(_dereq_,module,exports){
+arguments[4][57][0].apply(exports,arguments)
+},{"217":217,"230":230,"57":57}],212:[function(_dereq_,module,exports){
+arguments[4][140][0].apply(exports,arguments)
+},{"140":140}],213:[function(_dereq_,module,exports){
+arguments[4][141][0].apply(exports,arguments)
+},{"141":141}],214:[function(_dereq_,module,exports){
+var isArguments = _dereq_(252),
+    isArray = _dereq_(253),
+    isArrayLike = _dereq_(240),
+    isObjectLike = _dereq_(245);
 
 /**
  * The base implementation of `_.flatten` with added support for restricting
@@ -8786,11 +9202,11 @@ function baseFlatten(array, isDeep, isStrict) {
 
 module.exports = baseFlatten;
 
-},{"237":237,"242":242,"249":249,"250":250}],212:[function(_dereq_,module,exports){
-arguments[4][55][0].apply(exports,arguments)
-},{"228":228,"55":55}],213:[function(_dereq_,module,exports){
-var baseFor = _dereq_(212),
-    keysIn = _dereq_(257);
+},{"240":240,"245":245,"252":252,"253":253}],215:[function(_dereq_,module,exports){
+arguments[4][58][0].apply(exports,arguments)
+},{"231":231,"58":58}],216:[function(_dereq_,module,exports){
+var baseFor = _dereq_(215),
+    keysIn = _dereq_(260);
 
 /**
  * The base implementation of `_.forIn` without support for callback
@@ -8807,68 +9223,68 @@ function baseForIn(object, iteratee) {
 
 module.exports = baseForIn;
 
-},{"212":212,"257":257}],214:[function(_dereq_,module,exports){
-arguments[4][56][0].apply(exports,arguments)
-},{"212":212,"256":256,"56":56}],215:[function(_dereq_,module,exports){
-arguments[4][141][0].apply(exports,arguments)
-},{"141":141,"247":247}],216:[function(_dereq_,module,exports){
-arguments[4][142][0].apply(exports,arguments)
-},{"142":142,"217":217,"242":242,"252":252}],217:[function(_dereq_,module,exports){
-arguments[4][143][0].apply(exports,arguments)
-},{"143":143,"231":231,"232":232,"233":233,"250":250,"254":254}],218:[function(_dereq_,module,exports){
-arguments[4][144][0].apply(exports,arguments)
-},{"144":144,"216":216,"247":247}],219:[function(_dereq_,module,exports){
-arguments[4][146][0].apply(exports,arguments)
-},{"146":146,"218":218,"235":235,"247":247}],220:[function(_dereq_,module,exports){
-arguments[4][147][0].apply(exports,arguments)
-},{"147":147,"198":198,"215":215,"216":216,"223":223,"240":240,"243":243,"247":247,"248":248,"250":250}],221:[function(_dereq_,module,exports){
-arguments[4][58][0].apply(exports,arguments)
-},{"58":58}],222:[function(_dereq_,module,exports){
-arguments[4][149][0].apply(exports,arguments)
-},{"149":149,"215":215,"248":248}],223:[function(_dereq_,module,exports){
-arguments[4][151][0].apply(exports,arguments)
-},{"151":151}],224:[function(_dereq_,module,exports){
+},{"215":215,"260":260}],217:[function(_dereq_,module,exports){
 arguments[4][59][0].apply(exports,arguments)
-},{"59":59}],225:[function(_dereq_,module,exports){
-arguments[4][60][0].apply(exports,arguments)
-},{"261":261,"60":60}],226:[function(_dereq_,module,exports){
-arguments[4][94][0].apply(exports,arguments)
-},{"201":201,"225":225,"239":239,"94":94}],227:[function(_dereq_,module,exports){
+},{"215":215,"259":259,"59":59}],218:[function(_dereq_,module,exports){
+arguments[4][144][0].apply(exports,arguments)
+},{"144":144,"250":250}],219:[function(_dereq_,module,exports){
+arguments[4][145][0].apply(exports,arguments)
+},{"145":145,"220":220,"245":245,"255":255}],220:[function(_dereq_,module,exports){
+arguments[4][146][0].apply(exports,arguments)
+},{"146":146,"234":234,"235":235,"236":236,"253":253,"257":257}],221:[function(_dereq_,module,exports){
+arguments[4][147][0].apply(exports,arguments)
+},{"147":147,"219":219,"250":250}],222:[function(_dereq_,module,exports){
+arguments[4][149][0].apply(exports,arguments)
+},{"149":149,"221":221,"238":238,"250":250}],223:[function(_dereq_,module,exports){
+arguments[4][150][0].apply(exports,arguments)
+},{"150":150,"201":201,"218":218,"219":219,"226":226,"243":243,"246":246,"250":250,"251":251,"253":253}],224:[function(_dereq_,module,exports){
 arguments[4][61][0].apply(exports,arguments)
-},{"234":234,"241":241,"247":247,"61":61}],228:[function(_dereq_,module,exports){
+},{"61":61}],225:[function(_dereq_,module,exports){
+arguments[4][152][0].apply(exports,arguments)
+},{"152":152,"218":218,"251":251}],226:[function(_dereq_,module,exports){
+arguments[4][154][0].apply(exports,arguments)
+},{"154":154}],227:[function(_dereq_,module,exports){
 arguments[4][62][0].apply(exports,arguments)
-},{"247":247,"62":62}],229:[function(_dereq_,module,exports){
-arguments[4][157][0].apply(exports,arguments)
-},{"157":157,"206":206,"209":209,"210":210,"250":250}],230:[function(_dereq_,module,exports){
+},{"62":62}],228:[function(_dereq_,module,exports){
 arguments[4][63][0].apply(exports,arguments)
-},{"225":225,"250":250,"63":63}],231:[function(_dereq_,module,exports){
-arguments[4][160][0].apply(exports,arguments)
-},{"160":160,"203":203}],232:[function(_dereq_,module,exports){
-arguments[4][161][0].apply(exports,arguments)
-},{"161":161}],233:[function(_dereq_,module,exports){
-arguments[4][162][0].apply(exports,arguments)
-},{"162":162,"256":256}],234:[function(_dereq_,module,exports){
+},{"264":264,"63":63}],229:[function(_dereq_,module,exports){
+arguments[4][97][0].apply(exports,arguments)
+},{"204":204,"228":228,"242":242,"97":97}],230:[function(_dereq_,module,exports){
 arguments[4][64][0].apply(exports,arguments)
-},{"221":221,"64":64}],235:[function(_dereq_,module,exports){
-arguments[4][164][0].apply(exports,arguments)
-},{"164":164,"243":243,"258":258}],236:[function(_dereq_,module,exports){
+},{"237":237,"244":244,"250":250,"64":64}],231:[function(_dereq_,module,exports){
 arguments[4][65][0].apply(exports,arguments)
-},{"251":251,"65":65}],237:[function(_dereq_,module,exports){
+},{"250":250,"65":65}],232:[function(_dereq_,module,exports){
+arguments[4][160][0].apply(exports,arguments)
+},{"160":160,"209":209,"212":212,"213":213,"253":253}],233:[function(_dereq_,module,exports){
 arguments[4][66][0].apply(exports,arguments)
-},{"234":234,"241":241,"66":66}],238:[function(_dereq_,module,exports){
+},{"228":228,"253":253,"66":66}],234:[function(_dereq_,module,exports){
+arguments[4][163][0].apply(exports,arguments)
+},{"163":163,"206":206}],235:[function(_dereq_,module,exports){
+arguments[4][164][0].apply(exports,arguments)
+},{"164":164}],236:[function(_dereq_,module,exports){
+arguments[4][165][0].apply(exports,arguments)
+},{"165":165,"259":259}],237:[function(_dereq_,module,exports){
 arguments[4][67][0].apply(exports,arguments)
-},{"67":67}],239:[function(_dereq_,module,exports){
-arguments[4][99][0].apply(exports,arguments)
-},{"237":237,"238":238,"252":252,"99":99}],240:[function(_dereq_,module,exports){
-arguments[4][169][0].apply(exports,arguments)
-},{"169":169,"247":247,"250":250}],241:[function(_dereq_,module,exports){
+},{"224":224,"67":67}],238:[function(_dereq_,module,exports){
+arguments[4][167][0].apply(exports,arguments)
+},{"167":167,"246":246,"261":261}],239:[function(_dereq_,module,exports){
 arguments[4][68][0].apply(exports,arguments)
-},{"68":68}],242:[function(_dereq_,module,exports){
+},{"254":254,"68":68}],240:[function(_dereq_,module,exports){
 arguments[4][69][0].apply(exports,arguments)
-},{"69":69}],243:[function(_dereq_,module,exports){
+},{"237":237,"244":244,"69":69}],241:[function(_dereq_,module,exports){
+arguments[4][70][0].apply(exports,arguments)
+},{"70":70}],242:[function(_dereq_,module,exports){
+arguments[4][102][0].apply(exports,arguments)
+},{"102":102,"240":240,"241":241,"255":255}],243:[function(_dereq_,module,exports){
 arguments[4][172][0].apply(exports,arguments)
-},{"172":172,"252":252}],244:[function(_dereq_,module,exports){
-var toObject = _dereq_(247);
+},{"172":172,"250":250,"253":253}],244:[function(_dereq_,module,exports){
+arguments[4][71][0].apply(exports,arguments)
+},{"71":71}],245:[function(_dereq_,module,exports){
+arguments[4][72][0].apply(exports,arguments)
+},{"72":72}],246:[function(_dereq_,module,exports){
+arguments[4][175][0].apply(exports,arguments)
+},{"175":175,"255":255}],247:[function(_dereq_,module,exports){
+var toObject = _dereq_(250);
 
 /**
  * A specialized version of `_.pick` which picks `object` properties specified
@@ -8897,8 +9313,8 @@ function pickByArray(object, props) {
 
 module.exports = pickByArray;
 
-},{"247":247}],245:[function(_dereq_,module,exports){
-var baseForIn = _dereq_(213);
+},{"250":250}],248:[function(_dereq_,module,exports){
+var baseForIn = _dereq_(216);
 
 /**
  * A specialized version of `_.pick` which picks `object` properties `predicate`
@@ -8921,38 +9337,38 @@ function pickByCallback(object, predicate) {
 
 module.exports = pickByCallback;
 
-},{"213":213}],246:[function(_dereq_,module,exports){
-arguments[4][70][0].apply(exports,arguments)
-},{"238":238,"241":241,"249":249,"250":250,"257":257,"70":70}],247:[function(_dereq_,module,exports){
-arguments[4][71][0].apply(exports,arguments)
-},{"252":252,"71":71}],248:[function(_dereq_,module,exports){
-arguments[4][175][0].apply(exports,arguments)
-},{"175":175,"224":224,"250":250}],249:[function(_dereq_,module,exports){
-arguments[4][72][0].apply(exports,arguments)
-},{"237":237,"242":242,"72":72}],250:[function(_dereq_,module,exports){
+},{"216":216}],249:[function(_dereq_,module,exports){
 arguments[4][73][0].apply(exports,arguments)
-},{"236":236,"241":241,"242":242,"73":73}],251:[function(_dereq_,module,exports){
+},{"241":241,"244":244,"252":252,"253":253,"260":260,"73":73}],250:[function(_dereq_,module,exports){
+arguments[4][74][0].apply(exports,arguments)
+},{"255":255,"74":74}],251:[function(_dereq_,module,exports){
+arguments[4][178][0].apply(exports,arguments)
+},{"178":178,"227":227,"253":253}],252:[function(_dereq_,module,exports){
 arguments[4][75][0].apply(exports,arguments)
-},{"242":242,"260":260,"75":75}],252:[function(_dereq_,module,exports){
-arguments[4][77][0].apply(exports,arguments)
-},{"77":77}],253:[function(_dereq_,module,exports){
-arguments[4][108][0].apply(exports,arguments)
-},{"108":108,"242":242}],254:[function(_dereq_,module,exports){
-arguments[4][181][0].apply(exports,arguments)
-},{"181":181,"241":241,"242":242}],255:[function(_dereq_,module,exports){
-arguments[4][109][0].apply(exports,arguments)
-},{"109":109,"204":204,"205":205,"226":226}],256:[function(_dereq_,module,exports){
+},{"240":240,"245":245,"75":75}],253:[function(_dereq_,module,exports){
+arguments[4][76][0].apply(exports,arguments)
+},{"239":239,"244":244,"245":245,"76":76}],254:[function(_dereq_,module,exports){
 arguments[4][78][0].apply(exports,arguments)
-},{"236":236,"237":237,"246":246,"252":252,"78":78}],257:[function(_dereq_,module,exports){
-arguments[4][79][0].apply(exports,arguments)
-},{"238":238,"241":241,"249":249,"250":250,"252":252,"79":79}],258:[function(_dereq_,module,exports){
-arguments[4][185][0].apply(exports,arguments)
-},{"185":185,"247":247,"256":256}],259:[function(_dereq_,module,exports){
-var baseFlatten = _dereq_(211),
-    bindCallback = _dereq_(225),
-    pickByArray = _dereq_(244),
-    pickByCallback = _dereq_(245),
-    restParam = _dereq_(201);
+},{"245":245,"263":263,"78":78}],255:[function(_dereq_,module,exports){
+arguments[4][80][0].apply(exports,arguments)
+},{"80":80}],256:[function(_dereq_,module,exports){
+arguments[4][111][0].apply(exports,arguments)
+},{"111":111,"245":245}],257:[function(_dereq_,module,exports){
+arguments[4][184][0].apply(exports,arguments)
+},{"184":184,"244":244,"245":245}],258:[function(_dereq_,module,exports){
+arguments[4][112][0].apply(exports,arguments)
+},{"112":112,"207":207,"208":208,"229":229}],259:[function(_dereq_,module,exports){
+arguments[4][81][0].apply(exports,arguments)
+},{"239":239,"240":240,"249":249,"255":255,"81":81}],260:[function(_dereq_,module,exports){
+arguments[4][82][0].apply(exports,arguments)
+},{"241":241,"244":244,"252":252,"253":253,"255":255,"82":82}],261:[function(_dereq_,module,exports){
+arguments[4][188][0].apply(exports,arguments)
+},{"188":188,"250":250,"259":259}],262:[function(_dereq_,module,exports){
+var baseFlatten = _dereq_(214),
+    bindCallback = _dereq_(228),
+    pickByArray = _dereq_(247),
+    pickByCallback = _dereq_(248),
+    restParam = _dereq_(204);
 
 /**
  * Creates an object composed of the picked `object` properties. Property
@@ -8991,13 +9407,13 @@ var pick = restParam(function(object, props) {
 
 module.exports = pick;
 
-},{"201":201,"211":211,"225":225,"244":244,"245":245}],260:[function(_dereq_,module,exports){
-arguments[4][80][0].apply(exports,arguments)
-},{"224":224,"80":80}],261:[function(_dereq_,module,exports){
-arguments[4][81][0].apply(exports,arguments)
-},{"81":81}],262:[function(_dereq_,module,exports){
-arguments[4][188][0].apply(exports,arguments)
-},{"188":188,"221":221,"222":222,"240":240}],263:[function(_dereq_,module,exports){
+},{"204":204,"214":214,"228":228,"247":247,"248":248}],263:[function(_dereq_,module,exports){
+arguments[4][83][0].apply(exports,arguments)
+},{"227":227,"83":83}],264:[function(_dereq_,module,exports){
+arguments[4][84][0].apply(exports,arguments)
+},{"84":84}],265:[function(_dereq_,module,exports){
+arguments[4][191][0].apply(exports,arguments)
+},{"191":191,"224":224,"225":225,"243":243}],266:[function(_dereq_,module,exports){
 (function (Buffer){
 // wrapper for non-node envs
 ;(function (sax) {
@@ -10412,7 +10828,7 @@ if (!String.fromCodePoint) {
 
 }).call(this,undefined)
 //# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy9kbW4tbW9kZGxlL25vZGVfbW9kdWxlcy9tb2RkbGUteG1sL25vZGVfbW9kdWxlcy9zYXgvbGliL3NheC5qcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiO0FBQUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EiLCJmaWxlIjoiZ2VuZXJhdGVkLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXNDb250ZW50IjpbIi8vIHdyYXBwZXIgZm9yIG5vbi1ub2RlIGVudnNcbjsoZnVuY3Rpb24gKHNheCkge1xuXG5zYXgucGFyc2VyID0gZnVuY3Rpb24gKHN0cmljdCwgb3B0KSB7IHJldHVybiBuZXcgU0FYUGFyc2VyKHN0cmljdCwgb3B0KSB9XG5zYXguU0FYUGFyc2VyID0gU0FYUGFyc2VyXG5zYXguU0FYU3RyZWFtID0gU0FYU3RyZWFtXG5zYXguY3JlYXRlU3RyZWFtID0gY3JlYXRlU3RyZWFtXG5cbi8vIFdoZW4gd2UgcGFzcyB0aGUgTUFYX0JVRkZFUl9MRU5HVEggcG9zaXRpb24sIHN0YXJ0IGNoZWNraW5nIGZvciBidWZmZXIgb3ZlcnJ1bnMuXG4vLyBXaGVuIHdlIGNoZWNrLCBzY2hlZHVsZSB0aGUgbmV4dCBjaGVjayBmb3IgTUFYX0JVRkZFUl9MRU5HVEggLSAobWF4KGJ1ZmZlciBsZW5ndGhzKSksXG4vLyBzaW5jZSB0aGF0J3MgdGhlIGVhcmxpZXN0IHRoYXQgYSBidWZmZXIgb3ZlcnJ1biBjb3VsZCBvY2N1ci4gIFRoaXMgd2F5LCBjaGVja3MgYXJlXG4vLyBhcyByYXJlIGFzIHJlcXVpcmVkLCBidXQgYXMgb2Z0ZW4gYXMgbmVjZXNzYXJ5IHRvIGVuc3VyZSBuZXZlciBjcm9zc2luZyB0aGlzIGJvdW5kLlxuLy8gRnVydGhlcm1vcmUsIGJ1ZmZlcnMgYXJlIG9ubHkgdGVzdGVkIGF0IG1vc3Qgb25jZSBwZXIgd3JpdGUoKSwgc28gcGFzc2luZyBhIHZlcnlcbi8vIGxhcmdlIHN0cmluZyBpbnRvIHdyaXRlKCkgbWlnaHQgaGF2ZSB1bmRlc2lyYWJsZSBlZmZlY3RzLCBidXQgdGhpcyBpcyBtYW5hZ2VhYmxlIGJ5XG4vLyB0aGUgY2FsbGVyLCBzbyBpdCBpcyBhc3N1bWVkIHRvIGJlIHNhZmUuICBUaHVzLCBhIGNhbGwgdG8gd3JpdGUoKSBtYXksIGluIHRoZSBleHRyZW1lXG4vLyBlZGdlIGNhc2UsIHJlc3VsdCBpbiBjcmVhdGluZyBhdCBtb3N0IG9uZSBjb21wbGV0ZSBjb3B5IG9mIHRoZSBzdHJpbmcgcGFzc2VkIGluLlxuLy8gU2V0IHRvIEluZmluaXR5IHRvIGhhdmUgdW5saW1pdGVkIGJ1ZmZlcnMuXG5zYXguTUFYX0JVRkZFUl9MRU5HVEggPSA2NCAqIDEwMjRcblxudmFyIGJ1ZmZlcnMgPSBbXG4gIFwiY29tbWVudFwiLCBcInNnbWxEZWNsXCIsIFwidGV4dE5vZGVcIiwgXCJ0YWdOYW1lXCIsIFwiZG9jdHlwZVwiLFxuICBcInByb2NJbnN0TmFtZVwiLCBcInByb2NJbnN0Qm9keVwiLCBcImVudGl0eVwiLCBcImF0dHJpYk5hbWVcIixcbiAgXCJhdHRyaWJWYWx1ZVwiLCBcImNkYXRhXCIsIFwic2NyaXB0XCJcbl1cblxuc2F4LkVWRU5UUyA9IC8vIGZvciBkaXNjb3ZlcmFiaWxpdHkuXG4gIFsgXCJ0ZXh0XCJcbiAgLCBcInByb2Nlc3NpbmdpbnN0cnVjdGlvblwiXG4gICwgXCJzZ21sZGVjbGFyYXRpb25cIlxuICAsIFwiZG9jdHlwZVwiXG4gICwgXCJjb21tZW50XCJcbiAgLCBcImF0dHJpYnV0ZVwiXG4gICwgXCJvcGVudGFnXCJcbiAgLCBcImNsb3NldGFnXCJcbiAgLCBcIm9wZW5jZGF0YVwiXG4gICwgXCJjZGF0YVwiXG4gICwgXCJjbG9zZWNkYXRhXCJcbiAgLCBcImVycm9yXCJcbiAgLCBcImVuZFwiXG4gICwgXCJyZWFkeVwiXG4gICwgXCJzY3JpcHRcIlxuICAsIFwib3Blbm5hbWVzcGFjZVwiXG4gICwgXCJjbG9zZW5hbWVzcGFjZVwiXG4gIF1cblxuZnVuY3Rpb24gU0FYUGFyc2VyIChzdHJpY3QsIG9wdCkge1xuICBpZiAoISh0aGlzIGluc3RhbmNlb2YgU0FYUGFyc2VyKSkgcmV0dXJuIG5ldyBTQVhQYXJzZXIoc3RyaWN0LCBvcHQpXG5cbiAgdmFyIHBhcnNlciA9IHRoaXNcbiAgY2xlYXJCdWZmZXJzKHBhcnNlcilcbiAgcGFyc2VyLnEgPSBwYXJzZXIuYyA9IFwiXCJcbiAgcGFyc2VyLmJ1ZmZlckNoZWNrUG9zaXRpb24gPSBzYXguTUFYX0JVRkZFUl9MRU5HVEhcbiAgcGFyc2VyLm9wdCA9IG9wdCB8fCB7fVxuICBwYXJzZXIub3B0Lmxvd2VyY2FzZSA9IHBhcnNlci5vcHQubG93ZXJjYXNlIHx8IHBhcnNlci5vcHQubG93ZXJjYXNldGFnc1xuICBwYXJzZXIubG9vc2VDYXNlID0gcGFyc2VyLm9wdC5sb3dlcmNhc2UgPyBcInRvTG93ZXJDYXNlXCIgOiBcInRvVXBwZXJDYXNlXCJcbiAgcGFyc2VyLnRhZ3MgPSBbXVxuICBwYXJzZXIuY2xvc2VkID0gcGFyc2VyLmNsb3NlZFJvb3QgPSBwYXJzZXIuc2F3Um9vdCA9IGZhbHNlXG4gIHBhcnNlci50YWcgPSBwYXJzZXIuZXJyb3IgPSBudWxsXG4gIHBhcnNlci5zdHJpY3QgPSAhIXN0cmljdFxuICBwYXJzZXIubm9zY3JpcHQgPSAhIShzdHJpY3QgfHwgcGFyc2VyLm9wdC5ub3NjcmlwdClcbiAgcGFyc2VyLnN0YXRlID0gUy5CRUdJTlxuICBwYXJzZXIuRU5USVRJRVMgPSBPYmplY3QuY3JlYXRlKHNheC5FTlRJVElFUylcbiAgcGFyc2VyLmF0dHJpYkxpc3QgPSBbXVxuXG4gIC8vIG5hbWVzcGFjZXMgZm9ybSBhIHByb3RvdHlwZSBjaGFpbi5cbiAgLy8gaXQgYWx3YXlzIHBvaW50cyBhdCB0aGUgY3VycmVudCB0YWcsXG4gIC8vIHdoaWNoIHByb3RvcyB0byBpdHMgcGFyZW50IHRhZy5cbiAgaWYgKHBhcnNlci5vcHQueG1sbnMpIHBhcnNlci5ucyA9IE9iamVjdC5jcmVhdGUocm9vdE5TKVxuXG4gIC8vIG1vc3RseSBqdXN0IGZvciBlcnJvciByZXBvcnRpbmdcbiAgcGFyc2VyLnRyYWNrUG9zaXRpb24gPSBwYXJzZXIub3B0LnBvc2l0aW9uICE9PSBmYWxzZVxuICBpZiAocGFyc2VyLnRyYWNrUG9zaXRpb24pIHtcbiAgICBwYXJzZXIucG9zaXRpb24gPSBwYXJzZXIubGluZSA9IHBhcnNlci5jb2x1bW4gPSAwXG4gIH1cbiAgZW1pdChwYXJzZXIsIFwib25yZWFkeVwiKVxufVxuXG5pZiAoIU9iamVjdC5jcmVhdGUpIE9iamVjdC5jcmVhdGUgPSBmdW5jdGlvbiAobykge1xuICBmdW5jdGlvbiBmICgpIHsgdGhpcy5fX3Byb3RvX18gPSBvIH1cbiAgZi5wcm90b3R5cGUgPSBvXG4gIHJldHVybiBuZXcgZlxufVxuXG5pZiAoIU9iamVjdC5nZXRQcm90b3R5cGVPZikgT2JqZWN0LmdldFByb3RvdHlwZU9mID0gZnVuY3Rpb24gKG8pIHtcbiAgcmV0dXJuIG8uX19wcm90b19fXG59XG5cbmlmICghT2JqZWN0LmtleXMpIE9iamVjdC5rZXlzID0gZnVuY3Rpb24gKG8pIHtcbiAgdmFyIGEgPSBbXVxuICBmb3IgKHZhciBpIGluIG8pIGlmIChvLmhhc093blByb3BlcnR5KGkpKSBhLnB1c2goaSlcbiAgcmV0dXJuIGFcbn1cblxuZnVuY3Rpb24gY2hlY2tCdWZmZXJMZW5ndGggKHBhcnNlcikge1xuICB2YXIgbWF4QWxsb3dlZCA9IE1hdGgubWF4KHNheC5NQVhfQlVGRkVSX0xFTkdUSCwgMTApXG4gICAgLCBtYXhBY3R1YWwgPSAwXG4gIGZvciAodmFyIGkgPSAwLCBsID0gYnVmZmVycy5sZW5ndGg7IGkgPCBsOyBpICsrKSB7XG4gICAgdmFyIGxlbiA9IHBhcnNlcltidWZmZXJzW2ldXS5sZW5ndGhcbiAgICBpZiAobGVuID4gbWF4QWxsb3dlZCkge1xuICAgICAgLy8gVGV4dC9jZGF0YSBub2RlcyBjYW4gZ2V0IGJpZywgYW5kIHNpbmNlIHRoZXkncmUgYnVmZmVyZWQsXG4gICAgICAvLyB3ZSBjYW4gZ2V0IGhlcmUgdW5kZXIgbm9ybWFsIGNvbmRpdGlvbnMuXG4gICAgICAvLyBBdm9pZCBpc3N1ZXMgYnkgZW1pdHRpbmcgdGhlIHRleHQgbm9kZSBub3csXG4gICAgICAvLyBzbyBhdCBsZWFzdCBpdCB3b24ndCBnZXQgYW55IGJpZ2dlci5cbiAgICAgIHN3aXRjaCAoYnVmZmVyc1tpXSkge1xuICAgICAgICBjYXNlIFwidGV4dE5vZGVcIjpcbiAgICAgICAgICBjbG9zZVRleHQocGFyc2VyKVxuICAgICAgICBicmVha1xuXG4gICAgICAgIGNhc2UgXCJjZGF0YVwiOlxuICAgICAgICAgIGVtaXROb2RlKHBhcnNlciwgXCJvbmNkYXRhXCIsIHBhcnNlci5jZGF0YSlcbiAgICAgICAgICBwYXJzZXIuY2RhdGEgPSBcIlwiXG4gICAgICAgIGJyZWFrXG5cbiAgICAgICAgY2FzZSBcInNjcmlwdFwiOlxuICAgICAgICAgIGVtaXROb2RlKHBhcnNlciwgXCJvbnNjcmlwdFwiLCBwYXJzZXIuc2NyaXB0KVxuICAgICAgICAgIHBhcnNlci5zY3JpcHQgPSBcIlwiXG4gICAgICAgIGJyZWFrXG5cbiAgICAgICAgZGVmYXVsdDpcbiAgICAgICAgICBlcnJvcihwYXJzZXIsIFwiTWF4IGJ1ZmZlciBsZW5ndGggZXhjZWVkZWQ6IFwiK2J1ZmZlcnNbaV0pXG4gICAgICB9XG4gICAgfVxuICAgIG1heEFjdHVhbCA9IE1hdGgubWF4KG1heEFjdHVhbCwgbGVuKVxuICB9XG4gIC8vIHNjaGVkdWxlIHRoZSBuZXh0IGNoZWNrIGZvciB0aGUgZWFybGllc3QgcG9zc2libGUgYnVmZmVyIG92ZXJydW4uXG4gIHBhcnNlci5idWZmZXJDaGVja1Bvc2l0aW9uID0gKHNheC5NQVhfQlVGRkVSX0xFTkdUSCAtIG1heEFjdHVhbClcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgKyBwYXJzZXIucG9zaXRpb25cbn1cblxuZnVuY3Rpb24gY2xlYXJCdWZmZXJzIChwYXJzZXIpIHtcbiAgZm9yICh2YXIgaSA9IDAsIGwgPSBidWZmZXJzLmxlbmd0aDsgaSA8IGw7IGkgKyspIHtcbiAgICBwYXJzZXJbYnVmZmVyc1tpXV0gPSBcIlwiXG4gIH1cbn1cblxuZnVuY3Rpb24gZmx1c2hCdWZmZXJzIChwYXJzZXIpIHtcbiAgY2xvc2VUZXh0KHBhcnNlcilcbiAgaWYgKHBhcnNlci5jZGF0YSAhPT0gXCJcIikge1xuICAgIGVtaXROb2RlKHBhcnNlciwgXCJvbmNkYXRhXCIsIHBhcnNlci5jZGF0YSlcbiAgICBwYXJzZXIuY2RhdGEgPSBcIlwiXG4gIH1cbiAgaWYgKHBhcnNlci5zY3JpcHQgIT09IFwiXCIpIHtcbiAgICBlbWl0Tm9kZShwYXJzZXIsIFwib25zY3JpcHRcIiwgcGFyc2VyLnNjcmlwdClcbiAgICBwYXJzZXIuc2NyaXB0ID0gXCJcIlxuICB9XG59XG5cblNBWFBhcnNlci5wcm90b3R5cGUgPVxuICB7IGVuZDogZnVuY3Rpb24gKCkgeyBlbmQodGhpcykgfVxuICAsIHdyaXRlOiB3cml0ZVxuICAsIHJlc3VtZTogZnVuY3Rpb24gKCkgeyB0aGlzLmVycm9yID0gbnVsbDsgcmV0dXJuIHRoaXMgfVxuICAsIGNsb3NlOiBmdW5jdGlvbiAoKSB7IHJldHVybiB0aGlzLndyaXRlKG51bGwpIH1cbiAgLCBmbHVzaDogZnVuY3Rpb24gKCkgeyBmbHVzaEJ1ZmZlcnModGhpcykgfVxuICB9XG5cbnRyeSB7XG4gIHZhciBTdHJlYW0gPSByZXF1aXJlKFwic3RyZWFtXCIpLlN0cmVhbVxufSBjYXRjaCAoZXgpIHtcbiAgdmFyIFN0cmVhbSA9IGZ1bmN0aW9uICgpIHt9XG59XG5cblxudmFyIHN0cmVhbVdyYXBzID0gc2F4LkVWRU5UUy5maWx0ZXIoZnVuY3Rpb24gKGV2KSB7XG4gIHJldHVybiBldiAhPT0gXCJlcnJvclwiICYmIGV2ICE9PSBcImVuZFwiXG59KVxuXG5mdW5jdGlvbiBjcmVhdGVTdHJlYW0gKHN0cmljdCwgb3B0KSB7XG4gIHJldHVybiBuZXcgU0FYU3RyZWFtKHN0cmljdCwgb3B0KVxufVxuXG5mdW5jdGlvbiBTQVhTdHJlYW0gKHN0cmljdCwgb3B0KSB7XG4gIGlmICghKHRoaXMgaW5zdGFuY2VvZiBTQVhTdHJlYW0pKSByZXR1cm4gbmV3IFNBWFN0cmVhbShzdHJpY3QsIG9wdClcblxuICBTdHJlYW0uYXBwbHkodGhpcylcblxuICB0aGlzLl9wYXJzZXIgPSBuZXcgU0FYUGFyc2VyKHN0cmljdCwgb3B0KVxuICB0aGlzLndyaXRhYmxlID0gdHJ1ZVxuICB0aGlzLnJlYWRhYmxlID0gdHJ1ZVxuXG5cbiAgdmFyIG1lID0gdGhpc1xuXG4gIHRoaXMuX3BhcnNlci5vbmVuZCA9IGZ1bmN0aW9uICgpIHtcbiAgICBtZS5lbWl0KFwiZW5kXCIpXG4gIH1cblxuICB0aGlzLl9wYXJzZXIub25lcnJvciA9IGZ1bmN0aW9uIChlcikge1xuICAgIG1lLmVtaXQoXCJlcnJvclwiLCBlcilcblxuICAgIC8vIGlmIGRpZG4ndCB0aHJvdywgdGhlbiBtZWFucyBlcnJvciB3YXMgaGFuZGxlZC5cbiAgICAvLyBnbyBhaGVhZCBhbmQgY2xlYXIgZXJyb3IsIHNvIHdlIGNhbiB3cml0ZSBhZ2Fpbi5cbiAgICBtZS5fcGFyc2VyLmVycm9yID0gbnVsbFxuICB9XG5cbiAgdGhpcy5fZGVjb2RlciA9IG51bGw7XG5cbiAgc3RyZWFtV3JhcHMuZm9yRWFjaChmdW5jdGlvbiAoZXYpIHtcbiAgICBPYmplY3QuZGVmaW5lUHJvcGVydHkobWUsIFwib25cIiArIGV2LCB7XG4gICAgICBnZXQ6IGZ1bmN0aW9uICgpIHsgcmV0dXJuIG1lLl9wYXJzZXJbXCJvblwiICsgZXZdIH0sXG4gICAgICBzZXQ6IGZ1bmN0aW9uIChoKSB7XG4gICAgICAgIGlmICghaCkge1xuICAgICAgICAgIG1lLnJlbW92ZUFsbExpc3RlbmVycyhldilcbiAgICAgICAgICByZXR1cm4gbWUuX3BhcnNlcltcIm9uXCIrZXZdID0gaFxuICAgICAgICB9XG4gICAgICAgIG1lLm9uKGV2LCBoKVxuICAgICAgfSxcbiAgICAgIGVudW1lcmFibGU6IHRydWUsXG4gICAgICBjb25maWd1cmFibGU6IGZhbHNlXG4gICAgfSlcbiAgfSlcbn1cblxuU0FYU3RyZWFtLnByb3RvdHlwZSA9IE9iamVjdC5jcmVhdGUoU3RyZWFtLnByb3RvdHlwZSxcbiAgeyBjb25zdHJ1Y3RvcjogeyB2YWx1ZTogU0FYU3RyZWFtIH0gfSlcblxuU0FYU3RyZWFtLnByb3RvdHlwZS53cml0ZSA9IGZ1bmN0aW9uIChkYXRhKSB7XG4gIGlmICh0eXBlb2YgQnVmZmVyID09PSAnZnVuY3Rpb24nICYmXG4gICAgICB0eXBlb2YgQnVmZmVyLmlzQnVmZmVyID09PSAnZnVuY3Rpb24nICYmXG4gICAgICBCdWZmZXIuaXNCdWZmZXIoZGF0YSkpIHtcbiAgICBpZiAoIXRoaXMuX2RlY29kZXIpIHtcbiAgICAgIHZhciBTRCA9IHJlcXVpcmUoJ3N0cmluZ19kZWNvZGVyJykuU3RyaW5nRGVjb2RlclxuICAgICAgdGhpcy5fZGVjb2RlciA9IG5ldyBTRCgndXRmOCcpXG4gICAgfVxuICAgIGRhdGEgPSB0aGlzLl9kZWNvZGVyLndyaXRlKGRhdGEpO1xuICB9XG5cbiAgdGhpcy5fcGFyc2VyLndyaXRlKGRhdGEudG9TdHJpbmcoKSlcbiAgdGhpcy5lbWl0KFwiZGF0YVwiLCBkYXRhKVxuICByZXR1cm4gdHJ1ZVxufVxuXG5TQVhTdHJlYW0ucHJvdG90eXBlLmVuZCA9IGZ1bmN0aW9uIChjaHVuaykge1xuICBpZiAoY2h1bmsgJiYgY2h1bmsubGVuZ3RoKSB0aGlzLndyaXRlKGNodW5rKVxuICB0aGlzLl9wYXJzZXIuZW5kKClcbiAgcmV0dXJuIHRydWVcbn1cblxuU0FYU3RyZWFtLnByb3RvdHlwZS5vbiA9IGZ1bmN0aW9uIChldiwgaGFuZGxlcikge1xuICB2YXIgbWUgPSB0aGlzXG4gIGlmICghbWUuX3BhcnNlcltcIm9uXCIrZXZdICYmIHN0cmVhbVdyYXBzLmluZGV4T2YoZXYpICE9PSAtMSkge1xuICAgIG1lLl9wYXJzZXJbXCJvblwiK2V2XSA9IGZ1bmN0aW9uICgpIHtcbiAgICAgIHZhciBhcmdzID0gYXJndW1lbnRzLmxlbmd0aCA9PT0gMSA/IFthcmd1bWVudHNbMF1dXG4gICAgICAgICAgICAgICA6IEFycmF5LmFwcGx5KG51bGwsIGFyZ3VtZW50cylcbiAgICAgIGFyZ3Muc3BsaWNlKDAsIDAsIGV2KVxuICAgICAgbWUuZW1pdC5hcHBseShtZSwgYXJncylcbiAgICB9XG4gIH1cblxuICByZXR1cm4gU3RyZWFtLnByb3RvdHlwZS5vbi5jYWxsKG1lLCBldiwgaGFuZGxlcilcbn1cblxuXG5cbi8vIGNoYXJhY3RlciBjbGFzc2VzIGFuZCB0b2tlbnNcbnZhciB3aGl0ZXNwYWNlID0gXCJcXHJcXG5cXHQgXCJcbiAgLy8gdGhpcyByZWFsbHkgbmVlZHMgdG8gYmUgcmVwbGFjZWQgd2l0aCBjaGFyYWN0ZXIgY2xhc3Nlcy5cbiAgLy8gWE1MIGFsbG93cyBhbGwgbWFubmVyIG9mIHJpZGljdWxvdXMgbnVtYmVycyBhbmQgZGlnaXRzLlxuICAsIG51bWJlciA9IFwiMDEyNDM1Njc4OVwiXG4gICwgbGV0dGVyID0gXCJhYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ekFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaXCJcbiAgLy8gKExldHRlciB8IFwiX1wiIHwgXCI6XCIpXG4gICwgcXVvdGUgPSBcIidcXFwiXCJcbiAgLCBlbnRpdHkgPSBudW1iZXIrbGV0dGVyK1wiI1wiXG4gICwgYXR0cmliRW5kID0gd2hpdGVzcGFjZSArIFwiPlwiXG4gICwgQ0RBVEEgPSBcIltDREFUQVtcIlxuICAsIERPQ1RZUEUgPSBcIkRPQ1RZUEVcIlxuICAsIFhNTF9OQU1FU1BBQ0UgPSBcImh0dHA6Ly93d3cudzMub3JnL1hNTC8xOTk4L25hbWVzcGFjZVwiXG4gICwgWE1MTlNfTkFNRVNQQUNFID0gXCJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3htbG5zL1wiXG4gICwgcm9vdE5TID0geyB4bWw6IFhNTF9OQU1FU1BBQ0UsIHhtbG5zOiBYTUxOU19OQU1FU1BBQ0UgfVxuXG4vLyB0dXJuIGFsbCB0aGUgc3RyaW5nIGNoYXJhY3RlciBzZXRzIGludG8gY2hhcmFjdGVyIGNsYXNzIG9iamVjdHMuXG53aGl0ZXNwYWNlID0gY2hhckNsYXNzKHdoaXRlc3BhY2UpXG5udW1iZXIgPSBjaGFyQ2xhc3MobnVtYmVyKVxubGV0dGVyID0gY2hhckNsYXNzKGxldHRlcilcblxuLy8gaHR0cDovL3d3dy53My5vcmcvVFIvUkVDLXhtbC8jTlQtTmFtZVN0YXJ0Q2hhclxuLy8gVGhpcyBpbXBsZW1lbnRhdGlvbiB3b3JrcyBvbiBzdHJpbmdzLCBhIHNpbmdsZSBjaGFyYWN0ZXIgYXQgYSB0aW1lXG4vLyBhcyBzdWNoLCBpdCBjYW5ub3QgZXZlciBzdXBwb3J0IGFzdHJhbC1wbGFuZSBjaGFyYWN0ZXJzICgxMDAwMC1FRkZGRilcbi8vIHdpdGhvdXQgYSBzaWduaWZpY2FudCBicmVha2luZyBjaGFuZ2UgdG8gZWl0aGVyIHRoaXMgIHBhcnNlciwgb3IgdGhlXG4vLyBKYXZhU2NyaXB0IGxhbmd1YWdlLiAgSW1wbGVtZW50YXRpb24gb2YgYW4gZW1vamktY2FwYWJsZSB4bWwgcGFyc2VyXG4vLyBpcyBsZWZ0IGFzIGFuIGV4ZXJjaXNlIGZvciB0aGUgcmVhZGVyLlxudmFyIG5hbWVTdGFydCA9IC9bOl9BLVphLXpcXHUwMEMwLVxcdTAwRDZcXHUwMEQ4LVxcdTAwRjZcXHUwMEY4LVxcdTAyRkZcXHUwMzcwLVxcdTAzN0RcXHUwMzdGLVxcdTFGRkZcXHUyMDBDLVxcdTIwMERcXHUyMDcwLVxcdTIxOEZcXHUyQzAwLVxcdTJGRUZcXHUzMDAxLVxcdUQ3RkZcXHVGOTAwLVxcdUZEQ0ZcXHVGREYwLVxcdUZGRkRdL1xuXG52YXIgbmFtZUJvZHkgPSAvWzpfQS1aYS16XFx1MDBDMC1cXHUwMEQ2XFx1MDBEOC1cXHUwMEY2XFx1MDBGOC1cXHUwMkZGXFx1MDM3MC1cXHUwMzdEXFx1MDM3Ri1cXHUxRkZGXFx1MjAwQy1cXHUyMDBEXFx1MjA3MC1cXHUyMThGXFx1MkMwMC1cXHUyRkVGXFx1MzAwMS1cXHVEN0ZGXFx1RjkwMC1cXHVGRENGXFx1RkRGMC1cXHVGRkZEXFx1MDBCN1xcdTAzMDAtXFx1MDM2RlxcdTIwM0YtXFx1MjA0MFxcLlxcZC1dL1xuXG5xdW90ZSA9IGNoYXJDbGFzcyhxdW90ZSlcbmVudGl0eSA9IGNoYXJDbGFzcyhlbnRpdHkpXG5hdHRyaWJFbmQgPSBjaGFyQ2xhc3MoYXR0cmliRW5kKVxuXG5mdW5jdGlvbiBjaGFyQ2xhc3MgKHN0cikge1xuICByZXR1cm4gc3RyLnNwbGl0KFwiXCIpLnJlZHVjZShmdW5jdGlvbiAocywgYykge1xuICAgIHNbY10gPSB0cnVlXG4gICAgcmV0dXJuIHNcbiAgfSwge30pXG59XG5cbmZ1bmN0aW9uIGlzUmVnRXhwIChjKSB7XG4gIHJldHVybiBPYmplY3QucHJvdG90eXBlLnRvU3RyaW5nLmNhbGwoYykgPT09ICdbb2JqZWN0IFJlZ0V4cF0nXG59XG5cbmZ1bmN0aW9uIGlzIChjaGFyY2xhc3MsIGMpIHtcbiAgcmV0dXJuIGlzUmVnRXhwKGNoYXJjbGFzcykgPyAhIWMubWF0Y2goY2hhcmNsYXNzKSA6IGNoYXJjbGFzc1tjXVxufVxuXG5mdW5jdGlvbiBub3QgKGNoYXJjbGFzcywgYykge1xuICByZXR1cm4gIWlzKGNoYXJjbGFzcywgYylcbn1cblxudmFyIFMgPSAwXG5zYXguU1RBVEUgPVxueyBCRUdJTiAgICAgICAgICAgICAgICAgICAgIDogUysrXG4sIFRFWFQgICAgICAgICAgICAgICAgICAgICAgOiBTKysgLy8gZ2VuZXJhbCBzdHVmZlxuLCBURVhUX0VOVElUWSAgICAgICAgICAgICAgIDogUysrIC8vICZhbXAgYW5kIHN1Y2guXG4sIE9QRU5fV0FLQSAgICAgICAgICAgICAgICAgOiBTKysgLy8gPFxuLCBTR01MX0RFQ0wgICAgICAgICAgICAgICAgIDogUysrIC8vIDwhQkxBUkdcbiwgU0dNTF9ERUNMX1FVT1RFRCAgICAgICAgICA6IFMrKyAvLyA8IUJMQVJHIGZvbyBcImJhclxuLCBET0NUWVBFICAgICAgICAgICAgICAgICAgIDogUysrIC8vIDwhRE9DVFlQRVxuLCBET0NUWVBFX1FVT1RFRCAgICAgICAgICAgIDogUysrIC8vIDwhRE9DVFlQRSBcIi8vYmxhaFxuLCBET0NUWVBFX0RURCAgICAgICAgICAgICAgIDogUysrIC8vIDwhRE9DVFlQRSBcIi8vYmxhaFwiIFsgLi4uXG4sIERPQ1RZUEVfRFREX1FVT1RFRCAgICAgICAgOiBTKysgLy8gPCFET0NUWVBFIFwiLy9ibGFoXCIgWyBcImZvb1xuLCBDT01NRU5UX1NUQVJUSU5HICAgICAgICAgIDogUysrIC8vIDwhLVxuLCBDT01NRU5UICAgICAgICAgICAgICAgICAgIDogUysrIC8vIDwhLS1cbiwgQ09NTUVOVF9FTkRJTkcgICAgICAgICAgICA6IFMrKyAvLyA8IS0tIGJsYWggLVxuLCBDT01NRU5UX0VOREVEICAgICAgICAgICAgIDogUysrIC8vIDwhLS0gYmxhaCAtLVxuLCBDREFUQSAgICAgICAgICAgICAgICAgICAgIDogUysrIC8vIDwhW0NEQVRBWyBzb21ldGhpbmdcbiwgQ0RBVEFfRU5ESU5HICAgICAgICAgICAgICA6IFMrKyAvLyBdXG4sIENEQVRBX0VORElOR18yICAgICAgICAgICAgOiBTKysgLy8gXV1cbiwgUFJPQ19JTlNUICAgICAgICAgICAgICAgICA6IFMrKyAvLyA8P2hpXG4sIFBST0NfSU5TVF9CT0RZICAgICAgICAgICAgOiBTKysgLy8gPD9oaSB0aGVyZVxuLCBQUk9DX0lOU1RfRU5ESU5HICAgICAgICAgIDogUysrIC8vIDw/aGkgXCJ0aGVyZVwiID9cbiwgT1BFTl9UQUcgICAgICAgICAgICAgICAgICA6IFMrKyAvLyA8c3Ryb25nXG4sIE9QRU5fVEFHX1NMQVNIICAgICAgICAgICAgOiBTKysgLy8gPHN0cm9uZyAvXG4sIEFUVFJJQiAgICAgICAgICAgICAgICAgICAgOiBTKysgLy8gPGFcbiwgQVRUUklCX05BTUUgICAgICAgICAgICAgICA6IFMrKyAvLyA8YSBmb29cbiwgQVRUUklCX05BTUVfU0FXX1dISVRFICAgICA6IFMrKyAvLyA8YSBmb28gX1xuLCBBVFRSSUJfVkFMVUUgICAgICAgICAgICAgIDogUysrIC8vIDxhIGZvbz1cbiwgQVRUUklCX1ZBTFVFX1FVT1RFRCAgICAgICA6IFMrKyAvLyA8YSBmb289XCJiYXJcbiwgQVRUUklCX1ZBTFVFX0NMT1NFRCAgICAgICA6IFMrKyAvLyA8YSBmb289XCJiYXJcIlxuLCBBVFRSSUJfVkFMVUVfVU5RVU9URUQgICAgIDogUysrIC8vIDxhIGZvbz1iYXJcbiwgQVRUUklCX1ZBTFVFX0VOVElUWV9RICAgICA6IFMrKyAvLyA8Zm9vIGJhcj1cIiZxdW90O1wiXG4sIEFUVFJJQl9WQUxVRV9FTlRJVFlfVSAgICAgOiBTKysgLy8gPGZvbyBiYXI9JnF1b3Q7XG4sIENMT1NFX1RBRyAgICAgICAgICAgICAgICAgOiBTKysgLy8gPC9hXG4sIENMT1NFX1RBR19TQVdfV0hJVEUgICAgICAgOiBTKysgLy8gPC9hICAgPlxuLCBTQ1JJUFQgICAgICAgICAgICAgICAgICAgIDogUysrIC8vIDxzY3JpcHQ+IC4uLlxuLCBTQ1JJUFRfRU5ESU5HICAgICAgICAgICAgIDogUysrIC8vIDxzY3JpcHQ+IC4uLiA8XG59XG5cbnNheC5FTlRJVElFUyA9XG57IFwiYW1wXCIgOiBcIiZcIlxuLCBcImd0XCIgOiBcIj5cIlxuLCBcImx0XCIgOiBcIjxcIlxuLCBcInF1b3RcIiA6IFwiXFxcIlwiXG4sIFwiYXBvc1wiIDogXCInXCJcbiwgXCJBRWxpZ1wiIDogMTk4XG4sIFwiQWFjdXRlXCIgOiAxOTNcbiwgXCJBY2lyY1wiIDogMTk0XG4sIFwiQWdyYXZlXCIgOiAxOTJcbiwgXCJBcmluZ1wiIDogMTk3XG4sIFwiQXRpbGRlXCIgOiAxOTVcbiwgXCJBdW1sXCIgOiAxOTZcbiwgXCJDY2VkaWxcIiA6IDE5OVxuLCBcIkVUSFwiIDogMjA4XG4sIFwiRWFjdXRlXCIgOiAyMDFcbiwgXCJFY2lyY1wiIDogMjAyXG4sIFwiRWdyYXZlXCIgOiAyMDBcbiwgXCJFdW1sXCIgOiAyMDNcbiwgXCJJYWN1dGVcIiA6IDIwNVxuLCBcIkljaXJjXCIgOiAyMDZcbiwgXCJJZ3JhdmVcIiA6IDIwNFxuLCBcIkl1bWxcIiA6IDIwN1xuLCBcIk50aWxkZVwiIDogMjA5XG4sIFwiT2FjdXRlXCIgOiAyMTFcbiwgXCJPY2lyY1wiIDogMjEyXG4sIFwiT2dyYXZlXCIgOiAyMTBcbiwgXCJPc2xhc2hcIiA6IDIxNlxuLCBcIk90aWxkZVwiIDogMjEzXG4sIFwiT3VtbFwiIDogMjE0XG4sIFwiVEhPUk5cIiA6IDIyMlxuLCBcIlVhY3V0ZVwiIDogMjE4XG4sIFwiVWNpcmNcIiA6IDIxOVxuLCBcIlVncmF2ZVwiIDogMjE3XG4sIFwiVXVtbFwiIDogMjIwXG4sIFwiWWFjdXRlXCIgOiAyMjFcbiwgXCJhYWN1dGVcIiA6IDIyNVxuLCBcImFjaXJjXCIgOiAyMjZcbiwgXCJhZWxpZ1wiIDogMjMwXG4sIFwiYWdyYXZlXCIgOiAyMjRcbiwgXCJhcmluZ1wiIDogMjI5XG4sIFwiYXRpbGRlXCIgOiAyMjdcbiwgXCJhdW1sXCIgOiAyMjhcbiwgXCJjY2VkaWxcIiA6IDIzMVxuLCBcImVhY3V0ZVwiIDogMjMzXG4sIFwiZWNpcmNcIiA6IDIzNFxuLCBcImVncmF2ZVwiIDogMjMyXG4sIFwiZXRoXCIgOiAyNDBcbiwgXCJldW1sXCIgOiAyMzVcbiwgXCJpYWN1dGVcIiA6IDIzN1xuLCBcImljaXJjXCIgOiAyMzhcbiwgXCJpZ3JhdmVcIiA6IDIzNlxuLCBcIml1bWxcIiA6IDIzOVxuLCBcIm50aWxkZVwiIDogMjQxXG4sIFwib2FjdXRlXCIgOiAyNDNcbiwgXCJvY2lyY1wiIDogMjQ0XG4sIFwib2dyYXZlXCIgOiAyNDJcbiwgXCJvc2xhc2hcIiA6IDI0OFxuLCBcIm90aWxkZVwiIDogMjQ1XG4sIFwib3VtbFwiIDogMjQ2XG4sIFwic3psaWdcIiA6IDIyM1xuLCBcInRob3JuXCIgOiAyNTRcbiwgXCJ1YWN1dGVcIiA6IDI1MFxuLCBcInVjaXJjXCIgOiAyNTFcbiwgXCJ1Z3JhdmVcIiA6IDI0OVxuLCBcInV1bWxcIiA6IDI1MlxuLCBcInlhY3V0ZVwiIDogMjUzXG4sIFwieXVtbFwiIDogMjU1XG4sIFwiY29weVwiIDogMTY5XG4sIFwicmVnXCIgOiAxNzRcbiwgXCJuYnNwXCIgOiAxNjBcbiwgXCJpZXhjbFwiIDogMTYxXG4sIFwiY2VudFwiIDogMTYyXG4sIFwicG91bmRcIiA6IDE2M1xuLCBcImN1cnJlblwiIDogMTY0XG4sIFwieWVuXCIgOiAxNjVcbiwgXCJicnZiYXJcIiA6IDE2NlxuLCBcInNlY3RcIiA6IDE2N1xuLCBcInVtbFwiIDogMTY4XG4sIFwib3JkZlwiIDogMTcwXG4sIFwibGFxdW9cIiA6IDE3MVxuLCBcIm5vdFwiIDogMTcyXG4sIFwic2h5XCIgOiAxNzNcbiwgXCJtYWNyXCIgOiAxNzVcbiwgXCJkZWdcIiA6IDE3NlxuLCBcInBsdXNtblwiIDogMTc3XG4sIFwic3VwMVwiIDogMTg1XG4sIFwic3VwMlwiIDogMTc4XG4sIFwic3VwM1wiIDogMTc5XG4sIFwiYWN1dGVcIiA6IDE4MFxuLCBcIm1pY3JvXCIgOiAxODFcbiwgXCJwYXJhXCIgOiAxODJcbiwgXCJtaWRkb3RcIiA6IDE4M1xuLCBcImNlZGlsXCIgOiAxODRcbiwgXCJvcmRtXCIgOiAxODZcbiwgXCJyYXF1b1wiIDogMTg3XG4sIFwiZnJhYzE0XCIgOiAxODhcbiwgXCJmcmFjMTJcIiA6IDE4OVxuLCBcImZyYWMzNFwiIDogMTkwXG4sIFwiaXF1ZXN0XCIgOiAxOTFcbiwgXCJ0aW1lc1wiIDogMjE1XG4sIFwiZGl2aWRlXCIgOiAyNDdcbiwgXCJPRWxpZ1wiIDogMzM4XG4sIFwib2VsaWdcIiA6IDMzOVxuLCBcIlNjYXJvblwiIDogMzUyXG4sIFwic2Nhcm9uXCIgOiAzNTNcbiwgXCJZdW1sXCIgOiAzNzZcbiwgXCJmbm9mXCIgOiA0MDJcbiwgXCJjaXJjXCIgOiA3MTBcbiwgXCJ0aWxkZVwiIDogNzMyXG4sIFwiQWxwaGFcIiA6IDkxM1xuLCBcIkJldGFcIiA6IDkxNFxuLCBcIkdhbW1hXCIgOiA5MTVcbiwgXCJEZWx0YVwiIDogOTE2XG4sIFwiRXBzaWxvblwiIDogOTE3XG4sIFwiWmV0YVwiIDogOTE4XG4sIFwiRXRhXCIgOiA5MTlcbiwgXCJUaGV0YVwiIDogOTIwXG4sIFwiSW90YVwiIDogOTIxXG4sIFwiS2FwcGFcIiA6IDkyMlxuLCBcIkxhbWJkYVwiIDogOTIzXG4sIFwiTXVcIiA6IDkyNFxuLCBcIk51XCIgOiA5MjVcbiwgXCJYaVwiIDogOTI2XG4sIFwiT21pY3JvblwiIDogOTI3XG4sIFwiUGlcIiA6IDkyOFxuLCBcIlJob1wiIDogOTI5XG4sIFwiU2lnbWFcIiA6IDkzMVxuLCBcIlRhdVwiIDogOTMyXG4sIFwiVXBzaWxvblwiIDogOTMzXG4sIFwiUGhpXCIgOiA5MzRcbiwgXCJDaGlcIiA6IDkzNVxuLCBcIlBzaVwiIDogOTM2XG4sIFwiT21lZ2FcIiA6IDkzN1xuLCBcImFscGhhXCIgOiA5NDVcbiwgXCJiZXRhXCIgOiA5NDZcbiwgXCJnYW1tYVwiIDogOTQ3XG4sIFwiZGVsdGFcIiA6IDk0OFxuLCBcImVwc2lsb25cIiA6IDk0OVxuLCBcInpldGFcIiA6IDk1MFxuLCBcImV0YVwiIDogOTUxXG4sIFwidGhldGFcIiA6IDk1MlxuLCBcImlvdGFcIiA6IDk1M1xuLCBcImthcHBhXCIgOiA5NTRcbiwgXCJsYW1iZGFcIiA6IDk1NVxuLCBcIm11XCIgOiA5NTZcbiwgXCJudVwiIDogOTU3XG4sIFwieGlcIiA6IDk1OFxuLCBcIm9taWNyb25cIiA6IDk1OVxuLCBcInBpXCIgOiA5NjBcbiwgXCJyaG9cIiA6IDk2MVxuLCBcInNpZ21hZlwiIDogOTYyXG4sIFwic2lnbWFcIiA6IDk2M1xuLCBcInRhdVwiIDogOTY0XG4sIFwidXBzaWxvblwiIDogOTY1XG4sIFwicGhpXCIgOiA5NjZcbiwgXCJjaGlcIiA6IDk2N1xuLCBcInBzaVwiIDogOTY4XG4sIFwib21lZ2FcIiA6IDk2OVxuLCBcInRoZXRhc3ltXCIgOiA5NzdcbiwgXCJ1cHNpaFwiIDogOTc4XG4sIFwicGl2XCIgOiA5ODJcbiwgXCJlbnNwXCIgOiA4MTk0XG4sIFwiZW1zcFwiIDogODE5NVxuLCBcInRoaW5zcFwiIDogODIwMVxuLCBcInp3bmpcIiA6IDgyMDRcbiwgXCJ6d2pcIiA6IDgyMDVcbiwgXCJscm1cIiA6IDgyMDZcbiwgXCJybG1cIiA6IDgyMDdcbiwgXCJuZGFzaFwiIDogODIxMVxuLCBcIm1kYXNoXCIgOiA4MjEyXG4sIFwibHNxdW9cIiA6IDgyMTZcbiwgXCJyc3F1b1wiIDogODIxN1xuLCBcInNicXVvXCIgOiA4MjE4XG4sIFwibGRxdW9cIiA6IDgyMjBcbiwgXCJyZHF1b1wiIDogODIyMVxuLCBcImJkcXVvXCIgOiA4MjIyXG4sIFwiZGFnZ2VyXCIgOiA4MjI0XG4sIFwiRGFnZ2VyXCIgOiA4MjI1XG4sIFwiYnVsbFwiIDogODIyNlxuLCBcImhlbGxpcFwiIDogODIzMFxuLCBcInBlcm1pbFwiIDogODI0MFxuLCBcInByaW1lXCIgOiA4MjQyXG4sIFwiUHJpbWVcIiA6IDgyNDNcbiwgXCJsc2FxdW9cIiA6IDgyNDlcbiwgXCJyc2FxdW9cIiA6IDgyNTBcbiwgXCJvbGluZVwiIDogODI1NFxuLCBcImZyYXNsXCIgOiA4MjYwXG4sIFwiZXVyb1wiIDogODM2NFxuLCBcImltYWdlXCIgOiA4NDY1XG4sIFwid2VpZXJwXCIgOiA4NDcyXG4sIFwicmVhbFwiIDogODQ3NlxuLCBcInRyYWRlXCIgOiA4NDgyXG4sIFwiYWxlZnN5bVwiIDogODUwMVxuLCBcImxhcnJcIiA6IDg1OTJcbiwgXCJ1YXJyXCIgOiA4NTkzXG4sIFwicmFyclwiIDogODU5NFxuLCBcImRhcnJcIiA6IDg1OTVcbiwgXCJoYXJyXCIgOiA4NTk2XG4sIFwiY3JhcnJcIiA6IDg2MjlcbiwgXCJsQXJyXCIgOiA4NjU2XG4sIFwidUFyclwiIDogODY1N1xuLCBcInJBcnJcIiA6IDg2NThcbiwgXCJkQXJyXCIgOiA4NjU5XG4sIFwiaEFyclwiIDogODY2MFxuLCBcImZvcmFsbFwiIDogODcwNFxuLCBcInBhcnRcIiA6IDg3MDZcbiwgXCJleGlzdFwiIDogODcwN1xuLCBcImVtcHR5XCIgOiA4NzA5XG4sIFwibmFibGFcIiA6IDg3MTFcbiwgXCJpc2luXCIgOiA4NzEyXG4sIFwibm90aW5cIiA6IDg3MTNcbiwgXCJuaVwiIDogODcxNVxuLCBcInByb2RcIiA6IDg3MTlcbiwgXCJzdW1cIiA6IDg3MjFcbiwgXCJtaW51c1wiIDogODcyMlxuLCBcImxvd2FzdFwiIDogODcyN1xuLCBcInJhZGljXCIgOiA4NzMwXG4sIFwicHJvcFwiIDogODczM1xuLCBcImluZmluXCIgOiA4NzM0XG4sIFwiYW5nXCIgOiA4NzM2XG4sIFwiYW5kXCIgOiA4NzQzXG4sIFwib3JcIiA6IDg3NDRcbiwgXCJjYXBcIiA6IDg3NDVcbiwgXCJjdXBcIiA6IDg3NDZcbiwgXCJpbnRcIiA6IDg3NDdcbiwgXCJ0aGVyZTRcIiA6IDg3NTZcbiwgXCJzaW1cIiA6IDg3NjRcbiwgXCJjb25nXCIgOiA4NzczXG4sIFwiYXN5bXBcIiA6IDg3NzZcbiwgXCJuZVwiIDogODgwMFxuLCBcImVxdWl2XCIgOiA4ODAxXG4sIFwibGVcIiA6IDg4MDRcbiwgXCJnZVwiIDogODgwNVxuLCBcInN1YlwiIDogODgzNFxuLCBcInN1cFwiIDogODgzNVxuLCBcIm5zdWJcIiA6IDg4MzZcbiwgXCJzdWJlXCIgOiA4ODM4XG4sIFwic3VwZVwiIDogODgzOVxuLCBcIm9wbHVzXCIgOiA4ODUzXG4sIFwib3RpbWVzXCIgOiA4ODU1XG4sIFwicGVycFwiIDogODg2OVxuLCBcInNkb3RcIiA6IDg5MDFcbiwgXCJsY2VpbFwiIDogODk2OFxuLCBcInJjZWlsXCIgOiA4OTY5XG4sIFwibGZsb29yXCIgOiA4OTcwXG4sIFwicmZsb29yXCIgOiA4OTcxXG4sIFwibGFuZ1wiIDogOTAwMVxuLCBcInJhbmdcIiA6IDkwMDJcbiwgXCJsb3pcIiA6IDk2NzRcbiwgXCJzcGFkZXNcIiA6IDk4MjRcbiwgXCJjbHVic1wiIDogOTgyN1xuLCBcImhlYXJ0c1wiIDogOTgyOVxuLCBcImRpYW1zXCIgOiA5ODMwXG59XG5cbk9iamVjdC5rZXlzKHNheC5FTlRJVElFUykuZm9yRWFjaChmdW5jdGlvbiAoa2V5KSB7XG4gICAgdmFyIGUgPSBzYXguRU5USVRJRVNba2V5XVxuICAgIHZhciBzID0gdHlwZW9mIGUgPT09ICdudW1iZXInID8gU3RyaW5nLmZyb21DaGFyQ29kZShlKSA6IGVcbiAgICBzYXguRU5USVRJRVNba2V5XSA9IHNcbn0pXG5cbmZvciAodmFyIFMgaW4gc2F4LlNUQVRFKSBzYXguU1RBVEVbc2F4LlNUQVRFW1NdXSA9IFNcblxuLy8gc2hvcnRoYW5kXG5TID0gc2F4LlNUQVRFXG5cbmZ1bmN0aW9uIGVtaXQgKHBhcnNlciwgZXZlbnQsIGRhdGEpIHtcbiAgcGFyc2VyW2V2ZW50XSAmJiBwYXJzZXJbZXZlbnRdKGRhdGEpXG59XG5cbmZ1bmN0aW9uIGVtaXROb2RlIChwYXJzZXIsIG5vZGVUeXBlLCBkYXRhKSB7XG4gIGlmIChwYXJzZXIudGV4dE5vZGUpIGNsb3NlVGV4dChwYXJzZXIpXG4gIGVtaXQocGFyc2VyLCBub2RlVHlwZSwgZGF0YSlcbn1cblxuZnVuY3Rpb24gY2xvc2VUZXh0IChwYXJzZXIpIHtcbiAgcGFyc2VyLnRleHROb2RlID0gdGV4dG9wdHMocGFyc2VyLm9wdCwgcGFyc2VyLnRleHROb2RlKVxuICBpZiAocGFyc2VyLnRleHROb2RlKSBlbWl0KHBhcnNlciwgXCJvbnRleHRcIiwgcGFyc2VyLnRleHROb2RlKVxuICBwYXJzZXIudGV4dE5vZGUgPSBcIlwiXG59XG5cbmZ1bmN0aW9uIHRleHRvcHRzIChvcHQsIHRleHQpIHtcbiAgaWYgKG9wdC50cmltKSB0ZXh0ID0gdGV4dC50cmltKClcbiAgaWYgKG9wdC5ub3JtYWxpemUpIHRleHQgPSB0ZXh0LnJlcGxhY2UoL1xccysvZywgXCIgXCIpXG4gIHJldHVybiB0ZXh0XG59XG5cbmZ1bmN0aW9uIGVycm9yIChwYXJzZXIsIGVyKSB7XG4gIGNsb3NlVGV4dChwYXJzZXIpXG4gIGlmIChwYXJzZXIudHJhY2tQb3NpdGlvbikge1xuICAgIGVyICs9IFwiXFxuTGluZTogXCIrcGFyc2VyLmxpbmUrXG4gICAgICAgICAgXCJcXG5Db2x1bW46IFwiK3BhcnNlci5jb2x1bW4rXG4gICAgICAgICAgXCJcXG5DaGFyOiBcIitwYXJzZXIuY1xuICB9XG4gIGVyID0gbmV3IEVycm9yKGVyKVxuICBwYXJzZXIuZXJyb3IgPSBlclxuICBlbWl0KHBhcnNlciwgXCJvbmVycm9yXCIsIGVyKVxuICByZXR1cm4gcGFyc2VyXG59XG5cbmZ1bmN0aW9uIGVuZCAocGFyc2VyKSB7XG4gIGlmICghcGFyc2VyLmNsb3NlZFJvb3QpIHN0cmljdEZhaWwocGFyc2VyLCBcIlVuY2xvc2VkIHJvb3QgdGFnXCIpXG4gIGlmICgocGFyc2VyLnN0YXRlICE9PSBTLkJFR0lOKSAmJiAocGFyc2VyLnN0YXRlICE9PSBTLlRFWFQpKSBlcnJvcihwYXJzZXIsIFwiVW5leHBlY3RlZCBlbmRcIilcbiAgY2xvc2VUZXh0KHBhcnNlcilcbiAgcGFyc2VyLmMgPSBcIlwiXG4gIHBhcnNlci5jbG9zZWQgPSB0cnVlXG4gIGVtaXQocGFyc2VyLCBcIm9uZW5kXCIpXG4gIFNBWFBhcnNlci5jYWxsKHBhcnNlciwgcGFyc2VyLnN0cmljdCwgcGFyc2VyLm9wdClcbiAgcmV0dXJuIHBhcnNlclxufVxuXG5mdW5jdGlvbiBzdHJpY3RGYWlsIChwYXJzZXIsIG1lc3NhZ2UpIHtcbiAgaWYgKHR5cGVvZiBwYXJzZXIgIT09ICdvYmplY3QnIHx8ICEocGFyc2VyIGluc3RhbmNlb2YgU0FYUGFyc2VyKSlcbiAgICB0aHJvdyBuZXcgRXJyb3IoJ2JhZCBjYWxsIHRvIHN0cmljdEZhaWwnKTtcbiAgaWYgKHBhcnNlci5zdHJpY3QpIGVycm9yKHBhcnNlciwgbWVzc2FnZSlcbn1cblxuZnVuY3Rpb24gbmV3VGFnIChwYXJzZXIpIHtcbiAgaWYgKCFwYXJzZXIuc3RyaWN0KSBwYXJzZXIudGFnTmFtZSA9IHBhcnNlci50YWdOYW1lW3BhcnNlci5sb29zZUNhc2VdKClcbiAgdmFyIHBhcmVudCA9IHBhcnNlci50YWdzW3BhcnNlci50YWdzLmxlbmd0aCAtIDFdIHx8IHBhcnNlclxuICAgICwgdGFnID0gcGFyc2VyLnRhZyA9IHsgbmFtZSA6IHBhcnNlci50YWdOYW1lLCBhdHRyaWJ1dGVzIDoge30gfVxuXG4gIC8vIHdpbGwgYmUgb3ZlcnJpZGRlbiBpZiB0YWcgY29udGFpbHMgYW4geG1sbnM9XCJmb29cIiBvciB4bWxuczpmb289XCJiYXJcIlxuICBpZiAocGFyc2VyLm9wdC54bWxucykgdGFnLm5zID0gcGFyZW50Lm5zXG4gIHBhcnNlci5hdHRyaWJMaXN0Lmxlbmd0aCA9IDBcbn1cblxuZnVuY3Rpb24gcW5hbWUgKG5hbWUsIGF0dHJpYnV0ZSkge1xuICB2YXIgaSA9IG5hbWUuaW5kZXhPZihcIjpcIilcbiAgICAsIHF1YWxOYW1lID0gaSA8IDAgPyBbIFwiXCIsIG5hbWUgXSA6IG5hbWUuc3BsaXQoXCI6XCIpXG4gICAgLCBwcmVmaXggPSBxdWFsTmFtZVswXVxuICAgICwgbG9jYWwgPSBxdWFsTmFtZVsxXVxuXG4gIC8vIDx4IFwieG1sbnNcIj1cImh0dHA6Ly9mb29cIj5cbiAgaWYgKGF0dHJpYnV0ZSAmJiBuYW1lID09PSBcInhtbG5zXCIpIHtcbiAgICBwcmVmaXggPSBcInhtbG5zXCJcbiAgICBsb2NhbCA9IFwiXCJcbiAgfVxuXG4gIHJldHVybiB7IHByZWZpeDogcHJlZml4LCBsb2NhbDogbG9jYWwgfVxufVxuXG5mdW5jdGlvbiBhdHRyaWIgKHBhcnNlcikge1xuICBpZiAoIXBhcnNlci5zdHJpY3QpIHBhcnNlci5hdHRyaWJOYW1lID0gcGFyc2VyLmF0dHJpYk5hbWVbcGFyc2VyLmxvb3NlQ2FzZV0oKVxuXG4gIGlmIChwYXJzZXIuYXR0cmliTGlzdC5pbmRleE9mKHBhcnNlci5hdHRyaWJOYW1lKSAhPT0gLTEgfHxcbiAgICAgIHBhcnNlci50YWcuYXR0cmlidXRlcy5oYXNPd25Qcm9wZXJ0eShwYXJzZXIuYXR0cmliTmFtZSkpIHtcbiAgICByZXR1cm4gcGFyc2VyLmF0dHJpYk5hbWUgPSBwYXJzZXIuYXR0cmliVmFsdWUgPSBcIlwiXG4gIH1cblxuICBpZiAocGFyc2VyLm9wdC54bWxucykge1xuICAgIHZhciBxbiA9IHFuYW1lKHBhcnNlci5hdHRyaWJOYW1lLCB0cnVlKVxuICAgICAgLCBwcmVmaXggPSBxbi5wcmVmaXhcbiAgICAgICwgbG9jYWwgPSBxbi5sb2NhbFxuXG4gICAgaWYgKHByZWZpeCA9PT0gXCJ4bWxuc1wiKSB7XG4gICAgICAvLyBuYW1lc3BhY2UgYmluZGluZyBhdHRyaWJ1dGU7IHB1c2ggdGhlIGJpbmRpbmcgaW50byBzY29wZVxuICAgICAgaWYgKGxvY2FsID09PSBcInhtbFwiICYmIHBhcnNlci5hdHRyaWJWYWx1ZSAhPT0gWE1MX05BTUVTUEFDRSkge1xuICAgICAgICBzdHJpY3RGYWlsKCBwYXJzZXJcbiAgICAgICAgICAgICAgICAgICwgXCJ4bWw6IHByZWZpeCBtdXN0IGJlIGJvdW5kIHRvIFwiICsgWE1MX05BTUVTUEFDRSArIFwiXFxuXCJcbiAgICAgICAgICAgICAgICAgICsgXCJBY3R1YWw6IFwiICsgcGFyc2VyLmF0dHJpYlZhbHVlIClcbiAgICAgIH0gZWxzZSBpZiAobG9jYWwgPT09IFwieG1sbnNcIiAmJiBwYXJzZXIuYXR0cmliVmFsdWUgIT09IFhNTE5TX05BTUVTUEFDRSkge1xuICAgICAgICBzdHJpY3RGYWlsKCBwYXJzZXJcbiAgICAgICAgICAgICAgICAgICwgXCJ4bWxuczogcHJlZml4IG11c3QgYmUgYm91bmQgdG8gXCIgKyBYTUxOU19OQU1FU1BBQ0UgKyBcIlxcblwiXG4gICAgICAgICAgICAgICAgICArIFwiQWN0dWFsOiBcIiArIHBhcnNlci5hdHRyaWJWYWx1ZSApXG4gICAgICB9IGVsc2Uge1xuICAgICAgICB2YXIgdGFnID0gcGFyc2VyLnRhZ1xuICAgICAgICAgICwgcGFyZW50ID0gcGFyc2VyLnRhZ3NbcGFyc2VyLnRhZ3MubGVuZ3RoIC0gMV0gfHwgcGFyc2VyXG4gICAgICAgIGlmICh0YWcubnMgPT09IHBhcmVudC5ucykge1xuICAgICAgICAgIHRhZy5ucyA9IE9iamVjdC5jcmVhdGUocGFyZW50Lm5zKVxuICAgICAgICB9XG4gICAgICAgIHRhZy5uc1tsb2NhbF0gPSBwYXJzZXIuYXR0cmliVmFsdWVcbiAgICAgIH1cbiAgICB9XG5cbiAgICAvLyBkZWZlciBvbmF0dHJpYnV0ZSBldmVudHMgdW50aWwgYWxsIGF0dHJpYnV0ZXMgaGF2ZSBiZWVuIHNlZW5cbiAgICAvLyBzbyBhbnkgbmV3IGJpbmRpbmdzIGNhbiB0YWtlIGVmZmVjdDsgcHJlc2VydmUgYXR0cmlidXRlIG9yZGVyXG4gICAgLy8gc28gZGVmZXJyZWQgZXZlbnRzIGNhbiBiZSBlbWl0dGVkIGluIGRvY3VtZW50IG9yZGVyXG4gICAgcGFyc2VyLmF0dHJpYkxpc3QucHVzaChbcGFyc2VyLmF0dHJpYk5hbWUsIHBhcnNlci5hdHRyaWJWYWx1ZV0pXG4gIH0gZWxzZSB7XG4gICAgLy8gaW4gbm9uLXhtbG5zIG1vZGUsIHdlIGNhbiBlbWl0IHRoZSBldmVudCByaWdodCBhd2F5XG4gICAgcGFyc2VyLnRhZy5hdHRyaWJ1dGVzW3BhcnNlci5hdHRyaWJOYW1lXSA9IHBhcnNlci5hdHRyaWJWYWx1ZVxuICAgIGVtaXROb2RlKCBwYXJzZXJcbiAgICAgICAgICAgICwgXCJvbmF0dHJpYnV0ZVwiXG4gICAgICAgICAgICAsIHsgbmFtZTogcGFyc2VyLmF0dHJpYk5hbWVcbiAgICAgICAgICAgICAgLCB2YWx1ZTogcGFyc2VyLmF0dHJpYlZhbHVlIH0gKVxuICB9XG5cbiAgcGFyc2VyLmF0dHJpYk5hbWUgPSBwYXJzZXIuYXR0cmliVmFsdWUgPSBcIlwiXG59XG5cbmZ1bmN0aW9uIG9wZW5UYWcgKHBhcnNlciwgc2VsZkNsb3NpbmcpIHtcbiAgaWYgKHBhcnNlci5vcHQueG1sbnMpIHtcbiAgICAvLyBlbWl0IG5hbWVzcGFjZSBiaW5kaW5nIGV2ZW50c1xuICAgIHZhciB0YWcgPSBwYXJzZXIudGFnXG5cbiAgICAvLyBhZGQgbmFtZXNwYWNlIGluZm8gdG8gdGFnXG4gICAgdmFyIHFuID0gcW5hbWUocGFyc2VyLnRhZ05hbWUpXG4gICAgdGFnLnByZWZpeCA9IHFuLnByZWZpeFxuICAgIHRhZy5sb2NhbCA9IHFuLmxvY2FsXG4gICAgdGFnLnVyaSA9IHRhZy5uc1txbi5wcmVmaXhdIHx8IFwiXCJcblxuICAgIGlmICh0YWcucHJlZml4ICYmICF0YWcudXJpKSB7XG4gICAgICBzdHJpY3RGYWlsKHBhcnNlciwgXCJVbmJvdW5kIG5hbWVzcGFjZSBwcmVmaXg6IFwiXG4gICAgICAgICAgICAgICAgICAgICAgICsgSlNPTi5zdHJpbmdpZnkocGFyc2VyLnRhZ05hbWUpKVxuICAgICAgdGFnLnVyaSA9IHFuLnByZWZpeFxuICAgIH1cblxuICAgIHZhciBwYXJlbnQgPSBwYXJzZXIudGFnc1twYXJzZXIudGFncy5sZW5ndGggLSAxXSB8fCBwYXJzZXJcbiAgICBpZiAodGFnLm5zICYmIHBhcmVudC5ucyAhPT0gdGFnLm5zKSB7XG4gICAgICBPYmplY3Qua2V5cyh0YWcubnMpLmZvckVhY2goZnVuY3Rpb24gKHApIHtcbiAgICAgICAgZW1pdE5vZGUoIHBhcnNlclxuICAgICAgICAgICAgICAgICwgXCJvbm9wZW5uYW1lc3BhY2VcIlxuICAgICAgICAgICAgICAgICwgeyBwcmVmaXg6IHAgLCB1cmk6IHRhZy5uc1twXSB9IClcbiAgICAgIH0pXG4gICAgfVxuXG4gICAgLy8gaGFuZGxlIGRlZmVycmVkIG9uYXR0cmlidXRlIGV2ZW50c1xuICAgIC8vIE5vdGU6IGRvIG5vdCBhcHBseSBkZWZhdWx0IG5zIHRvIGF0dHJpYnV0ZXM6XG4gICAgLy8gICBodHRwOi8vd3d3LnczLm9yZy9UUi9SRUMteG1sLW5hbWVzLyNkZWZhdWx0aW5nXG4gICAgZm9yICh2YXIgaSA9IDAsIGwgPSBwYXJzZXIuYXR0cmliTGlzdC5sZW5ndGg7IGkgPCBsOyBpICsrKSB7XG4gICAgICB2YXIgbnYgPSBwYXJzZXIuYXR0cmliTGlzdFtpXVxuICAgICAgdmFyIG5hbWUgPSBudlswXVxuICAgICAgICAsIHZhbHVlID0gbnZbMV1cbiAgICAgICAgLCBxdWFsTmFtZSA9IHFuYW1lKG5hbWUsIHRydWUpXG4gICAgICAgICwgcHJlZml4ID0gcXVhbE5hbWUucHJlZml4XG4gICAgICAgICwgbG9jYWwgPSBxdWFsTmFtZS5sb2NhbFxuICAgICAgICAsIHVyaSA9IHByZWZpeCA9PSBcIlwiID8gXCJcIiA6ICh0YWcubnNbcHJlZml4XSB8fCBcIlwiKVxuICAgICAgICAsIGEgPSB7IG5hbWU6IG5hbWVcbiAgICAgICAgICAgICAgLCB2YWx1ZTogdmFsdWVcbiAgICAgICAgICAgICAgLCBwcmVmaXg6IHByZWZpeFxuICAgICAgICAgICAgICAsIGxvY2FsOiBsb2NhbFxuICAgICAgICAgICAgICAsIHVyaTogdXJpXG4gICAgICAgICAgICAgIH1cblxuICAgICAgLy8gaWYgdGhlcmUncyBhbnkgYXR0cmlidXRlcyB3aXRoIGFuIHVuZGVmaW5lZCBuYW1lc3BhY2UsXG4gICAgICAvLyB0aGVuIGZhaWwgb24gdGhlbSBub3cuXG4gICAgICBpZiAocHJlZml4ICYmIHByZWZpeCAhPSBcInhtbG5zXCIgJiYgIXVyaSkge1xuICAgICAgICBzdHJpY3RGYWlsKHBhcnNlciwgXCJVbmJvdW5kIG5hbWVzcGFjZSBwcmVmaXg6IFwiXG4gICAgICAgICAgICAgICAgICAgICAgICAgKyBKU09OLnN0cmluZ2lmeShwcmVmaXgpKVxuICAgICAgICBhLnVyaSA9IHByZWZpeFxuICAgICAgfVxuICAgICAgcGFyc2VyLnRhZy5hdHRyaWJ1dGVzW25hbWVdID0gYVxuICAgICAgZW1pdE5vZGUocGFyc2VyLCBcIm9uYXR0cmlidXRlXCIsIGEpXG4gICAgfVxuICAgIHBhcnNlci5hdHRyaWJMaXN0Lmxlbmd0aCA9IDBcbiAgfVxuXG4gIHBhcnNlci50YWcuaXNTZWxmQ2xvc2luZyA9ICEhc2VsZkNsb3NpbmdcblxuICAvLyBwcm9jZXNzIHRoZSB0YWdcbiAgcGFyc2VyLnNhd1Jvb3QgPSB0cnVlXG4gIHBhcnNlci50YWdzLnB1c2gocGFyc2VyLnRhZylcbiAgZW1pdE5vZGUocGFyc2VyLCBcIm9ub3BlbnRhZ1wiLCBwYXJzZXIudGFnKVxuICBpZiAoIXNlbGZDbG9zaW5nKSB7XG4gICAgLy8gc3BlY2lhbCBjYXNlIGZvciA8c2NyaXB0PiBpbiBub24tc3RyaWN0IG1vZGUuXG4gICAgaWYgKCFwYXJzZXIubm9zY3JpcHQgJiYgcGFyc2VyLnRhZ05hbWUudG9Mb3dlckNhc2UoKSA9PT0gXCJzY3JpcHRcIikge1xuICAgICAgcGFyc2VyLnN0YXRlID0gUy5TQ1JJUFRcbiAgICB9IGVsc2Uge1xuICAgICAgcGFyc2VyLnN0YXRlID0gUy5URVhUXG4gICAgfVxuICAgIHBhcnNlci50YWcgPSBudWxsXG4gICAgcGFyc2VyLnRhZ05hbWUgPSBcIlwiXG4gIH1cbiAgcGFyc2VyLmF0dHJpYk5hbWUgPSBwYXJzZXIuYXR0cmliVmFsdWUgPSBcIlwiXG4gIHBhcnNlci5hdHRyaWJMaXN0Lmxlbmd0aCA9IDBcbn1cblxuZnVuY3Rpb24gY2xvc2VUYWcgKHBhcnNlcikge1xuICBpZiAoIXBhcnNlci50YWdOYW1lKSB7XG4gICAgc3RyaWN0RmFpbChwYXJzZXIsIFwiV2VpcmQgZW1wdHkgY2xvc2UgdGFnLlwiKVxuICAgIHBhcnNlci50ZXh0Tm9kZSArPSBcIjwvPlwiXG4gICAgcGFyc2VyLnN0YXRlID0gUy5URVhUXG4gICAgcmV0dXJuXG4gIH1cblxuICBpZiAocGFyc2VyLnNjcmlwdCkge1xuICAgIGlmIChwYXJzZXIudGFnTmFtZSAhPT0gXCJzY3JpcHRcIikge1xuICAgICAgcGFyc2VyLnNjcmlwdCArPSBcIjwvXCIgKyBwYXJzZXIudGFnTmFtZSArIFwiPlwiXG4gICAgICBwYXJzZXIudGFnTmFtZSA9IFwiXCJcbiAgICAgIHBhcnNlci5zdGF0ZSA9IFMuU0NSSVBUXG4gICAgICByZXR1cm5cbiAgICB9XG4gICAgZW1pdE5vZGUocGFyc2VyLCBcIm9uc2NyaXB0XCIsIHBhcnNlci5zY3JpcHQpXG4gICAgcGFyc2VyLnNjcmlwdCA9IFwiXCJcbiAgfVxuXG4gIC8vIGZpcnN0IG1ha2Ugc3VyZSB0aGF0IHRoZSBjbG9zaW5nIHRhZyBhY3R1YWxseSBleGlzdHMuXG4gIC8vIDxhPjxiPjwvYz48L2I+PC9hPiB3aWxsIGNsb3NlIGV2ZXJ5dGhpbmcsIG90aGVyd2lzZS5cbiAgdmFyIHQgPSBwYXJzZXIudGFncy5sZW5ndGhcbiAgdmFyIHRhZ05hbWUgPSBwYXJzZXIudGFnTmFtZVxuICBpZiAoIXBhcnNlci5zdHJpY3QpIHRhZ05hbWUgPSB0YWdOYW1lW3BhcnNlci5sb29zZUNhc2VdKClcbiAgdmFyIGNsb3NlVG8gPSB0YWdOYW1lXG4gIHdoaWxlICh0IC0tKSB7XG4gICAgdmFyIGNsb3NlID0gcGFyc2VyLnRhZ3NbdF1cbiAgICBpZiAoY2xvc2UubmFtZSAhPT0gY2xvc2VUbykge1xuICAgICAgLy8gZmFpbCB0aGUgZmlyc3QgdGltZSBpbiBzdHJpY3QgbW9kZVxuICAgICAgc3RyaWN0RmFpbChwYXJzZXIsIFwiVW5leHBlY3RlZCBjbG9zZSB0YWdcIilcbiAgICB9IGVsc2UgYnJlYWtcbiAgfVxuXG4gIC8vIGRpZG4ndCBmaW5kIGl0LiAgd2UgYWxyZWFkeSBmYWlsZWQgZm9yIHN0cmljdCwgc28ganVzdCBhYm9ydC5cbiAgaWYgKHQgPCAwKSB7XG4gICAgc3RyaWN0RmFpbChwYXJzZXIsIFwiVW5tYXRjaGVkIGNsb3NpbmcgdGFnOiBcIitwYXJzZXIudGFnTmFtZSlcbiAgICBwYXJzZXIudGV4dE5vZGUgKz0gXCI8L1wiICsgcGFyc2VyLnRhZ05hbWUgKyBcIj5cIlxuICAgIHBhcnNlci5zdGF0ZSA9IFMuVEVYVFxuICAgIHJldHVyblxuICB9XG4gIHBhcnNlci50YWdOYW1lID0gdGFnTmFtZVxuICB2YXIgcyA9IHBhcnNlci50YWdzLmxlbmd0aFxuICB3aGlsZSAocyAtLT4gdCkge1xuICAgIHZhciB0YWcgPSBwYXJzZXIudGFnID0gcGFyc2VyLnRhZ3MucG9wKClcbiAgICBwYXJzZXIudGFnTmFtZSA9IHBhcnNlci50YWcubmFtZVxuICAgIGVtaXROb2RlKHBhcnNlciwgXCJvbmNsb3NldGFnXCIsIHBhcnNlci50YWdOYW1lKVxuXG4gICAgdmFyIHggPSB7fVxuICAgIGZvciAodmFyIGkgaW4gdGFnLm5zKSB4W2ldID0gdGFnLm5zW2ldXG5cbiAgICB2YXIgcGFyZW50ID0gcGFyc2VyLnRhZ3NbcGFyc2VyLnRhZ3MubGVuZ3RoIC0gMV0gfHwgcGFyc2VyXG4gICAgaWYgKHBhcnNlci5vcHQueG1sbnMgJiYgdGFnLm5zICE9PSBwYXJlbnQubnMpIHtcbiAgICAgIC8vIHJlbW92ZSBuYW1lc3BhY2UgYmluZGluZ3MgaW50cm9kdWNlZCBieSB0YWdcbiAgICAgIE9iamVjdC5rZXlzKHRhZy5ucykuZm9yRWFjaChmdW5jdGlvbiAocCkge1xuICAgICAgICB2YXIgbiA9IHRhZy5uc1twXVxuICAgICAgICBlbWl0Tm9kZShwYXJzZXIsIFwib25jbG9zZW5hbWVzcGFjZVwiLCB7IHByZWZpeDogcCwgdXJpOiBuIH0pXG4gICAgICB9KVxuICAgIH1cbiAgfVxuICBpZiAodCA9PT0gMCkgcGFyc2VyLmNsb3NlZFJvb3QgPSB0cnVlXG4gIHBhcnNlci50YWdOYW1lID0gcGFyc2VyLmF0dHJpYlZhbHVlID0gcGFyc2VyLmF0dHJpYk5hbWUgPSBcIlwiXG4gIHBhcnNlci5hdHRyaWJMaXN0Lmxlbmd0aCA9IDBcbiAgcGFyc2VyLnN0YXRlID0gUy5URVhUXG59XG5cbmZ1bmN0aW9uIHBhcnNlRW50aXR5IChwYXJzZXIpIHtcbiAgdmFyIGVudGl0eSA9IHBhcnNlci5lbnRpdHlcbiAgICAsIGVudGl0eUxDID0gZW50aXR5LnRvTG93ZXJDYXNlKClcbiAgICAsIG51bVxuICAgICwgbnVtU3RyID0gXCJcIlxuICBpZiAocGFyc2VyLkVOVElUSUVTW2VudGl0eV0pXG4gICAgcmV0dXJuIHBhcnNlci5FTlRJVElFU1tlbnRpdHldXG4gIGlmIChwYXJzZXIuRU5USVRJRVNbZW50aXR5TENdKVxuICAgIHJldHVybiBwYXJzZXIuRU5USVRJRVNbZW50aXR5TENdXG4gIGVudGl0eSA9IGVudGl0eUxDXG4gIGlmIChlbnRpdHkuY2hhckF0KDApID09PSBcIiNcIikge1xuICAgIGlmIChlbnRpdHkuY2hhckF0KDEpID09PSBcInhcIikge1xuICAgICAgZW50aXR5ID0gZW50aXR5LnNsaWNlKDIpXG4gICAgICBudW0gPSBwYXJzZUludChlbnRpdHksIDE2KVxuICAgICAgbnVtU3RyID0gbnVtLnRvU3RyaW5nKDE2KVxuICAgIH0gZWxzZSB7XG4gICAgICBlbnRpdHkgPSBlbnRpdHkuc2xpY2UoMSlcbiAgICAgIG51bSA9IHBhcnNlSW50KGVudGl0eSwgMTApXG4gICAgICBudW1TdHIgPSBudW0udG9TdHJpbmcoMTApXG4gICAgfVxuICB9XG4gIGVudGl0eSA9IGVudGl0eS5yZXBsYWNlKC9eMCsvLCBcIlwiKVxuICBpZiAobnVtU3RyLnRvTG93ZXJDYXNlKCkgIT09IGVudGl0eSkge1xuICAgIHN0cmljdEZhaWwocGFyc2VyLCBcIkludmFsaWQgY2hhcmFjdGVyIGVudGl0eVwiKVxuICAgIHJldHVybiBcIiZcIitwYXJzZXIuZW50aXR5ICsgXCI7XCJcbiAgfVxuXG4gIHJldHVybiBTdHJpbmcuZnJvbUNvZGVQb2ludChudW0pXG59XG5cbmZ1bmN0aW9uIHdyaXRlIChjaHVuaykge1xuICB2YXIgcGFyc2VyID0gdGhpc1xuICBpZiAodGhpcy5lcnJvcikgdGhyb3cgdGhpcy5lcnJvclxuICBpZiAocGFyc2VyLmNsb3NlZCkgcmV0dXJuIGVycm9yKHBhcnNlcixcbiAgICBcIkNhbm5vdCB3cml0ZSBhZnRlciBjbG9zZS4gQXNzaWduIGFuIG9ucmVhZHkgaGFuZGxlci5cIilcbiAgaWYgKGNodW5rID09PSBudWxsKSByZXR1cm4gZW5kKHBhcnNlcilcbiAgdmFyIGkgPSAwLCBjID0gXCJcIlxuICB3aGlsZSAocGFyc2VyLmMgPSBjID0gY2h1bmsuY2hhckF0KGkrKykpIHtcbiAgICBpZiAocGFyc2VyLnRyYWNrUG9zaXRpb24pIHtcbiAgICAgIHBhcnNlci5wb3NpdGlvbiArK1xuICAgICAgaWYgKGMgPT09IFwiXFxuXCIpIHtcbiAgICAgICAgcGFyc2VyLmxpbmUgKytcbiAgICAgICAgcGFyc2VyLmNvbHVtbiA9IDBcbiAgICAgIH0gZWxzZSBwYXJzZXIuY29sdW1uICsrXG4gICAgfVxuICAgIHN3aXRjaCAocGFyc2VyLnN0YXRlKSB7XG5cbiAgICAgIGNhc2UgUy5CRUdJTjpcbiAgICAgICAgaWYgKGMgPT09IFwiPFwiKSB7XG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5PUEVOX1dBS0FcbiAgICAgICAgICBwYXJzZXIuc3RhcnRUYWdQb3NpdGlvbiA9IHBhcnNlci5wb3NpdGlvblxuICAgICAgICB9IGVsc2UgaWYgKG5vdCh3aGl0ZXNwYWNlLGMpKSB7XG4gICAgICAgICAgLy8gaGF2ZSB0byBwcm9jZXNzIHRoaXMgYXMgYSB0ZXh0IG5vZGUuXG4gICAgICAgICAgLy8gd2VpcmQsIGJ1dCBoYXBwZW5zLlxuICAgICAgICAgIHN0cmljdEZhaWwocGFyc2VyLCBcIk5vbi13aGl0ZXNwYWNlIGJlZm9yZSBmaXJzdCB0YWcuXCIpXG4gICAgICAgICAgcGFyc2VyLnRleHROb2RlID0gY1xuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuVEVYVFxuICAgICAgICB9XG4gICAgICBjb250aW51ZVxuXG4gICAgICBjYXNlIFMuVEVYVDpcbiAgICAgICAgaWYgKHBhcnNlci5zYXdSb290ICYmICFwYXJzZXIuY2xvc2VkUm9vdCkge1xuICAgICAgICAgIHZhciBzdGFydGkgPSBpLTFcbiAgICAgICAgICB3aGlsZSAoYyAmJiBjIT09XCI8XCIgJiYgYyE9PVwiJlwiKSB7XG4gICAgICAgICAgICBjID0gY2h1bmsuY2hhckF0KGkrKylcbiAgICAgICAgICAgIGlmIChjICYmIHBhcnNlci50cmFja1Bvc2l0aW9uKSB7XG4gICAgICAgICAgICAgIHBhcnNlci5wb3NpdGlvbiArK1xuICAgICAgICAgICAgICBpZiAoYyA9PT0gXCJcXG5cIikge1xuICAgICAgICAgICAgICAgIHBhcnNlci5saW5lICsrXG4gICAgICAgICAgICAgICAgcGFyc2VyLmNvbHVtbiA9IDBcbiAgICAgICAgICAgICAgfSBlbHNlIHBhcnNlci5jb2x1bW4gKytcbiAgICAgICAgICAgIH1cbiAgICAgICAgICB9XG4gICAgICAgICAgcGFyc2VyLnRleHROb2RlICs9IGNodW5rLnN1YnN0cmluZyhzdGFydGksIGktMSlcbiAgICAgICAgfVxuICAgICAgICBpZiAoYyA9PT0gXCI8XCIpIHtcbiAgICAgICAgICBwYXJzZXIuc3RhdGUgPSBTLk9QRU5fV0FLQVxuICAgICAgICAgIHBhcnNlci5zdGFydFRhZ1Bvc2l0aW9uID0gcGFyc2VyLnBvc2l0aW9uXG4gICAgICAgIH0gZWxzZSB7XG4gICAgICAgICAgaWYgKG5vdCh3aGl0ZXNwYWNlLCBjKSAmJiAoIXBhcnNlci5zYXdSb290IHx8IHBhcnNlci5jbG9zZWRSb290KSlcbiAgICAgICAgICAgIHN0cmljdEZhaWwocGFyc2VyLCBcIlRleHQgZGF0YSBvdXRzaWRlIG9mIHJvb3Qgbm9kZS5cIilcbiAgICAgICAgICBpZiAoYyA9PT0gXCImXCIpIHBhcnNlci5zdGF0ZSA9IFMuVEVYVF9FTlRJVFlcbiAgICAgICAgICBlbHNlIHBhcnNlci50ZXh0Tm9kZSArPSBjXG4gICAgICAgIH1cbiAgICAgIGNvbnRpbnVlXG5cbiAgICAgIGNhc2UgUy5TQ1JJUFQ6XG4gICAgICAgIC8vIG9ubHkgbm9uLXN0cmljdFxuICAgICAgICBpZiAoYyA9PT0gXCI8XCIpIHtcbiAgICAgICAgICBwYXJzZXIuc3RhdGUgPSBTLlNDUklQVF9FTkRJTkdcbiAgICAgICAgfSBlbHNlIHBhcnNlci5zY3JpcHQgKz0gY1xuICAgICAgY29udGludWVcblxuICAgICAgY2FzZSBTLlNDUklQVF9FTkRJTkc6XG4gICAgICAgIGlmIChjID09PSBcIi9cIikge1xuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuQ0xPU0VfVEFHXG4gICAgICAgIH0gZWxzZSB7XG4gICAgICAgICAgcGFyc2VyLnNjcmlwdCArPSBcIjxcIiArIGNcbiAgICAgICAgICBwYXJzZXIuc3RhdGUgPSBTLlNDUklQVFxuICAgICAgICB9XG4gICAgICBjb250aW51ZVxuXG4gICAgICBjYXNlIFMuT1BFTl9XQUtBOlxuICAgICAgICAvLyBlaXRoZXIgYSAvLCA/LCAhLCBvciB0ZXh0IGlzIGNvbWluZyBuZXh0LlxuICAgICAgICBpZiAoYyA9PT0gXCIhXCIpIHtcbiAgICAgICAgICBwYXJzZXIuc3RhdGUgPSBTLlNHTUxfREVDTFxuICAgICAgICAgIHBhcnNlci5zZ21sRGVjbCA9IFwiXCJcbiAgICAgICAgfSBlbHNlIGlmIChpcyh3aGl0ZXNwYWNlLCBjKSkge1xuICAgICAgICAgIC8vIHdhaXQgZm9yIGl0Li4uXG4gICAgICAgIH0gZWxzZSBpZiAoaXMobmFtZVN0YXJ0LGMpKSB7XG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5PUEVOX1RBR1xuICAgICAgICAgIHBhcnNlci50YWdOYW1lID0gY1xuICAgICAgICB9IGVsc2UgaWYgKGMgPT09IFwiL1wiKSB7XG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5DTE9TRV9UQUdcbiAgICAgICAgICBwYXJzZXIudGFnTmFtZSA9IFwiXCJcbiAgICAgICAgfSBlbHNlIGlmIChjID09PSBcIj9cIikge1xuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuUFJPQ19JTlNUXG4gICAgICAgICAgcGFyc2VyLnByb2NJbnN0TmFtZSA9IHBhcnNlci5wcm9jSW5zdEJvZHkgPSBcIlwiXG4gICAgICAgIH0gZWxzZSB7XG4gICAgICAgICAgc3RyaWN0RmFpbChwYXJzZXIsIFwiVW5lbmNvZGVkIDxcIilcbiAgICAgICAgICAvLyBpZiB0aGVyZSB3YXMgc29tZSB3aGl0ZXNwYWNlLCB0aGVuIGFkZCB0aGF0IGluLlxuICAgICAgICAgIGlmIChwYXJzZXIuc3RhcnRUYWdQb3NpdGlvbiArIDEgPCBwYXJzZXIucG9zaXRpb24pIHtcbiAgICAgICAgICAgIHZhciBwYWQgPSBwYXJzZXIucG9zaXRpb24gLSBwYXJzZXIuc3RhcnRUYWdQb3NpdGlvblxuICAgICAgICAgICAgYyA9IG5ldyBBcnJheShwYWQpLmpvaW4oXCIgXCIpICsgY1xuICAgICAgICAgIH1cbiAgICAgICAgICBwYXJzZXIudGV4dE5vZGUgKz0gXCI8XCIgKyBjXG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5URVhUXG4gICAgICAgIH1cbiAgICAgIGNvbnRpbnVlXG5cbiAgICAgIGNhc2UgUy5TR01MX0RFQ0w6XG4gICAgICAgIGlmICgocGFyc2VyLnNnbWxEZWNsK2MpLnRvVXBwZXJDYXNlKCkgPT09IENEQVRBKSB7XG4gICAgICAgICAgZW1pdE5vZGUocGFyc2VyLCBcIm9ub3BlbmNkYXRhXCIpXG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5DREFUQVxuICAgICAgICAgIHBhcnNlci5zZ21sRGVjbCA9IFwiXCJcbiAgICAgICAgICBwYXJzZXIuY2RhdGEgPSBcIlwiXG4gICAgICAgIH0gZWxzZSBpZiAocGFyc2VyLnNnbWxEZWNsK2MgPT09IFwiLS1cIikge1xuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuQ09NTUVOVFxuICAgICAgICAgIHBhcnNlci5jb21tZW50ID0gXCJcIlxuICAgICAgICAgIHBhcnNlci5zZ21sRGVjbCA9IFwiXCJcbiAgICAgICAgfSBlbHNlIGlmICgocGFyc2VyLnNnbWxEZWNsK2MpLnRvVXBwZXJDYXNlKCkgPT09IERPQ1RZUEUpIHtcbiAgICAgICAgICBwYXJzZXIuc3RhdGUgPSBTLkRPQ1RZUEVcbiAgICAgICAgICBpZiAocGFyc2VyLmRvY3R5cGUgfHwgcGFyc2VyLnNhd1Jvb3QpIHN0cmljdEZhaWwocGFyc2VyLFxuICAgICAgICAgICAgXCJJbmFwcHJvcHJpYXRlbHkgbG9jYXRlZCBkb2N0eXBlIGRlY2xhcmF0aW9uXCIpXG4gICAgICAgICAgcGFyc2VyLmRvY3R5cGUgPSBcIlwiXG4gICAgICAgICAgcGFyc2VyLnNnbWxEZWNsID0gXCJcIlxuICAgICAgICB9IGVsc2UgaWYgKGMgPT09IFwiPlwiKSB7XG4gICAgICAgICAgZW1pdE5vZGUocGFyc2VyLCBcIm9uc2dtbGRlY2xhcmF0aW9uXCIsIHBhcnNlci5zZ21sRGVjbClcbiAgICAgICAgICBwYXJzZXIuc2dtbERlY2wgPSBcIlwiXG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5URVhUXG4gICAgICAgIH0gZWxzZSBpZiAoaXMocXVvdGUsIGMpKSB7XG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5TR01MX0RFQ0xfUVVPVEVEXG4gICAgICAgICAgcGFyc2VyLnNnbWxEZWNsICs9IGNcbiAgICAgICAgfSBlbHNlIHBhcnNlci5zZ21sRGVjbCArPSBjXG4gICAgICBjb250aW51ZVxuXG4gICAgICBjYXNlIFMuU0dNTF9ERUNMX1FVT1RFRDpcbiAgICAgICAgaWYgKGMgPT09IHBhcnNlci5xKSB7XG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5TR01MX0RFQ0xcbiAgICAgICAgICBwYXJzZXIucSA9IFwiXCJcbiAgICAgICAgfVxuICAgICAgICBwYXJzZXIuc2dtbERlY2wgKz0gY1xuICAgICAgY29udGludWVcblxuICAgICAgY2FzZSBTLkRPQ1RZUEU6XG4gICAgICAgIGlmIChjID09PSBcIj5cIikge1xuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuVEVYVFxuICAgICAgICAgIGVtaXROb2RlKHBhcnNlciwgXCJvbmRvY3R5cGVcIiwgcGFyc2VyLmRvY3R5cGUpXG4gICAgICAgICAgcGFyc2VyLmRvY3R5cGUgPSB0cnVlIC8vIGp1c3QgcmVtZW1iZXIgdGhhdCB3ZSBzYXcgaXQuXG4gICAgICAgIH0gZWxzZSB7XG4gICAgICAgICAgcGFyc2VyLmRvY3R5cGUgKz0gY1xuICAgICAgICAgIGlmIChjID09PSBcIltcIikgcGFyc2VyLnN0YXRlID0gUy5ET0NUWVBFX0RURFxuICAgICAgICAgIGVsc2UgaWYgKGlzKHF1b3RlLCBjKSkge1xuICAgICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5ET0NUWVBFX1FVT1RFRFxuICAgICAgICAgICAgcGFyc2VyLnEgPSBjXG4gICAgICAgICAgfVxuICAgICAgICB9XG4gICAgICBjb250aW51ZVxuXG4gICAgICBjYXNlIFMuRE9DVFlQRV9RVU9URUQ6XG4gICAgICAgIHBhcnNlci5kb2N0eXBlICs9IGNcbiAgICAgICAgaWYgKGMgPT09IHBhcnNlci5xKSB7XG4gICAgICAgICAgcGFyc2VyLnEgPSBcIlwiXG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5ET0NUWVBFXG4gICAgICAgIH1cbiAgICAgIGNvbnRpbnVlXG5cbiAgICAgIGNhc2UgUy5ET0NUWVBFX0RURDpcbiAgICAgICAgcGFyc2VyLmRvY3R5cGUgKz0gY1xuICAgICAgICBpZiAoYyA9PT0gXCJdXCIpIHBhcnNlci5zdGF0ZSA9IFMuRE9DVFlQRVxuICAgICAgICBlbHNlIGlmIChpcyhxdW90ZSxjKSkge1xuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuRE9DVFlQRV9EVERfUVVPVEVEXG4gICAgICAgICAgcGFyc2VyLnEgPSBjXG4gICAgICAgIH1cbiAgICAgIGNvbnRpbnVlXG5cbiAgICAgIGNhc2UgUy5ET0NUWVBFX0RURF9RVU9URUQ6XG4gICAgICAgIHBhcnNlci5kb2N0eXBlICs9IGNcbiAgICAgICAgaWYgKGMgPT09IHBhcnNlci5xKSB7XG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5ET0NUWVBFX0RURFxuICAgICAgICAgIHBhcnNlci5xID0gXCJcIlxuICAgICAgICB9XG4gICAgICBjb250aW51ZVxuXG4gICAgICBjYXNlIFMuQ09NTUVOVDpcbiAgICAgICAgaWYgKGMgPT09IFwiLVwiKSBwYXJzZXIuc3RhdGUgPSBTLkNPTU1FTlRfRU5ESU5HXG4gICAgICAgIGVsc2UgcGFyc2VyLmNvbW1lbnQgKz0gY1xuICAgICAgY29udGludWVcblxuICAgICAgY2FzZSBTLkNPTU1FTlRfRU5ESU5HOlxuICAgICAgICBpZiAoYyA9PT0gXCItXCIpIHtcbiAgICAgICAgICBwYXJzZXIuc3RhdGUgPSBTLkNPTU1FTlRfRU5ERURcbiAgICAgICAgICBwYXJzZXIuY29tbWVudCA9IHRleHRvcHRzKHBhcnNlci5vcHQsIHBhcnNlci5jb21tZW50KVxuICAgICAgICAgIGlmIChwYXJzZXIuY29tbWVudCkgZW1pdE5vZGUocGFyc2VyLCBcIm9uY29tbWVudFwiLCBwYXJzZXIuY29tbWVudClcbiAgICAgICAgICBwYXJzZXIuY29tbWVudCA9IFwiXCJcbiAgICAgICAgfSBlbHNlIHtcbiAgICAgICAgICBwYXJzZXIuY29tbWVudCArPSBcIi1cIiArIGNcbiAgICAgICAgICBwYXJzZXIuc3RhdGUgPSBTLkNPTU1FTlRcbiAgICAgICAgfVxuICAgICAgY29udGludWVcblxuICAgICAgY2FzZSBTLkNPTU1FTlRfRU5ERUQ6XG4gICAgICAgIGlmIChjICE9PSBcIj5cIikge1xuICAgICAgICAgIHN0cmljdEZhaWwocGFyc2VyLCBcIk1hbGZvcm1lZCBjb21tZW50XCIpXG4gICAgICAgICAgLy8gYWxsb3cgPCEtLSBibGFoIC0tIGJsb28gLS0+IGluIG5vbi1zdHJpY3QgbW9kZSxcbiAgICAgICAgICAvLyB3aGljaCBpcyBhIGNvbW1lbnQgb2YgXCIgYmxhaCAtLSBibG9vIFwiXG4gICAgICAgICAgcGFyc2VyLmNvbW1lbnQgKz0gXCItLVwiICsgY1xuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuQ09NTUVOVFxuICAgICAgICB9IGVsc2UgcGFyc2VyLnN0YXRlID0gUy5URVhUXG4gICAgICBjb250aW51ZVxuXG4gICAgICBjYXNlIFMuQ0RBVEE6XG4gICAgICAgIGlmIChjID09PSBcIl1cIikgcGFyc2VyLnN0YXRlID0gUy5DREFUQV9FTkRJTkdcbiAgICAgICAgZWxzZSBwYXJzZXIuY2RhdGEgKz0gY1xuICAgICAgY29udGludWVcblxuICAgICAgY2FzZSBTLkNEQVRBX0VORElORzpcbiAgICAgICAgaWYgKGMgPT09IFwiXVwiKSBwYXJzZXIuc3RhdGUgPSBTLkNEQVRBX0VORElOR18yXG4gICAgICAgIGVsc2Uge1xuICAgICAgICAgIHBhcnNlci5jZGF0YSArPSBcIl1cIiArIGNcbiAgICAgICAgICBwYXJzZXIuc3RhdGUgPSBTLkNEQVRBXG4gICAgICAgIH1cbiAgICAgIGNvbnRpbnVlXG5cbiAgICAgIGNhc2UgUy5DREFUQV9FTkRJTkdfMjpcbiAgICAgICAgaWYgKGMgPT09IFwiPlwiKSB7XG4gICAgICAgICAgaWYgKHBhcnNlci5jZGF0YSkgZW1pdE5vZGUocGFyc2VyLCBcIm9uY2RhdGFcIiwgcGFyc2VyLmNkYXRhKVxuICAgICAgICAgIGVtaXROb2RlKHBhcnNlciwgXCJvbmNsb3NlY2RhdGFcIilcbiAgICAgICAgICBwYXJzZXIuY2RhdGEgPSBcIlwiXG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5URVhUXG4gICAgICAgIH0gZWxzZSBpZiAoYyA9PT0gXCJdXCIpIHtcbiAgICAgICAgICBwYXJzZXIuY2RhdGEgKz0gXCJdXCJcbiAgICAgICAgfSBlbHNlIHtcbiAgICAgICAgICBwYXJzZXIuY2RhdGEgKz0gXCJdXVwiICsgY1xuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuQ0RBVEFcbiAgICAgICAgfVxuICAgICAgY29udGludWVcblxuICAgICAgY2FzZSBTLlBST0NfSU5TVDpcbiAgICAgICAgaWYgKGMgPT09IFwiP1wiKSBwYXJzZXIuc3RhdGUgPSBTLlBST0NfSU5TVF9FTkRJTkdcbiAgICAgICAgZWxzZSBpZiAoaXMod2hpdGVzcGFjZSwgYykpIHBhcnNlci5zdGF0ZSA9IFMuUFJPQ19JTlNUX0JPRFlcbiAgICAgICAgZWxzZSBwYXJzZXIucHJvY0luc3ROYW1lICs9IGNcbiAgICAgIGNvbnRpbnVlXG5cbiAgICAgIGNhc2UgUy5QUk9DX0lOU1RfQk9EWTpcbiAgICAgICAgaWYgKCFwYXJzZXIucHJvY0luc3RCb2R5ICYmIGlzKHdoaXRlc3BhY2UsIGMpKSBjb250aW51ZVxuICAgICAgICBlbHNlIGlmIChjID09PSBcIj9cIikgcGFyc2VyLnN0YXRlID0gUy5QUk9DX0lOU1RfRU5ESU5HXG4gICAgICAgIGVsc2UgcGFyc2VyLnByb2NJbnN0Qm9keSArPSBjXG4gICAgICBjb250aW51ZVxuXG4gICAgICBjYXNlIFMuUFJPQ19JTlNUX0VORElORzpcbiAgICAgICAgaWYgKGMgPT09IFwiPlwiKSB7XG4gICAgICAgICAgZW1pdE5vZGUocGFyc2VyLCBcIm9ucHJvY2Vzc2luZ2luc3RydWN0aW9uXCIsIHtcbiAgICAgICAgICAgIG5hbWUgOiBwYXJzZXIucHJvY0luc3ROYW1lLFxuICAgICAgICAgICAgYm9keSA6IHBhcnNlci5wcm9jSW5zdEJvZHlcbiAgICAgICAgICB9KVxuICAgICAgICAgIHBhcnNlci5wcm9jSW5zdE5hbWUgPSBwYXJzZXIucHJvY0luc3RCb2R5ID0gXCJcIlxuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuVEVYVFxuICAgICAgICB9IGVsc2Uge1xuICAgICAgICAgIHBhcnNlci5wcm9jSW5zdEJvZHkgKz0gXCI/XCIgKyBjXG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5QUk9DX0lOU1RfQk9EWVxuICAgICAgICB9XG4gICAgICBjb250aW51ZVxuXG4gICAgICBjYXNlIFMuT1BFTl9UQUc6XG4gICAgICAgIGlmIChpcyhuYW1lQm9keSwgYykpIHBhcnNlci50YWdOYW1lICs9IGNcbiAgICAgICAgZWxzZSB7XG4gICAgICAgICAgbmV3VGFnKHBhcnNlcilcbiAgICAgICAgICBpZiAoYyA9PT0gXCI+XCIpIG9wZW5UYWcocGFyc2VyKVxuICAgICAgICAgIGVsc2UgaWYgKGMgPT09IFwiL1wiKSBwYXJzZXIuc3RhdGUgPSBTLk9QRU5fVEFHX1NMQVNIXG4gICAgICAgICAgZWxzZSB7XG4gICAgICAgICAgICBpZiAobm90KHdoaXRlc3BhY2UsIGMpKSBzdHJpY3RGYWlsKFxuICAgICAgICAgICAgICBwYXJzZXIsIFwiSW52YWxpZCBjaGFyYWN0ZXIgaW4gdGFnIG5hbWVcIilcbiAgICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuQVRUUklCXG4gICAgICAgICAgfVxuICAgICAgICB9XG4gICAgICBjb250aW51ZVxuXG4gICAgICBjYXNlIFMuT1BFTl9UQUdfU0xBU0g6XG4gICAgICAgIGlmIChjID09PSBcIj5cIikge1xuICAgICAgICAgIG9wZW5UYWcocGFyc2VyLCB0cnVlKVxuICAgICAgICAgIGNsb3NlVGFnKHBhcnNlcilcbiAgICAgICAgfSBlbHNlIHtcbiAgICAgICAgICBzdHJpY3RGYWlsKHBhcnNlciwgXCJGb3J3YXJkLXNsYXNoIGluIG9wZW5pbmcgdGFnIG5vdCBmb2xsb3dlZCBieSA+XCIpXG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5BVFRSSUJcbiAgICAgICAgfVxuICAgICAgY29udGludWVcblxuICAgICAgY2FzZSBTLkFUVFJJQjpcbiAgICAgICAgLy8gaGF2ZW4ndCByZWFkIHRoZSBhdHRyaWJ1dGUgbmFtZSB5ZXQuXG4gICAgICAgIGlmIChpcyh3aGl0ZXNwYWNlLCBjKSkgY29udGludWVcbiAgICAgICAgZWxzZSBpZiAoYyA9PT0gXCI+XCIpIG9wZW5UYWcocGFyc2VyKVxuICAgICAgICBlbHNlIGlmIChjID09PSBcIi9cIikgcGFyc2VyLnN0YXRlID0gUy5PUEVOX1RBR19TTEFTSFxuICAgICAgICBlbHNlIGlmIChpcyhuYW1lU3RhcnQsIGMpKSB7XG4gICAgICAgICAgcGFyc2VyLmF0dHJpYk5hbWUgPSBjXG4gICAgICAgICAgcGFyc2VyLmF0dHJpYlZhbHVlID0gXCJcIlxuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuQVRUUklCX05BTUVcbiAgICAgICAgfSBlbHNlIHN0cmljdEZhaWwocGFyc2VyLCBcIkludmFsaWQgYXR0cmlidXRlIG5hbWVcIilcbiAgICAgIGNvbnRpbnVlXG5cbiAgICAgIGNhc2UgUy5BVFRSSUJfTkFNRTpcbiAgICAgICAgaWYgKGMgPT09IFwiPVwiKSBwYXJzZXIuc3RhdGUgPSBTLkFUVFJJQl9WQUxVRVxuICAgICAgICBlbHNlIGlmIChjID09PSBcIj5cIikge1xuICAgICAgICAgIHN0cmljdEZhaWwocGFyc2VyLCBcIkF0dHJpYnV0ZSB3aXRob3V0IHZhbHVlXCIpXG4gICAgICAgICAgcGFyc2VyLmF0dHJpYlZhbHVlID0gcGFyc2VyLmF0dHJpYk5hbWVcbiAgICAgICAgICBhdHRyaWIocGFyc2VyKVxuICAgICAgICAgIG9wZW5UYWcocGFyc2VyKVxuICAgICAgICB9XG4gICAgICAgIGVsc2UgaWYgKGlzKHdoaXRlc3BhY2UsIGMpKSBwYXJzZXIuc3RhdGUgPSBTLkFUVFJJQl9OQU1FX1NBV19XSElURVxuICAgICAgICBlbHNlIGlmIChpcyhuYW1lQm9keSwgYykpIHBhcnNlci5hdHRyaWJOYW1lICs9IGNcbiAgICAgICAgZWxzZSBzdHJpY3RGYWlsKHBhcnNlciwgXCJJbnZhbGlkIGF0dHJpYnV0ZSBuYW1lXCIpXG4gICAgICBjb250aW51ZVxuXG4gICAgICBjYXNlIFMuQVRUUklCX05BTUVfU0FXX1dISVRFOlxuICAgICAgICBpZiAoYyA9PT0gXCI9XCIpIHBhcnNlci5zdGF0ZSA9IFMuQVRUUklCX1ZBTFVFXG4gICAgICAgIGVsc2UgaWYgKGlzKHdoaXRlc3BhY2UsIGMpKSBjb250aW51ZVxuICAgICAgICBlbHNlIHtcbiAgICAgICAgICBzdHJpY3RGYWlsKHBhcnNlciwgXCJBdHRyaWJ1dGUgd2l0aG91dCB2YWx1ZVwiKVxuICAgICAgICAgIHBhcnNlci50YWcuYXR0cmlidXRlc1twYXJzZXIuYXR0cmliTmFtZV0gPSBcIlwiXG4gICAgICAgICAgcGFyc2VyLmF0dHJpYlZhbHVlID0gXCJcIlxuICAgICAgICAgIGVtaXROb2RlKHBhcnNlciwgXCJvbmF0dHJpYnV0ZVwiLFxuICAgICAgICAgICAgICAgICAgIHsgbmFtZSA6IHBhcnNlci5hdHRyaWJOYW1lLCB2YWx1ZSA6IFwiXCIgfSlcbiAgICAgICAgICBwYXJzZXIuYXR0cmliTmFtZSA9IFwiXCJcbiAgICAgICAgICBpZiAoYyA9PT0gXCI+XCIpIG9wZW5UYWcocGFyc2VyKVxuICAgICAgICAgIGVsc2UgaWYgKGlzKG5hbWVTdGFydCwgYykpIHtcbiAgICAgICAgICAgIHBhcnNlci5hdHRyaWJOYW1lID0gY1xuICAgICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5BVFRSSUJfTkFNRVxuICAgICAgICAgIH0gZWxzZSB7XG4gICAgICAgICAgICBzdHJpY3RGYWlsKHBhcnNlciwgXCJJbnZhbGlkIGF0dHJpYnV0ZSBuYW1lXCIpXG4gICAgICAgICAgICBwYXJzZXIuc3RhdGUgPSBTLkFUVFJJQlxuICAgICAgICAgIH1cbiAgICAgICAgfVxuICAgICAgY29udGludWVcblxuICAgICAgY2FzZSBTLkFUVFJJQl9WQUxVRTpcbiAgICAgICAgaWYgKGlzKHdoaXRlc3BhY2UsIGMpKSBjb250aW51ZVxuICAgICAgICBlbHNlIGlmIChpcyhxdW90ZSwgYykpIHtcbiAgICAgICAgICBwYXJzZXIucSA9IGNcbiAgICAgICAgICBwYXJzZXIuc3RhdGUgPSBTLkFUVFJJQl9WQUxVRV9RVU9URURcbiAgICAgICAgfSBlbHNlIHtcbiAgICAgICAgICBzdHJpY3RGYWlsKHBhcnNlciwgXCJVbnF1b3RlZCBhdHRyaWJ1dGUgdmFsdWVcIilcbiAgICAgICAgICBwYXJzZXIuc3RhdGUgPSBTLkFUVFJJQl9WQUxVRV9VTlFVT1RFRFxuICAgICAgICAgIHBhcnNlci5hdHRyaWJWYWx1ZSA9IGNcbiAgICAgICAgfVxuICAgICAgY29udGludWVcblxuICAgICAgY2FzZSBTLkFUVFJJQl9WQUxVRV9RVU9URUQ6XG4gICAgICAgIGlmIChjICE9PSBwYXJzZXIucSkge1xuICAgICAgICAgIGlmIChjID09PSBcIiZcIikgcGFyc2VyLnN0YXRlID0gUy5BVFRSSUJfVkFMVUVfRU5USVRZX1FcbiAgICAgICAgICBlbHNlIHBhcnNlci5hdHRyaWJWYWx1ZSArPSBjXG4gICAgICAgICAgY29udGludWVcbiAgICAgICAgfVxuICAgICAgICBhdHRyaWIocGFyc2VyKVxuICAgICAgICBwYXJzZXIucSA9IFwiXCJcbiAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5BVFRSSUJfVkFMVUVfQ0xPU0VEXG4gICAgICBjb250aW51ZVxuXG4gICAgICBjYXNlIFMuQVRUUklCX1ZBTFVFX0NMT1NFRDpcbiAgICAgICAgaWYgKGlzKHdoaXRlc3BhY2UsIGMpKSB7XG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5BVFRSSUJcbiAgICAgICAgfSBlbHNlIGlmIChjID09PSBcIj5cIikgb3BlblRhZyhwYXJzZXIpXG4gICAgICAgIGVsc2UgaWYgKGMgPT09IFwiL1wiKSBwYXJzZXIuc3RhdGUgPSBTLk9QRU5fVEFHX1NMQVNIXG4gICAgICAgIGVsc2UgaWYgKGlzKG5hbWVTdGFydCwgYykpIHtcbiAgICAgICAgICBzdHJpY3RGYWlsKHBhcnNlciwgXCJObyB3aGl0ZXNwYWNlIGJldHdlZW4gYXR0cmlidXRlc1wiKVxuICAgICAgICAgIHBhcnNlci5hdHRyaWJOYW1lID0gY1xuICAgICAgICAgIHBhcnNlci5hdHRyaWJWYWx1ZSA9IFwiXCJcbiAgICAgICAgICBwYXJzZXIuc3RhdGUgPSBTLkFUVFJJQl9OQU1FXG4gICAgICAgIH0gZWxzZSBzdHJpY3RGYWlsKHBhcnNlciwgXCJJbnZhbGlkIGF0dHJpYnV0ZSBuYW1lXCIpXG4gICAgICBjb250aW51ZVxuXG4gICAgICBjYXNlIFMuQVRUUklCX1ZBTFVFX1VOUVVPVEVEOlxuICAgICAgICBpZiAobm90KGF0dHJpYkVuZCxjKSkge1xuICAgICAgICAgIGlmIChjID09PSBcIiZcIikgcGFyc2VyLnN0YXRlID0gUy5BVFRSSUJfVkFMVUVfRU5USVRZX1VcbiAgICAgICAgICBlbHNlIHBhcnNlci5hdHRyaWJWYWx1ZSArPSBjXG4gICAgICAgICAgY29udGludWVcbiAgICAgICAgfVxuICAgICAgICBhdHRyaWIocGFyc2VyKVxuICAgICAgICBpZiAoYyA9PT0gXCI+XCIpIG9wZW5UYWcocGFyc2VyKVxuICAgICAgICBlbHNlIHBhcnNlci5zdGF0ZSA9IFMuQVRUUklCXG4gICAgICBjb250aW51ZVxuXG4gICAgICBjYXNlIFMuQ0xPU0VfVEFHOlxuICAgICAgICBpZiAoIXBhcnNlci50YWdOYW1lKSB7XG4gICAgICAgICAgaWYgKGlzKHdoaXRlc3BhY2UsIGMpKSBjb250aW51ZVxuICAgICAgICAgIGVsc2UgaWYgKG5vdChuYW1lU3RhcnQsIGMpKSB7XG4gICAgICAgICAgICBpZiAocGFyc2VyLnNjcmlwdCkge1xuICAgICAgICAgICAgICBwYXJzZXIuc2NyaXB0ICs9IFwiPC9cIiArIGNcbiAgICAgICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5TQ1JJUFRcbiAgICAgICAgICAgIH0gZWxzZSB7XG4gICAgICAgICAgICAgIHN0cmljdEZhaWwocGFyc2VyLCBcIkludmFsaWQgdGFnbmFtZSBpbiBjbG9zaW5nIHRhZy5cIilcbiAgICAgICAgICAgIH1cbiAgICAgICAgICB9IGVsc2UgcGFyc2VyLnRhZ05hbWUgPSBjXG4gICAgICAgIH1cbiAgICAgICAgZWxzZSBpZiAoYyA9PT0gXCI+XCIpIGNsb3NlVGFnKHBhcnNlcilcbiAgICAgICAgZWxzZSBpZiAoaXMobmFtZUJvZHksIGMpKSBwYXJzZXIudGFnTmFtZSArPSBjXG4gICAgICAgIGVsc2UgaWYgKHBhcnNlci5zY3JpcHQpIHtcbiAgICAgICAgICBwYXJzZXIuc2NyaXB0ICs9IFwiPC9cIiArIHBhcnNlci50YWdOYW1lXG4gICAgICAgICAgcGFyc2VyLnRhZ05hbWUgPSBcIlwiXG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5TQ1JJUFRcbiAgICAgICAgfSBlbHNlIHtcbiAgICAgICAgICBpZiAobm90KHdoaXRlc3BhY2UsIGMpKSBzdHJpY3RGYWlsKHBhcnNlcixcbiAgICAgICAgICAgIFwiSW52YWxpZCB0YWduYW1lIGluIGNsb3NpbmcgdGFnXCIpXG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5DTE9TRV9UQUdfU0FXX1dISVRFXG4gICAgICAgIH1cbiAgICAgIGNvbnRpbnVlXG5cbiAgICAgIGNhc2UgUy5DTE9TRV9UQUdfU0FXX1dISVRFOlxuICAgICAgICBpZiAoaXMod2hpdGVzcGFjZSwgYykpIGNvbnRpbnVlXG4gICAgICAgIGlmIChjID09PSBcIj5cIikgY2xvc2VUYWcocGFyc2VyKVxuICAgICAgICBlbHNlIHN0cmljdEZhaWwocGFyc2VyLCBcIkludmFsaWQgY2hhcmFjdGVycyBpbiBjbG9zaW5nIHRhZ1wiKVxuICAgICAgY29udGludWVcblxuICAgICAgY2FzZSBTLlRFWFRfRU5USVRZOlxuICAgICAgY2FzZSBTLkFUVFJJQl9WQUxVRV9FTlRJVFlfUTpcbiAgICAgIGNhc2UgUy5BVFRSSUJfVkFMVUVfRU5USVRZX1U6XG4gICAgICAgIHN3aXRjaChwYXJzZXIuc3RhdGUpIHtcbiAgICAgICAgICBjYXNlIFMuVEVYVF9FTlRJVFk6XG4gICAgICAgICAgICB2YXIgcmV0dXJuU3RhdGUgPSBTLlRFWFQsIGJ1ZmZlciA9IFwidGV4dE5vZGVcIlxuICAgICAgICAgIGJyZWFrXG5cbiAgICAgICAgICBjYXNlIFMuQVRUUklCX1ZBTFVFX0VOVElUWV9ROlxuICAgICAgICAgICAgdmFyIHJldHVyblN0YXRlID0gUy5BVFRSSUJfVkFMVUVfUVVPVEVELCBidWZmZXIgPSBcImF0dHJpYlZhbHVlXCJcbiAgICAgICAgICBicmVha1xuXG4gICAgICAgICAgY2FzZSBTLkFUVFJJQl9WQUxVRV9FTlRJVFlfVTpcbiAgICAgICAgICAgIHZhciByZXR1cm5TdGF0ZSA9IFMuQVRUUklCX1ZBTFVFX1VOUVVPVEVELCBidWZmZXIgPSBcImF0dHJpYlZhbHVlXCJcbiAgICAgICAgICBicmVha1xuICAgICAgICB9XG4gICAgICAgIGlmIChjID09PSBcIjtcIikge1xuICAgICAgICAgIHBhcnNlcltidWZmZXJdICs9IHBhcnNlRW50aXR5KHBhcnNlcilcbiAgICAgICAgICBwYXJzZXIuZW50aXR5ID0gXCJcIlxuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IHJldHVyblN0YXRlXG4gICAgICAgIH1cbiAgICAgICAgZWxzZSBpZiAoaXMoZW50aXR5LCBjKSkgcGFyc2VyLmVudGl0eSArPSBjXG4gICAgICAgIGVsc2Uge1xuICAgICAgICAgIHN0cmljdEZhaWwocGFyc2VyLCBcIkludmFsaWQgY2hhcmFjdGVyIGVudGl0eVwiKVxuICAgICAgICAgIHBhcnNlcltidWZmZXJdICs9IFwiJlwiICsgcGFyc2VyLmVudGl0eSArIGNcbiAgICAgICAgICBwYXJzZXIuZW50aXR5ID0gXCJcIlxuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IHJldHVyblN0YXRlXG4gICAgICAgIH1cbiAgICAgIGNvbnRpbnVlXG5cbiAgICAgIGRlZmF1bHQ6XG4gICAgICAgIHRocm93IG5ldyBFcnJvcihwYXJzZXIsIFwiVW5rbm93biBzdGF0ZTogXCIgKyBwYXJzZXIuc3RhdGUpXG4gICAgfVxuICB9IC8vIHdoaWxlXG4gIC8vIGNkYXRhIGJsb2NrcyBjYW4gZ2V0IHZlcnkgYmlnIHVuZGVyIG5vcm1hbCBjb25kaXRpb25zLiBlbWl0IGFuZCBtb3ZlIG9uLlxuICAvLyBpZiAocGFyc2VyLnN0YXRlID09PSBTLkNEQVRBICYmIHBhcnNlci5jZGF0YSkge1xuICAvLyAgIGVtaXROb2RlKHBhcnNlciwgXCJvbmNkYXRhXCIsIHBhcnNlci5jZGF0YSlcbiAgLy8gICBwYXJzZXIuY2RhdGEgPSBcIlwiXG4gIC8vIH1cbiAgaWYgKHBhcnNlci5wb3NpdGlvbiA+PSBwYXJzZXIuYnVmZmVyQ2hlY2tQb3NpdGlvbikgY2hlY2tCdWZmZXJMZW5ndGgocGFyc2VyKVxuICByZXR1cm4gcGFyc2VyXG59XG5cbi8qISBodHRwOi8vbXRocy5iZS9mcm9tY29kZXBvaW50IHYwLjEuMCBieSBAbWF0aGlhcyAqL1xuaWYgKCFTdHJpbmcuZnJvbUNvZGVQb2ludCkge1xuICAgICAgICAoZnVuY3Rpb24oKSB7XG4gICAgICAgICAgICAgICAgdmFyIHN0cmluZ0Zyb21DaGFyQ29kZSA9IFN0cmluZy5mcm9tQ2hhckNvZGU7XG4gICAgICAgICAgICAgICAgdmFyIGZsb29yID0gTWF0aC5mbG9vcjtcbiAgICAgICAgICAgICAgICB2YXIgZnJvbUNvZGVQb2ludCA9IGZ1bmN0aW9uKCkge1xuICAgICAgICAgICAgICAgICAgICAgICAgdmFyIE1BWF9TSVpFID0gMHg0MDAwO1xuICAgICAgICAgICAgICAgICAgICAgICAgdmFyIGNvZGVVbml0cyA9IFtdO1xuICAgICAgICAgICAgICAgICAgICAgICAgdmFyIGhpZ2hTdXJyb2dhdGU7XG4gICAgICAgICAgICAgICAgICAgICAgICB2YXIgbG93U3Vycm9nYXRlO1xuICAgICAgICAgICAgICAgICAgICAgICAgdmFyIGluZGV4ID0gLTE7XG4gICAgICAgICAgICAgICAgICAgICAgICB2YXIgbGVuZ3RoID0gYXJndW1lbnRzLmxlbmd0aDtcbiAgICAgICAgICAgICAgICAgICAgICAgIGlmICghbGVuZ3RoKSB7XG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHJldHVybiAnJztcbiAgICAgICAgICAgICAgICAgICAgICAgIH1cbiAgICAgICAgICAgICAgICAgICAgICAgIHZhciByZXN1bHQgPSAnJztcbiAgICAgICAgICAgICAgICAgICAgICAgIHdoaWxlICgrK2luZGV4IDwgbGVuZ3RoKSB7XG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHZhciBjb2RlUG9pbnQgPSBOdW1iZXIoYXJndW1lbnRzW2luZGV4XSk7XG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGlmIChcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAhaXNGaW5pdGUoY29kZVBvaW50KSB8fCAvLyBgTmFOYCwgYCtJbmZpbml0eWAsIG9yIGAtSW5maW5pdHlgXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY29kZVBvaW50IDwgMCB8fCAvLyBub3QgYSB2YWxpZCBVbmljb2RlIGNvZGUgcG9pbnRcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjb2RlUG9pbnQgPiAweDEwRkZGRiB8fCAvLyBub3QgYSB2YWxpZCBVbmljb2RlIGNvZGUgcG9pbnRcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBmbG9vcihjb2RlUG9pbnQpICE9IGNvZGVQb2ludCAvLyBub3QgYW4gaW50ZWdlclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICApIHtcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB0aHJvdyBSYW5nZUVycm9yKCdJbnZhbGlkIGNvZGUgcG9pbnQ6ICcgKyBjb2RlUG9pbnQpO1xuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB9XG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGlmIChjb2RlUG9pbnQgPD0gMHhGRkZGKSB7IC8vIEJNUCBjb2RlIHBvaW50XG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY29kZVVuaXRzLnB1c2goY29kZVBvaW50KTtcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfSBlbHNlIHsgLy8gQXN0cmFsIGNvZGUgcG9pbnQ7IHNwbGl0IGluIHN1cnJvZ2F0ZSBoYWx2ZXNcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAvLyBodHRwOi8vbWF0aGlhc2J5bmVucy5iZS9ub3Rlcy9qYXZhc2NyaXB0LWVuY29kaW5nI3N1cnJvZ2F0ZS1mb3JtdWxhZVxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNvZGVQb2ludCAtPSAweDEwMDAwO1xuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGhpZ2hTdXJyb2dhdGUgPSAoY29kZVBvaW50ID4+IDEwKSArIDB4RDgwMDtcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBsb3dTdXJyb2dhdGUgPSAoY29kZVBvaW50ICUgMHg0MDApICsgMHhEQzAwO1xuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNvZGVVbml0cy5wdXNoKGhpZ2hTdXJyb2dhdGUsIGxvd1N1cnJvZ2F0ZSk7XG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIH1cbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgaWYgKGluZGV4ICsgMSA9PSBsZW5ndGggfHwgY29kZVVuaXRzLmxlbmd0aCA+IE1BWF9TSVpFKSB7XG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgcmVzdWx0ICs9IHN0cmluZ0Zyb21DaGFyQ29kZS5hcHBseShudWxsLCBjb2RlVW5pdHMpO1xuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNvZGVVbml0cy5sZW5ndGggPSAwO1xuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB9XG4gICAgICAgICAgICAgICAgICAgICAgICB9XG4gICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4gcmVzdWx0O1xuICAgICAgICAgICAgICAgIH07XG4gICAgICAgICAgICAgICAgaWYgKE9iamVjdC5kZWZpbmVQcm9wZXJ0eSkge1xuICAgICAgICAgICAgICAgICAgICAgICAgT2JqZWN0LmRlZmluZVByb3BlcnR5KFN0cmluZywgJ2Zyb21Db2RlUG9pbnQnLCB7XG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICd2YWx1ZSc6IGZyb21Db2RlUG9pbnQsXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICdjb25maWd1cmFibGUnOiB0cnVlLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAnd3JpdGFibGUnOiB0cnVlXG4gICAgICAgICAgICAgICAgICAgICAgICB9KTtcbiAgICAgICAgICAgICAgICB9IGVsc2Uge1xuICAgICAgICAgICAgICAgICAgICAgICAgU3RyaW5nLmZyb21Db2RlUG9pbnQgPSBmcm9tQ29kZVBvaW50O1xuICAgICAgICAgICAgICAgIH1cbiAgICAgICAgfSgpKTtcbn1cblxufSkodHlwZW9mIGV4cG9ydHMgPT09IFwidW5kZWZpbmVkXCIgPyBzYXggPSB7fSA6IGV4cG9ydHMpO1xuIl19
-},{"undefined":undefined}],264:[function(_dereq_,module,exports){
+},{"undefined":undefined}],267:[function(_dereq_,module,exports){
 /**
  * Tiny stack for browser or server
  *
@@ -10529,155 +10945,155 @@ else {
 }
 } )( this );
 
-},{}],265:[function(_dereq_,module,exports){
-arguments[4][189][0].apply(exports,arguments)
-},{"189":189,"269":269}],266:[function(_dereq_,module,exports){
-arguments[4][190][0].apply(exports,arguments)
-},{"190":190}],267:[function(_dereq_,module,exports){
-arguments[4][191][0].apply(exports,arguments)
-},{"191":191,"270":270,"276":276,"331":331,"335":335}],268:[function(_dereq_,module,exports){
+},{}],268:[function(_dereq_,module,exports){
 arguments[4][192][0].apply(exports,arguments)
-},{"192":192,"266":266,"276":276}],269:[function(_dereq_,module,exports){
+},{"192":192,"272":272}],269:[function(_dereq_,module,exports){
 arguments[4][193][0].apply(exports,arguments)
-},{"193":193,"268":268,"270":270,"271":271,"272":272,"275":275,"276":276,"328":328,"329":329}],270:[function(_dereq_,module,exports){
+},{"193":193}],270:[function(_dereq_,module,exports){
 arguments[4][194][0].apply(exports,arguments)
-},{"194":194}],271:[function(_dereq_,module,exports){
+},{"194":194,"273":273,"279":279,"334":334,"338":338}],271:[function(_dereq_,module,exports){
 arguments[4][195][0].apply(exports,arguments)
-},{"195":195}],272:[function(_dereq_,module,exports){
+},{"195":195,"269":269,"279":279}],272:[function(_dereq_,module,exports){
 arguments[4][196][0].apply(exports,arguments)
-},{"196":196,"267":267,"270":270,"273":273,"276":276,"331":331}],273:[function(_dereq_,module,exports){
+},{"196":196,"271":271,"273":273,"274":274,"275":275,"278":278,"279":279,"331":331,"332":332}],273:[function(_dereq_,module,exports){
 arguments[4][197][0].apply(exports,arguments)
 },{"197":197}],274:[function(_dereq_,module,exports){
-arguments[4][117][0].apply(exports,arguments)
-},{"117":117}],275:[function(_dereq_,module,exports){
-arguments[4][119][0].apply(exports,arguments)
-},{"119":119,"284":284,"305":305}],276:[function(_dereq_,module,exports){
-arguments[4][52][0].apply(exports,arguments)
-},{"278":278,"284":284,"306":306,"52":52}],277:[function(_dereq_,module,exports){
-arguments[4][86][0].apply(exports,arguments)
-},{"86":86}],278:[function(_dereq_,module,exports){
-arguments[4][53][0].apply(exports,arguments)
-},{"53":53}],279:[function(_dereq_,module,exports){
-arguments[4][129][0].apply(exports,arguments)
-},{"129":129}],280:[function(_dereq_,module,exports){
-arguments[4][87][0].apply(exports,arguments)
-},{"332":332,"87":87}],281:[function(_dereq_,module,exports){
-arguments[4][88][0].apply(exports,arguments)
-},{"283":283,"332":332,"88":88}],282:[function(_dereq_,module,exports){
-arguments[4][132][0].apply(exports,arguments)
-},{"132":132,"295":295,"296":296,"301":301,"337":337,"338":338}],283:[function(_dereq_,module,exports){
-arguments[4][89][0].apply(exports,arguments)
-},{"89":89}],284:[function(_dereq_,module,exports){
-arguments[4][54][0].apply(exports,arguments)
-},{"290":290,"303":303,"54":54}],285:[function(_dereq_,module,exports){
-arguments[4][137][0].apply(exports,arguments)
-},{"137":137}],286:[function(_dereq_,module,exports){
-arguments[4][138][0].apply(exports,arguments)
-},{"138":138}],287:[function(_dereq_,module,exports){
-arguments[4][211][0].apply(exports,arguments)
-},{"211":211,"313":313,"318":318,"325":325,"326":326}],288:[function(_dereq_,module,exports){
+arguments[4][198][0].apply(exports,arguments)
+},{"198":198}],275:[function(_dereq_,module,exports){
+arguments[4][199][0].apply(exports,arguments)
+},{"199":199,"270":270,"273":273,"276":276,"279":279,"334":334}],276:[function(_dereq_,module,exports){
+arguments[4][200][0].apply(exports,arguments)
+},{"200":200}],277:[function(_dereq_,module,exports){
+arguments[4][120][0].apply(exports,arguments)
+},{"120":120}],278:[function(_dereq_,module,exports){
+arguments[4][122][0].apply(exports,arguments)
+},{"122":122,"287":287,"308":308}],279:[function(_dereq_,module,exports){
 arguments[4][55][0].apply(exports,arguments)
-},{"304":304,"55":55}],289:[function(_dereq_,module,exports){
-arguments[4][213][0].apply(exports,arguments)
-},{"213":213,"288":288,"333":333}],290:[function(_dereq_,module,exports){
+},{"281":281,"287":287,"309":309,"55":55}],280:[function(_dereq_,module,exports){
+arguments[4][89][0].apply(exports,arguments)
+},{"89":89}],281:[function(_dereq_,module,exports){
 arguments[4][56][0].apply(exports,arguments)
-},{"288":288,"332":332,"56":56}],291:[function(_dereq_,module,exports){
+},{"56":56}],282:[function(_dereq_,module,exports){
+arguments[4][132][0].apply(exports,arguments)
+},{"132":132}],283:[function(_dereq_,module,exports){
+arguments[4][90][0].apply(exports,arguments)
+},{"335":335,"90":90}],284:[function(_dereq_,module,exports){
+arguments[4][91][0].apply(exports,arguments)
+},{"286":286,"335":335,"91":91}],285:[function(_dereq_,module,exports){
+arguments[4][135][0].apply(exports,arguments)
+},{"135":135,"298":298,"299":299,"304":304,"340":340,"341":341}],286:[function(_dereq_,module,exports){
+arguments[4][92][0].apply(exports,arguments)
+},{"92":92}],287:[function(_dereq_,module,exports){
+arguments[4][57][0].apply(exports,arguments)
+},{"293":293,"306":306,"57":57}],288:[function(_dereq_,module,exports){
+arguments[4][140][0].apply(exports,arguments)
+},{"140":140}],289:[function(_dereq_,module,exports){
 arguments[4][141][0].apply(exports,arguments)
-},{"141":141,"323":323}],292:[function(_dereq_,module,exports){
-arguments[4][142][0].apply(exports,arguments)
-},{"142":142,"293":293,"318":318,"328":328}],293:[function(_dereq_,module,exports){
-arguments[4][143][0].apply(exports,arguments)
-},{"143":143,"307":307,"308":308,"309":309,"326":326,"330":330}],294:[function(_dereq_,module,exports){
-arguments[4][144][0].apply(exports,arguments)
-},{"144":144,"292":292,"323":323}],295:[function(_dereq_,module,exports){
-arguments[4][146][0].apply(exports,arguments)
-},{"146":146,"294":294,"311":311,"323":323}],296:[function(_dereq_,module,exports){
-arguments[4][147][0].apply(exports,arguments)
-},{"147":147,"274":274,"291":291,"292":292,"299":299,"316":316,"319":319,"323":323,"324":324,"326":326}],297:[function(_dereq_,module,exports){
+},{"141":141}],290:[function(_dereq_,module,exports){
+arguments[4][214][0].apply(exports,arguments)
+},{"214":214,"316":316,"321":321,"328":328,"329":329}],291:[function(_dereq_,module,exports){
 arguments[4][58][0].apply(exports,arguments)
-},{"58":58}],298:[function(_dereq_,module,exports){
-arguments[4][149][0].apply(exports,arguments)
-},{"149":149,"291":291,"324":324}],299:[function(_dereq_,module,exports){
-arguments[4][151][0].apply(exports,arguments)
-},{"151":151}],300:[function(_dereq_,module,exports){
+},{"307":307,"58":58}],292:[function(_dereq_,module,exports){
+arguments[4][216][0].apply(exports,arguments)
+},{"216":216,"291":291,"336":336}],293:[function(_dereq_,module,exports){
 arguments[4][59][0].apply(exports,arguments)
-},{"59":59}],301:[function(_dereq_,module,exports){
-arguments[4][60][0].apply(exports,arguments)
-},{"337":337,"60":60}],302:[function(_dereq_,module,exports){
-arguments[4][94][0].apply(exports,arguments)
-},{"277":277,"301":301,"315":315,"94":94}],303:[function(_dereq_,module,exports){
+},{"291":291,"335":335,"59":59}],294:[function(_dereq_,module,exports){
+arguments[4][144][0].apply(exports,arguments)
+},{"144":144,"326":326}],295:[function(_dereq_,module,exports){
+arguments[4][145][0].apply(exports,arguments)
+},{"145":145,"296":296,"321":321,"331":331}],296:[function(_dereq_,module,exports){
+arguments[4][146][0].apply(exports,arguments)
+},{"146":146,"310":310,"311":311,"312":312,"329":329,"333":333}],297:[function(_dereq_,module,exports){
+arguments[4][147][0].apply(exports,arguments)
+},{"147":147,"295":295,"326":326}],298:[function(_dereq_,module,exports){
+arguments[4][149][0].apply(exports,arguments)
+},{"149":149,"297":297,"314":314,"326":326}],299:[function(_dereq_,module,exports){
+arguments[4][150][0].apply(exports,arguments)
+},{"150":150,"277":277,"294":294,"295":295,"302":302,"319":319,"322":322,"326":326,"327":327,"329":329}],300:[function(_dereq_,module,exports){
 arguments[4][61][0].apply(exports,arguments)
-},{"310":310,"317":317,"323":323,"61":61}],304:[function(_dereq_,module,exports){
+},{"61":61}],301:[function(_dereq_,module,exports){
+arguments[4][152][0].apply(exports,arguments)
+},{"152":152,"294":294,"327":327}],302:[function(_dereq_,module,exports){
+arguments[4][154][0].apply(exports,arguments)
+},{"154":154}],303:[function(_dereq_,module,exports){
 arguments[4][62][0].apply(exports,arguments)
-},{"323":323,"62":62}],305:[function(_dereq_,module,exports){
-arguments[4][157][0].apply(exports,arguments)
-},{"157":157,"282":282,"285":285,"286":286,"326":326}],306:[function(_dereq_,module,exports){
+},{"62":62}],304:[function(_dereq_,module,exports){
 arguments[4][63][0].apply(exports,arguments)
-},{"301":301,"326":326,"63":63}],307:[function(_dereq_,module,exports){
-arguments[4][160][0].apply(exports,arguments)
-},{"160":160,"279":279}],308:[function(_dereq_,module,exports){
-arguments[4][161][0].apply(exports,arguments)
-},{"161":161}],309:[function(_dereq_,module,exports){
-arguments[4][162][0].apply(exports,arguments)
-},{"162":162,"332":332}],310:[function(_dereq_,module,exports){
+},{"340":340,"63":63}],305:[function(_dereq_,module,exports){
+arguments[4][97][0].apply(exports,arguments)
+},{"280":280,"304":304,"318":318,"97":97}],306:[function(_dereq_,module,exports){
 arguments[4][64][0].apply(exports,arguments)
-},{"297":297,"64":64}],311:[function(_dereq_,module,exports){
-arguments[4][164][0].apply(exports,arguments)
-},{"164":164,"319":319,"334":334}],312:[function(_dereq_,module,exports){
+},{"313":313,"320":320,"326":326,"64":64}],307:[function(_dereq_,module,exports){
 arguments[4][65][0].apply(exports,arguments)
-},{"327":327,"65":65}],313:[function(_dereq_,module,exports){
+},{"326":326,"65":65}],308:[function(_dereq_,module,exports){
+arguments[4][160][0].apply(exports,arguments)
+},{"160":160,"285":285,"288":288,"289":289,"329":329}],309:[function(_dereq_,module,exports){
 arguments[4][66][0].apply(exports,arguments)
-},{"310":310,"317":317,"66":66}],314:[function(_dereq_,module,exports){
+},{"304":304,"329":329,"66":66}],310:[function(_dereq_,module,exports){
+arguments[4][163][0].apply(exports,arguments)
+},{"163":163,"282":282}],311:[function(_dereq_,module,exports){
+arguments[4][164][0].apply(exports,arguments)
+},{"164":164}],312:[function(_dereq_,module,exports){
+arguments[4][165][0].apply(exports,arguments)
+},{"165":165,"335":335}],313:[function(_dereq_,module,exports){
 arguments[4][67][0].apply(exports,arguments)
-},{"67":67}],315:[function(_dereq_,module,exports){
-arguments[4][99][0].apply(exports,arguments)
-},{"313":313,"314":314,"328":328,"99":99}],316:[function(_dereq_,module,exports){
-arguments[4][169][0].apply(exports,arguments)
-},{"169":169,"323":323,"326":326}],317:[function(_dereq_,module,exports){
+},{"300":300,"67":67}],314:[function(_dereq_,module,exports){
+arguments[4][167][0].apply(exports,arguments)
+},{"167":167,"322":322,"337":337}],315:[function(_dereq_,module,exports){
 arguments[4][68][0].apply(exports,arguments)
-},{"68":68}],318:[function(_dereq_,module,exports){
+},{"330":330,"68":68}],316:[function(_dereq_,module,exports){
 arguments[4][69][0].apply(exports,arguments)
-},{"69":69}],319:[function(_dereq_,module,exports){
-arguments[4][172][0].apply(exports,arguments)
-},{"172":172,"328":328}],320:[function(_dereq_,module,exports){
-arguments[4][244][0].apply(exports,arguments)
-},{"244":244,"323":323}],321:[function(_dereq_,module,exports){
-arguments[4][245][0].apply(exports,arguments)
-},{"245":245,"289":289}],322:[function(_dereq_,module,exports){
+},{"313":313,"320":320,"69":69}],317:[function(_dereq_,module,exports){
 arguments[4][70][0].apply(exports,arguments)
-},{"314":314,"317":317,"325":325,"326":326,"333":333,"70":70}],323:[function(_dereq_,module,exports){
+},{"70":70}],318:[function(_dereq_,module,exports){
+arguments[4][102][0].apply(exports,arguments)
+},{"102":102,"316":316,"317":317,"331":331}],319:[function(_dereq_,module,exports){
+arguments[4][172][0].apply(exports,arguments)
+},{"172":172,"326":326,"329":329}],320:[function(_dereq_,module,exports){
 arguments[4][71][0].apply(exports,arguments)
-},{"328":328,"71":71}],324:[function(_dereq_,module,exports){
-arguments[4][175][0].apply(exports,arguments)
-},{"175":175,"300":300,"326":326}],325:[function(_dereq_,module,exports){
+},{"71":71}],321:[function(_dereq_,module,exports){
 arguments[4][72][0].apply(exports,arguments)
-},{"313":313,"318":318,"72":72}],326:[function(_dereq_,module,exports){
+},{"72":72}],322:[function(_dereq_,module,exports){
+arguments[4][175][0].apply(exports,arguments)
+},{"175":175,"331":331}],323:[function(_dereq_,module,exports){
+arguments[4][247][0].apply(exports,arguments)
+},{"247":247,"326":326}],324:[function(_dereq_,module,exports){
+arguments[4][248][0].apply(exports,arguments)
+},{"248":248,"292":292}],325:[function(_dereq_,module,exports){
 arguments[4][73][0].apply(exports,arguments)
-},{"312":312,"317":317,"318":318,"73":73}],327:[function(_dereq_,module,exports){
+},{"317":317,"320":320,"328":328,"329":329,"336":336,"73":73}],326:[function(_dereq_,module,exports){
+arguments[4][74][0].apply(exports,arguments)
+},{"331":331,"74":74}],327:[function(_dereq_,module,exports){
+arguments[4][178][0].apply(exports,arguments)
+},{"178":178,"303":303,"329":329}],328:[function(_dereq_,module,exports){
 arguments[4][75][0].apply(exports,arguments)
-},{"318":318,"336":336,"75":75}],328:[function(_dereq_,module,exports){
-arguments[4][77][0].apply(exports,arguments)
-},{"77":77}],329:[function(_dereq_,module,exports){
-arguments[4][108][0].apply(exports,arguments)
-},{"108":108,"318":318}],330:[function(_dereq_,module,exports){
-arguments[4][181][0].apply(exports,arguments)
-},{"181":181,"317":317,"318":318}],331:[function(_dereq_,module,exports){
-arguments[4][109][0].apply(exports,arguments)
-},{"109":109,"280":280,"281":281,"302":302}],332:[function(_dereq_,module,exports){
+},{"316":316,"321":321,"75":75}],329:[function(_dereq_,module,exports){
+arguments[4][76][0].apply(exports,arguments)
+},{"315":315,"320":320,"321":321,"76":76}],330:[function(_dereq_,module,exports){
 arguments[4][78][0].apply(exports,arguments)
-},{"312":312,"313":313,"322":322,"328":328,"78":78}],333:[function(_dereq_,module,exports){
-arguments[4][79][0].apply(exports,arguments)
-},{"314":314,"317":317,"325":325,"326":326,"328":328,"79":79}],334:[function(_dereq_,module,exports){
-arguments[4][185][0].apply(exports,arguments)
-},{"185":185,"323":323,"332":332}],335:[function(_dereq_,module,exports){
-arguments[4][259][0].apply(exports,arguments)
-},{"259":259,"277":277,"287":287,"301":301,"320":320,"321":321}],336:[function(_dereq_,module,exports){
+},{"321":321,"339":339,"78":78}],331:[function(_dereq_,module,exports){
 arguments[4][80][0].apply(exports,arguments)
-},{"300":300,"80":80}],337:[function(_dereq_,module,exports){
+},{"80":80}],332:[function(_dereq_,module,exports){
+arguments[4][111][0].apply(exports,arguments)
+},{"111":111,"321":321}],333:[function(_dereq_,module,exports){
+arguments[4][184][0].apply(exports,arguments)
+},{"184":184,"320":320,"321":321}],334:[function(_dereq_,module,exports){
+arguments[4][112][0].apply(exports,arguments)
+},{"112":112,"283":283,"284":284,"305":305}],335:[function(_dereq_,module,exports){
 arguments[4][81][0].apply(exports,arguments)
-},{"81":81}],338:[function(_dereq_,module,exports){
+},{"315":315,"316":316,"325":325,"331":331,"81":81}],336:[function(_dereq_,module,exports){
+arguments[4][82][0].apply(exports,arguments)
+},{"317":317,"320":320,"328":328,"329":329,"331":331,"82":82}],337:[function(_dereq_,module,exports){
 arguments[4][188][0].apply(exports,arguments)
-},{"188":188,"297":297,"298":298,"316":316}],339:[function(_dereq_,module,exports){
+},{"188":188,"326":326,"335":335}],338:[function(_dereq_,module,exports){
+arguments[4][262][0].apply(exports,arguments)
+},{"262":262,"280":280,"290":290,"304":304,"323":323,"324":324}],339:[function(_dereq_,module,exports){
+arguments[4][83][0].apply(exports,arguments)
+},{"303":303,"83":83}],340:[function(_dereq_,module,exports){
+arguments[4][84][0].apply(exports,arguments)
+},{"84":84}],341:[function(_dereq_,module,exports){
+arguments[4][191][0].apply(exports,arguments)
+},{"191":191,"300":300,"301":301,"319":319}],342:[function(_dereq_,module,exports){
 module.exports={
   "name": "DMN",
 
@@ -10867,10 +11283,10 @@ module.exports={
   ]
 }
 
-},{}],340:[function(_dereq_,module,exports){
+},{}],343:[function(_dereq_,module,exports){
 'use strict';
 
-var hat = _dereq_(341);
+var hat = _dereq_(344);
 
 
 /**
@@ -10948,7 +11364,7 @@ Ids.prototype.unclaim = function(id) {
   delete this._seed.hats[id];
 };
 
-},{"341":341}],341:[function(_dereq_,module,exports){
+},{"344":344}],344:[function(_dereq_,module,exports){
 var hat = module.exports = function (bits, base) {
     if (!base) base = 16;
     if (bits === undefined) bits = 128;
@@ -11012,12 +11428,12 @@ hat.rack = function (bits, base, expandBy) {
     return fn;
 };
 
-},{}],342:[function(_dereq_,module,exports){
-arguments[4][51][0].apply(exports,arguments)
-},{"51":51}],343:[function(_dereq_,module,exports){
-var baseFlatten = _dereq_(358),
-    baseUniq = _dereq_(366),
-    restParam = _dereq_(346);
+},{}],345:[function(_dereq_,module,exports){
+arguments[4][54][0].apply(exports,arguments)
+},{"54":54}],346:[function(_dereq_,module,exports){
+var baseFlatten = _dereq_(361),
+    baseUniq = _dereq_(369),
+    restParam = _dereq_(349);
 
 /**
  * Creates an array of unique values, in order, from all of the provided arrays
@@ -11040,12 +11456,12 @@ var union = restParam(function(arrays) {
 
 module.exports = union;
 
-},{"346":346,"358":358,"366":366}],344:[function(_dereq_,module,exports){
-arguments[4][52][0].apply(exports,arguments)
-},{"348":348,"356":356,"374":374,"52":52}],345:[function(_dereq_,module,exports){
-var arrayEachRight = _dereq_(349),
-    baseEachRight = _dereq_(357),
-    createForEach = _dereq_(374);
+},{"349":349,"361":361,"369":369}],347:[function(_dereq_,module,exports){
+arguments[4][55][0].apply(exports,arguments)
+},{"351":351,"359":359,"377":377,"55":55}],348:[function(_dereq_,module,exports){
+var arrayEachRight = _dereq_(352),
+    baseEachRight = _dereq_(360),
+    createForEach = _dereq_(377);
 
 /**
  * This method is like `_.forEach` except that it iterates over elements of
@@ -11070,7 +11486,7 @@ var forEachRight = createForEach(arrayEachRight, baseEachRight);
 
 module.exports = forEachRight;
 
-},{"349":349,"357":357,"374":374}],346:[function(_dereq_,module,exports){
+},{"352":352,"360":360,"377":377}],349:[function(_dereq_,module,exports){
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
 
@@ -11130,10 +11546,10 @@ function restParam(func, start) {
 
 module.exports = restParam;
 
-},{}],347:[function(_dereq_,module,exports){
+},{}],350:[function(_dereq_,module,exports){
 (function (global){
-var cachePush = _dereq_(369),
-    getNative = _dereq_(376);
+var cachePush = _dereq_(372),
+    getNative = _dereq_(379);
 
 /** Native method references. */
 var Set = getNative(global, 'Set');
@@ -11164,9 +11580,9 @@ module.exports = SetCache;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 //# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy9sb2Rhc2gvaW50ZXJuYWwvU2V0Q2FjaGUuanMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IjtBQUFBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSIsImZpbGUiOiJnZW5lcmF0ZWQuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlc0NvbnRlbnQiOlsidmFyIGNhY2hlUHVzaCA9IHJlcXVpcmUoJy4vY2FjaGVQdXNoJyksXG4gICAgZ2V0TmF0aXZlID0gcmVxdWlyZSgnLi9nZXROYXRpdmUnKTtcblxuLyoqIE5hdGl2ZSBtZXRob2QgcmVmZXJlbmNlcy4gKi9cbnZhciBTZXQgPSBnZXROYXRpdmUoZ2xvYmFsLCAnU2V0Jyk7XG5cbi8qIE5hdGl2ZSBtZXRob2QgcmVmZXJlbmNlcyBmb3IgdGhvc2Ugd2l0aCB0aGUgc2FtZSBuYW1lIGFzIG90aGVyIGBsb2Rhc2hgIG1ldGhvZHMuICovXG52YXIgbmF0aXZlQ3JlYXRlID0gZ2V0TmF0aXZlKE9iamVjdCwgJ2NyZWF0ZScpO1xuXG4vKipcbiAqXG4gKiBDcmVhdGVzIGEgY2FjaGUgb2JqZWN0IHRvIHN0b3JlIHVuaXF1ZSB2YWx1ZXMuXG4gKlxuICogQHByaXZhdGVcbiAqIEBwYXJhbSB7QXJyYXl9IFt2YWx1ZXNdIFRoZSB2YWx1ZXMgdG8gY2FjaGUuXG4gKi9cbmZ1bmN0aW9uIFNldENhY2hlKHZhbHVlcykge1xuICB2YXIgbGVuZ3RoID0gdmFsdWVzID8gdmFsdWVzLmxlbmd0aCA6IDA7XG5cbiAgdGhpcy5kYXRhID0geyAnaGFzaCc6IG5hdGl2ZUNyZWF0ZShudWxsKSwgJ3NldCc6IG5ldyBTZXQgfTtcbiAgd2hpbGUgKGxlbmd0aC0tKSB7XG4gICAgdGhpcy5wdXNoKHZhbHVlc1tsZW5ndGhdKTtcbiAgfVxufVxuXG4vLyBBZGQgZnVuY3Rpb25zIHRvIHRoZSBgU2V0YCBjYWNoZS5cblNldENhY2hlLnByb3RvdHlwZS5wdXNoID0gY2FjaGVQdXNoO1xuXG5tb2R1bGUuZXhwb3J0cyA9IFNldENhY2hlO1xuIl19
-},{"369":369,"376":376}],348:[function(_dereq_,module,exports){
-arguments[4][53][0].apply(exports,arguments)
-},{"53":53}],349:[function(_dereq_,module,exports){
+},{"372":372,"379":379}],351:[function(_dereq_,module,exports){
+arguments[4][56][0].apply(exports,arguments)
+},{"56":56}],352:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.forEachRight` for arrays without support for
  * callback shorthands and `this` binding.
@@ -11189,9 +11605,9 @@ function arrayEachRight(array, iteratee) {
 
 module.exports = arrayEachRight;
 
-},{}],350:[function(_dereq_,module,exports){
-arguments[4][127][0].apply(exports,arguments)
-},{"127":127}],351:[function(_dereq_,module,exports){
+},{}],353:[function(_dereq_,module,exports){
+arguments[4][130][0].apply(exports,arguments)
+},{"130":130}],354:[function(_dereq_,module,exports){
 /**
  * Appends the elements of `values` to `array`.
  *
@@ -11213,16 +11629,16 @@ function arrayPush(array, values) {
 
 module.exports = arrayPush;
 
-},{}],352:[function(_dereq_,module,exports){
-arguments[4][87][0].apply(exports,arguments)
-},{"395":395,"87":87}],353:[function(_dereq_,module,exports){
-arguments[4][88][0].apply(exports,arguments)
-},{"354":354,"395":395,"88":88}],354:[function(_dereq_,module,exports){
-arguments[4][89][0].apply(exports,arguments)
-},{"89":89}],355:[function(_dereq_,module,exports){
-var baseIndexOf = _dereq_(364),
-    cacheIndexOf = _dereq_(368),
-    createCache = _dereq_(373);
+},{}],355:[function(_dereq_,module,exports){
+arguments[4][90][0].apply(exports,arguments)
+},{"398":398,"90":90}],356:[function(_dereq_,module,exports){
+arguments[4][91][0].apply(exports,arguments)
+},{"357":357,"398":398,"91":91}],357:[function(_dereq_,module,exports){
+arguments[4][92][0].apply(exports,arguments)
+},{"92":92}],358:[function(_dereq_,module,exports){
+var baseIndexOf = _dereq_(367),
+    cacheIndexOf = _dereq_(371),
+    createCache = _dereq_(376);
 
 /** Used as the size to enable large array optimizations. */
 var LARGE_ARRAY_SIZE = 200;
@@ -11276,11 +11692,11 @@ function baseDifference(array, values) {
 
 module.exports = baseDifference;
 
-},{"364":364,"368":368,"373":373}],356:[function(_dereq_,module,exports){
-arguments[4][54][0].apply(exports,arguments)
-},{"361":361,"371":371,"54":54}],357:[function(_dereq_,module,exports){
-var baseForOwnRight = _dereq_(362),
-    createBaseEach = _dereq_(371);
+},{"367":367,"371":371,"376":376}],359:[function(_dereq_,module,exports){
+arguments[4][57][0].apply(exports,arguments)
+},{"364":364,"374":374,"57":57}],360:[function(_dereq_,module,exports){
+var baseForOwnRight = _dereq_(365),
+    createBaseEach = _dereq_(374);
 
 /**
  * The base implementation of `_.forEachRight` without support for callback
@@ -11295,12 +11711,12 @@ var baseEachRight = createBaseEach(baseForOwnRight, true);
 
 module.exports = baseEachRight;
 
-},{"362":362,"371":371}],358:[function(_dereq_,module,exports){
-var arrayPush = _dereq_(351),
-    isArguments = _dereq_(387),
-    isArray = _dereq_(388),
-    isArrayLike = _dereq_(378),
-    isObjectLike = _dereq_(382);
+},{"365":365,"374":374}],361:[function(_dereq_,module,exports){
+var arrayPush = _dereq_(354),
+    isArguments = _dereq_(390),
+    isArray = _dereq_(391),
+    isArrayLike = _dereq_(381),
+    isObjectLike = _dereq_(385);
 
 /**
  * The base implementation of `_.flatten` with added support for restricting
@@ -11338,15 +11754,15 @@ function baseFlatten(array, isDeep, isStrict, result) {
 
 module.exports = baseFlatten;
 
-},{"351":351,"378":378,"382":382,"387":387,"388":388}],359:[function(_dereq_,module,exports){
-arguments[4][55][0].apply(exports,arguments)
-},{"372":372,"55":55}],360:[function(_dereq_,module,exports){
-arguments[4][213][0].apply(exports,arguments)
-},{"213":213,"359":359,"396":396}],361:[function(_dereq_,module,exports){
-arguments[4][56][0].apply(exports,arguments)
-},{"359":359,"395":395,"56":56}],362:[function(_dereq_,module,exports){
-var baseForRight = _dereq_(363),
-    keys = _dereq_(395);
+},{"354":354,"381":381,"385":385,"390":390,"391":391}],362:[function(_dereq_,module,exports){
+arguments[4][58][0].apply(exports,arguments)
+},{"375":375,"58":58}],363:[function(_dereq_,module,exports){
+arguments[4][216][0].apply(exports,arguments)
+},{"216":216,"362":362,"399":399}],364:[function(_dereq_,module,exports){
+arguments[4][59][0].apply(exports,arguments)
+},{"362":362,"398":398,"59":59}],365:[function(_dereq_,module,exports){
+var baseForRight = _dereq_(366),
+    keys = _dereq_(398);
 
 /**
  * The base implementation of `_.forOwnRight` without support for callback
@@ -11363,8 +11779,8 @@ function baseForOwnRight(object, iteratee) {
 
 module.exports = baseForOwnRight;
 
-},{"363":363,"395":395}],363:[function(_dereq_,module,exports){
-var createBaseFor = _dereq_(372);
+},{"366":366,"398":398}],366:[function(_dereq_,module,exports){
+var createBaseFor = _dereq_(375);
 
 /**
  * This function is like `baseFor` except that it iterates over properties
@@ -11380,8 +11796,8 @@ var baseForRight = createBaseFor(true);
 
 module.exports = baseForRight;
 
-},{"372":372}],364:[function(_dereq_,module,exports){
-var indexOfNaN = _dereq_(377);
+},{"375":375}],367:[function(_dereq_,module,exports){
+var indexOfNaN = _dereq_(380);
 
 /**
  * The base implementation of `_.indexOf` without support for binary searches.
@@ -11409,12 +11825,12 @@ function baseIndexOf(array, value, fromIndex) {
 
 module.exports = baseIndexOf;
 
-},{"377":377}],365:[function(_dereq_,module,exports){
-arguments[4][58][0].apply(exports,arguments)
-},{"58":58}],366:[function(_dereq_,module,exports){
-var baseIndexOf = _dereq_(364),
-    cacheIndexOf = _dereq_(368),
-    createCache = _dereq_(373);
+},{"380":380}],368:[function(_dereq_,module,exports){
+arguments[4][61][0].apply(exports,arguments)
+},{"61":61}],369:[function(_dereq_,module,exports){
+var baseIndexOf = _dereq_(367),
+    cacheIndexOf = _dereq_(371),
+    createCache = _dereq_(376);
 
 /** Used as the size to enable large array optimizations. */
 var LARGE_ARRAY_SIZE = 200;
@@ -11473,10 +11889,10 @@ function baseUniq(array, iteratee) {
 
 module.exports = baseUniq;
 
-},{"364":364,"368":368,"373":373}],367:[function(_dereq_,module,exports){
-arguments[4][60][0].apply(exports,arguments)
-},{"398":398,"60":60}],368:[function(_dereq_,module,exports){
-var isObject = _dereq_(392);
+},{"367":367,"371":371,"376":376}],370:[function(_dereq_,module,exports){
+arguments[4][63][0].apply(exports,arguments)
+},{"401":401,"63":63}],371:[function(_dereq_,module,exports){
+var isObject = _dereq_(395);
 
 /**
  * Checks if `value` is in `cache` mimicking the return signature of
@@ -11496,8 +11912,8 @@ function cacheIndexOf(cache, value) {
 
 module.exports = cacheIndexOf;
 
-},{"392":392}],369:[function(_dereq_,module,exports){
-var isObject = _dereq_(392);
+},{"395":395}],372:[function(_dereq_,module,exports){
+var isObject = _dereq_(395);
 
 /**
  * Adds `value` to the cache.
@@ -11518,10 +11934,10 @@ function cachePush(value) {
 
 module.exports = cachePush;
 
-},{"392":392}],370:[function(_dereq_,module,exports){
-var bindCallback = _dereq_(367),
-    isIterateeCall = _dereq_(380),
-    restParam = _dereq_(346);
+},{"395":395}],373:[function(_dereq_,module,exports){
+var bindCallback = _dereq_(370),
+    isIterateeCall = _dereq_(383),
+    restParam = _dereq_(349);
 
 /**
  * Creates a `_.assign`, `_.defaults`, or `_.merge` function.
@@ -11561,14 +11977,14 @@ function createAssigner(assigner) {
 
 module.exports = createAssigner;
 
-},{"346":346,"367":367,"380":380}],371:[function(_dereq_,module,exports){
-arguments[4][61][0].apply(exports,arguments)
-},{"375":375,"381":381,"386":386,"61":61}],372:[function(_dereq_,module,exports){
-arguments[4][62][0].apply(exports,arguments)
-},{"386":386,"62":62}],373:[function(_dereq_,module,exports){
+},{"349":349,"370":370,"383":383}],374:[function(_dereq_,module,exports){
+arguments[4][64][0].apply(exports,arguments)
+},{"378":378,"384":384,"389":389,"64":64}],375:[function(_dereq_,module,exports){
+arguments[4][65][0].apply(exports,arguments)
+},{"389":389,"65":65}],376:[function(_dereq_,module,exports){
 (function (global){
-var SetCache = _dereq_(347),
-    getNative = _dereq_(376);
+var SetCache = _dereq_(350),
+    getNative = _dereq_(379);
 
 /** Native method references. */
 var Set = getNative(global, 'Set');
@@ -11591,13 +12007,13 @@ module.exports = createCache;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 //# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy9sb2Rhc2gvaW50ZXJuYWwvY3JlYXRlQ2FjaGUuanMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IjtBQUFBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBIiwiZmlsZSI6ImdlbmVyYXRlZC5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzQ29udGVudCI6WyJ2YXIgU2V0Q2FjaGUgPSByZXF1aXJlKCcuL1NldENhY2hlJyksXG4gICAgZ2V0TmF0aXZlID0gcmVxdWlyZSgnLi9nZXROYXRpdmUnKTtcblxuLyoqIE5hdGl2ZSBtZXRob2QgcmVmZXJlbmNlcy4gKi9cbnZhciBTZXQgPSBnZXROYXRpdmUoZ2xvYmFsLCAnU2V0Jyk7XG5cbi8qIE5hdGl2ZSBtZXRob2QgcmVmZXJlbmNlcyBmb3IgdGhvc2Ugd2l0aCB0aGUgc2FtZSBuYW1lIGFzIG90aGVyIGBsb2Rhc2hgIG1ldGhvZHMuICovXG52YXIgbmF0aXZlQ3JlYXRlID0gZ2V0TmF0aXZlKE9iamVjdCwgJ2NyZWF0ZScpO1xuXG4vKipcbiAqIENyZWF0ZXMgYSBgU2V0YCBjYWNoZSBvYmplY3QgdG8gb3B0aW1pemUgbGluZWFyIHNlYXJjaGVzIG9mIGxhcmdlIGFycmF5cy5cbiAqXG4gKiBAcHJpdmF0ZVxuICogQHBhcmFtIHtBcnJheX0gW3ZhbHVlc10gVGhlIHZhbHVlcyB0byBjYWNoZS5cbiAqIEByZXR1cm5zIHtudWxsfE9iamVjdH0gUmV0dXJucyB0aGUgbmV3IGNhY2hlIG9iamVjdCBpZiBgU2V0YCBpcyBzdXBwb3J0ZWQsIGVsc2UgYG51bGxgLlxuICovXG5mdW5jdGlvbiBjcmVhdGVDYWNoZSh2YWx1ZXMpIHtcbiAgcmV0dXJuIChuYXRpdmVDcmVhdGUgJiYgU2V0KSA/IG5ldyBTZXRDYWNoZSh2YWx1ZXMpIDogbnVsbDtcbn1cblxubW9kdWxlLmV4cG9ydHMgPSBjcmVhdGVDYWNoZTtcbiJdfQ==
-},{"347":347,"376":376}],374:[function(_dereq_,module,exports){
-arguments[4][63][0].apply(exports,arguments)
-},{"367":367,"388":388,"63":63}],375:[function(_dereq_,module,exports){
-arguments[4][64][0].apply(exports,arguments)
-},{"365":365,"64":64}],376:[function(_dereq_,module,exports){
-arguments[4][65][0].apply(exports,arguments)
-},{"390":390,"65":65}],377:[function(_dereq_,module,exports){
+},{"350":350,"379":379}],377:[function(_dereq_,module,exports){
+arguments[4][66][0].apply(exports,arguments)
+},{"370":370,"391":391,"66":66}],378:[function(_dereq_,module,exports){
+arguments[4][67][0].apply(exports,arguments)
+},{"368":368,"67":67}],379:[function(_dereq_,module,exports){
+arguments[4][68][0].apply(exports,arguments)
+},{"393":393,"68":68}],380:[function(_dereq_,module,exports){
 /**
  * Gets the index at which the first occurrence of `NaN` is found in `array`.
  *
@@ -11622,9 +12038,9 @@ function indexOfNaN(array, fromIndex, fromRight) {
 
 module.exports = indexOfNaN;
 
-},{}],378:[function(_dereq_,module,exports){
-arguments[4][66][0].apply(exports,arguments)
-},{"375":375,"381":381,"66":66}],379:[function(_dereq_,module,exports){
+},{}],381:[function(_dereq_,module,exports){
+arguments[4][69][0].apply(exports,arguments)
+},{"378":378,"384":384,"69":69}],382:[function(_dereq_,module,exports){
 /** Used to detect unsigned integer values. */
 var reIsUint = /^\d+$/;
 
@@ -11650,9 +12066,9 @@ function isIndex(value, length) {
 
 module.exports = isIndex;
 
-},{}],380:[function(_dereq_,module,exports){
-arguments[4][99][0].apply(exports,arguments)
-},{"378":378,"379":379,"392":392,"99":99}],381:[function(_dereq_,module,exports){
+},{}],383:[function(_dereq_,module,exports){
+arguments[4][102][0].apply(exports,arguments)
+},{"102":102,"381":381,"382":382,"395":395}],384:[function(_dereq_,module,exports){
 /**
  * Used as the [maximum length](http://ecma-international.org/ecma-262/6.0/#sec-number.max_safe_integer)
  * of an array-like value.
@@ -11674,19 +12090,19 @@ function isLength(value) {
 
 module.exports = isLength;
 
-},{}],382:[function(_dereq_,module,exports){
-arguments[4][69][0].apply(exports,arguments)
-},{"69":69}],383:[function(_dereq_,module,exports){
-arguments[4][244][0].apply(exports,arguments)
-},{"244":244,"386":386}],384:[function(_dereq_,module,exports){
-arguments[4][245][0].apply(exports,arguments)
-},{"245":245,"360":360}],385:[function(_dereq_,module,exports){
-arguments[4][70][0].apply(exports,arguments)
-},{"379":379,"381":381,"387":387,"388":388,"396":396,"70":70}],386:[function(_dereq_,module,exports){
-arguments[4][71][0].apply(exports,arguments)
-},{"392":392,"71":71}],387:[function(_dereq_,module,exports){
-var isArrayLike = _dereq_(378),
-    isObjectLike = _dereq_(382);
+},{}],385:[function(_dereq_,module,exports){
+arguments[4][72][0].apply(exports,arguments)
+},{"72":72}],386:[function(_dereq_,module,exports){
+arguments[4][247][0].apply(exports,arguments)
+},{"247":247,"389":389}],387:[function(_dereq_,module,exports){
+arguments[4][248][0].apply(exports,arguments)
+},{"248":248,"363":363}],388:[function(_dereq_,module,exports){
+arguments[4][73][0].apply(exports,arguments)
+},{"382":382,"384":384,"390":390,"391":391,"399":399,"73":73}],389:[function(_dereq_,module,exports){
+arguments[4][74][0].apply(exports,arguments)
+},{"395":395,"74":74}],390:[function(_dereq_,module,exports){
+var isArrayLike = _dereq_(381),
+    isObjectLike = _dereq_(385);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -11720,10 +12136,10 @@ function isArguments(value) {
 
 module.exports = isArguments;
 
-},{"378":378,"382":382}],388:[function(_dereq_,module,exports){
-var getNative = _dereq_(376),
-    isLength = _dereq_(381),
-    isObjectLike = _dereq_(382);
+},{"381":381,"385":385}],391:[function(_dereq_,module,exports){
+var getNative = _dereq_(379),
+    isLength = _dereq_(384),
+    isObjectLike = _dereq_(385);
 
 /** `Object#toString` result references. */
 var arrayTag = '[object Array]';
@@ -11762,8 +12178,8 @@ var isArray = nativeIsArray || function(value) {
 
 module.exports = isArray;
 
-},{"376":376,"381":381,"382":382}],389:[function(_dereq_,module,exports){
-var isObject = _dereq_(392);
+},{"379":379,"384":384,"385":385}],392:[function(_dereq_,module,exports){
+var isObject = _dereq_(395);
 
 /** `Object#toString` result references. */
 var funcTag = '[object Function]';
@@ -11802,9 +12218,9 @@ function isFunction(value) {
 
 module.exports = isFunction;
 
-},{"392":392}],390:[function(_dereq_,module,exports){
-var isFunction = _dereq_(389),
-    isObjectLike = _dereq_(382);
+},{"395":395}],393:[function(_dereq_,module,exports){
+var isFunction = _dereq_(392),
+    isObjectLike = _dereq_(385);
 
 /** Used to detect host constructors (Safari > 5). */
 var reIsHostCtor = /^\[object .+?Constructor\]$/;
@@ -11852,8 +12268,8 @@ function isNative(value) {
 
 module.exports = isNative;
 
-},{"382":382,"389":389}],391:[function(_dereq_,module,exports){
-var isObjectLike = _dereq_(382);
+},{"385":385,"392":392}],394:[function(_dereq_,module,exports){
+var isObjectLike = _dereq_(385);
 
 /** `Object#toString` result references. */
 var numberTag = '[object Number]';
@@ -11895,10 +12311,10 @@ function isNumber(value) {
 
 module.exports = isNumber;
 
-},{"382":382}],392:[function(_dereq_,module,exports){
-arguments[4][77][0].apply(exports,arguments)
-},{"77":77}],393:[function(_dereq_,module,exports){
-var isObjectLike = _dereq_(382);
+},{"385":385}],395:[function(_dereq_,module,exports){
+arguments[4][80][0].apply(exports,arguments)
+},{"80":80}],396:[function(_dereq_,module,exports){
+var isObjectLike = _dereq_(385);
 
 /** `Object#toString` result references. */
 var stringTag = '[object String]';
@@ -11934,10 +12350,10 @@ function isString(value) {
 
 module.exports = isString;
 
-},{"382":382}],394:[function(_dereq_,module,exports){
-var assignWith = _dereq_(352),
-    baseAssign = _dereq_(353),
-    createAssigner = _dereq_(370);
+},{"385":385}],397:[function(_dereq_,module,exports){
+var assignWith = _dereq_(355),
+    baseAssign = _dereq_(356),
+    createAssigner = _dereq_(373);
 
 /**
  * Assigns own enumerable properties of source object(s) to the destination
@@ -11979,11 +12395,11 @@ var assign = createAssigner(function(object, source, customizer) {
 
 module.exports = assign;
 
-},{"352":352,"353":353,"370":370}],395:[function(_dereq_,module,exports){
-var getNative = _dereq_(376),
-    isArrayLike = _dereq_(378),
-    isObject = _dereq_(392),
-    shimKeys = _dereq_(385);
+},{"355":355,"356":356,"373":373}],398:[function(_dereq_,module,exports){
+var getNative = _dereq_(379),
+    isArrayLike = _dereq_(381),
+    isObject = _dereq_(395),
+    shimKeys = _dereq_(388);
 
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeKeys = getNative(Object, 'keys');
@@ -12026,17 +12442,17 @@ var keys = !nativeKeys ? shimKeys : function(object) {
 
 module.exports = keys;
 
-},{"376":376,"378":378,"385":385,"392":392}],396:[function(_dereq_,module,exports){
-arguments[4][79][0].apply(exports,arguments)
-},{"379":379,"381":381,"387":387,"388":388,"392":392,"79":79}],397:[function(_dereq_,module,exports){
-var arrayMap = _dereq_(350),
-    baseDifference = _dereq_(355),
-    baseFlatten = _dereq_(358),
-    bindCallback = _dereq_(367),
-    keysIn = _dereq_(396),
-    pickByArray = _dereq_(383),
-    pickByCallback = _dereq_(384),
-    restParam = _dereq_(346);
+},{"379":379,"381":381,"388":388,"395":395}],399:[function(_dereq_,module,exports){
+arguments[4][82][0].apply(exports,arguments)
+},{"382":382,"384":384,"390":390,"391":391,"395":395,"82":82}],400:[function(_dereq_,module,exports){
+var arrayMap = _dereq_(353),
+    baseDifference = _dereq_(358),
+    baseFlatten = _dereq_(361),
+    bindCallback = _dereq_(370),
+    keysIn = _dereq_(399),
+    pickByArray = _dereq_(386),
+    pickByCallback = _dereq_(387),
+    restParam = _dereq_(349);
 
 /**
  * The opposite of `_.pick`; this method creates an object composed of the
@@ -12077,24 +12493,24 @@ var omit = restParam(function(object, props) {
 
 module.exports = omit;
 
-},{"346":346,"350":350,"355":355,"358":358,"367":367,"383":383,"384":384,"396":396}],398:[function(_dereq_,module,exports){
-arguments[4][81][0].apply(exports,arguments)
-},{"81":81}],399:[function(_dereq_,module,exports){
-module.exports = _dereq_(403);
-},{"403":403}],400:[function(_dereq_,module,exports){
+},{"349":349,"353":353,"358":358,"361":361,"370":370,"386":386,"387":387,"399":399}],401:[function(_dereq_,module,exports){
+arguments[4][84][0].apply(exports,arguments)
+},{"84":84}],402:[function(_dereq_,module,exports){
 module.exports = _dereq_(406);
-},{"406":406}],401:[function(_dereq_,module,exports){
-module.exports = _dereq_(405);
-},{"405":405}],402:[function(_dereq_,module,exports){
+},{"406":406}],403:[function(_dereq_,module,exports){
+module.exports = _dereq_(409);
+},{"409":409}],404:[function(_dereq_,module,exports){
+module.exports = _dereq_(408);
+},{"408":408}],405:[function(_dereq_,module,exports){
 module.exports = function(el) {
   el.parentNode && el.parentNode.removeChild(el);
 };
-},{}],403:[function(_dereq_,module,exports){
+},{}],406:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
-var index = _dereq_(404);
+var index = _dereq_(407);
 
 /**
  * Whitespace regexp.
@@ -12278,7 +12694,7 @@ ClassList.prototype.contains = function(name){
     : !! ~index(this.array(), name);
 };
 
-},{"404":404}],404:[function(_dereq_,module,exports){
+},{"407":407}],407:[function(_dereq_,module,exports){
 module.exports = function(arr, obj){
   if (arr.indexOf) return arr.indexOf(obj);
   for (var i = 0; i < arr.length; ++i) {
@@ -12286,7 +12702,7 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],405:[function(_dereq_,module,exports){
+},{}],408:[function(_dereq_,module,exports){
 function one(selector, el) {
   return el.querySelector(selector);
 }
@@ -12309,7 +12725,7 @@ exports.engine = function(obj){
   return exports;
 };
 
-},{}],406:[function(_dereq_,module,exports){
+},{}],409:[function(_dereq_,module,exports){
 
 /**
  * Expose `parse`.
@@ -12423,13 +12839,165 @@ function parse(html, doc) {
   return fragment;
 }
 
-},{}],407:[function(_dereq_,module,exports){
-module.exports = _dereq_(408);
-
-},{"408":408}],408:[function(_dereq_,module,exports){
+},{}],410:[function(_dereq_,module,exports){
 'use strict';
 
-var di = _dereq_(564);
+/**
+ * Calculate the selection update for the given
+ * current and new input values.
+ *
+ * @param {Object} currentSelection as {start, end}
+ * @param {String} currentValue
+ * @param {String} newValue
+ *
+ * @return {Object} newSelection as {start, end}
+ */
+function calculateUpdate(currentSelection, currentValue, newValue) {
+
+  var currentCursor = currentSelection.start,
+      newCursor = currentCursor,
+      diff = newValue.length - currentValue.length,
+      idx;
+
+  var lengthDelta = newValue.length - currentValue.length;
+
+  var currentTail = currentValue.substring(currentCursor);
+
+  // check if we can remove common ending from the equation
+  // to be able to properly detect a selection change for
+  // the following scenarios:
+  //
+  //  * (AAATTT|TF) => (AAAT|TF)
+  //  * (AAAT|TF) =>  (AAATTT|TF)
+  //
+  if (newValue.lastIndexOf(currentTail) === newValue.length - currentTail.length) {
+    currentValue = currentValue.substring(0, currentValue.length - currentTail.length);
+    newValue = newValue.substring(0, newValue.length - currentTail.length);
+  }
+
+  // diff
+  var diff = createDiff(currentValue, newValue);
+
+  if (diff) {
+    if (diff.type === 'remove') {
+      newCursor = diff.newStart;
+    } else {
+      newCursor = diff.newEnd;
+    }
+  }
+
+  return range(newCursor);
+}
+
+module.exports = calculateUpdate;
+
+
+function createDiff(currentValue, newValue) {
+
+  var insert;
+
+  var l_str, l_char, l_idx = 0,
+      s_str, s_char, s_idx = 0;
+
+  if (newValue.length > currentValue.length) {
+    l_str = newValue;
+    s_str = currentValue;
+  } else {
+    l_str = currentValue;
+    s_str = newValue;
+  }
+
+  // assume there will be only one insert / remove and
+  // detect that _first_ edit operation only
+  while (l_idx < l_str.length) {
+
+    l_char = l_str.charAt(l_idx);
+    s_char = s_str.charAt(s_idx);
+
+    // chars no not equal
+    if (l_char !== s_char) {
+
+      if (!insert) {
+        insert = {
+          l_start: l_idx,
+          s_start: s_idx
+        };
+      }
+
+      l_idx++;
+    }
+
+    // chars equal (again?)
+    else {
+
+      if (insert && !insert.complete) {
+        insert.l_end = l_idx;
+        insert.s_end = s_idx;
+        insert.complete = true;
+      }
+
+      s_idx++;
+      l_idx++;
+    }
+  }
+
+  if (insert && !insert.complete) {
+    insert.complete = true;
+    insert.s_end = s_str.length;
+    insert.l_end = l_str.length;
+  }
+
+  // no diff
+  if (!insert) {
+    return;
+  }
+
+  if (newValue.length > currentValue.length) {
+    return {
+      newStart: insert.l_start,
+      newEnd: insert.l_end,
+      type: 'add'
+    };
+  } else {
+    return {
+      newStart: insert.s_start,
+      newEnd: insert.s_end,
+      type: newValue.length < currentValue.length ? 'remove' : 'replace'
+    };
+  }
+}
+
+/**
+ * Utility method for creating a new selection range {start, end} object.
+ *
+ * @param {Number} start
+ * @param {Number} [end]
+ *
+ * @return {Object} selection range as {start, end}
+ */
+function range(start, end) {
+  return {
+    start: start,
+    end: end === undefined ? start : end
+  };
+}
+
+module.exports.range = range;
+
+
+function splitStr(str, position) {
+  return {
+    before: str.substring(0, position),
+    after: str.substring(position)
+  };
+}
+},{}],411:[function(_dereq_,module,exports){
+module.exports = _dereq_(412);
+
+},{"412":412}],412:[function(_dereq_,module,exports){
+'use strict';
+
+var di = _dereq_(476);
 
 
 /**
@@ -12505,7 +13073,7 @@ function createInjector(options) {
     'config': ['value', options]
   };
 
-  var coreModule = _dereq_(413);
+  var coreModule = _dereq_(417);
 
   var modules = [ configModule, coreModule ].concat(options.modules || []);
 
@@ -12591,10 +13159,10 @@ Table.prototype.destroy = function() {
   this.get('eventBus').fire('table.destroy');
 };
 
-},{"413":413,"564":564}],409:[function(_dereq_,module,exports){
+},{"417":417,"476":476}],413:[function(_dereq_,module,exports){
 'use strict';
 
-var Model = _dereq_(454);
+var Model = _dereq_(463);
 
 
 /**
@@ -12639,7 +13207,7 @@ ElementFactory.prototype.create = function(type, attrs) {
   return Model.create(type, attrs);
 };
 
-},{"454":454}],410:[function(_dereq_,module,exports){
+},{"463":463}],414:[function(_dereq_,module,exports){
 'use strict';
 
 var ELEMENT_ID = 'data-element-id';
@@ -12831,10 +13399,10 @@ ElementRegistry.prototype._validateId = function(id) {
   }
 };
 
-},{}],411:[function(_dereq_,module,exports){
+},{}],415:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(570);
+var forEach = _dereq_(484);
 
 /**
  * A factory that creates graphical elements
@@ -12882,6 +13450,44 @@ GraphicsFactory.prototype.create = function(type, element, parent) {
   return newElement || document.createElement('div');
 };
 
+GraphicsFactory.prototype.moveRow = function(source, target, above) {
+  var gfxSource = this._elementRegistry.getGraphics(source);
+  var gfxTarget;
+
+  if(above) {
+    gfxTarget = this._elementRegistry.getGraphics(target);
+    gfxTarget.parentNode.insertBefore(gfxSource, gfxTarget);
+  } else {
+    if(source.next) {
+      gfxTarget = this._elementRegistry.getGraphics(source.next);
+      gfxTarget.parentNode.insertBefore(gfxSource, gfxTarget);
+    } else {
+      gfxSource.parentNode.appendChild(gfxSource);
+    }
+  }
+};
+
+GraphicsFactory.prototype.moveColumn = function(source, target, left) {
+  var self = this;
+
+  // find all cells which belong to the source and add them at their new place
+  this._elementRegistry.forEach(function(element, gfx) {
+    if(element._type === 'cell' && element.column === source) {
+
+      // find the cell exactly right of them
+      self._elementRegistry.forEach(function(targetElement, targetGfx) {
+        if(targetElement._type === 'cell' && targetElement.row === element.row) {
+          if(left && targetElement.column === target) {
+            targetGfx.parentNode.insertBefore(gfx, targetGfx);
+          } else if(!left && targetElement.column === source.next) {
+            targetGfx.parentNode.insertBefore(gfx, targetGfx);
+          }
+        }
+      });
+    }
+  });
+};
+
 
 GraphicsFactory.prototype.update = function(type, element, gfx) {
 
@@ -12926,13 +13532,13 @@ GraphicsFactory.prototype.remove = function(element) {
   gfx.parentNode && gfx.parentNode.removeChild(gfx);
 };
 
-},{"570":570}],412:[function(_dereq_,module,exports){
+},{"484":484}],416:[function(_dereq_,module,exports){
 'use strict';
 
-var isNumber = _dereq_(619),
-    assign = _dereq_(622),
-    forEach = _dereq_(570),
-    every = _dereq_(569);
+var isNumber = _dereq_(542),
+    assign = _dereq_(545),
+    forEach = _dereq_(484),
+    every = _dereq_(483);
 
 function ensurePx(number) {
   return isNumber(number) ? number + 'px' : number;
@@ -13172,6 +13778,160 @@ Sheet.prototype.getContainer = function() {
 };
 
 
+/**
+ * Returns the table body element of the table.
+ *
+ * @return {DOMNode}
+ */
+Sheet.prototype.getBody = function() {
+  return this._body;
+};
+
+/**
+ * Moves a row above or below another row
+ *
+ */
+Sheet.prototype.moveRow = function(source, target, above) {
+
+  if(source === target) {
+    return;
+  }
+
+  this._eventBus.fire('row.move', {
+    source: source,
+    target: target,
+    above: above
+  });
+
+  // update the last row if necessary
+  if(this.getLastRow('body') === source) {
+    this.setLastRow(source.previous, 'body');
+  }
+
+  // re-wire the prev/next relations for the source
+  if(source.previous) {
+    source.previous.next = source.next;
+  }
+  if(source.next) {
+    source.next.previous = source.previous;
+  }
+  // re-wire the prev/next relations for the target
+  if(above) {
+    if(target.previous) {
+      // (previous --> source --> target)
+      target.previous.next = source;
+      source.previous = target.previous;
+
+      source.next = target;
+      target.previous = source;
+    } else {
+      // (null --> source --> target)
+      source.previous = null;
+
+      source.next = target;
+      target.previous = source;
+    }
+  } else {
+    if(target.next) {
+      // (target --> source --> next)
+      target.next.previous = source;
+      source.next = target.next;
+
+      source.previous = target;
+      target.next = source;
+    } else {
+      // (target --> source --> null)
+      source.next = null;
+
+      source.previous = target;
+      target.next = source;
+      this.setLastRow(source, 'body');
+    }
+  }
+
+  this._graphicsFactory.moveRow(source, target, above);
+
+  this._eventBus.fire('row.moved', {
+    source: source,
+    target: target,
+    above: above
+  });
+
+};
+
+/**
+ * Moves a column left or right another column
+ *
+ */
+Sheet.prototype.moveColumn = function(source, target, left) {
+
+  if(source === target) {
+    return;
+  }
+
+  this._eventBus.fire('column.move', {
+    source: source,
+    target: target,
+    left: left
+  });
+
+  // update the last row if necessary
+  if(this.getLastColumn() === source) {
+    this.setLastColumn(source.previous);
+  }
+
+  // re-wire the prev/next relations for the source
+  if(source.previous) {
+    source.previous.next = source.next;
+  }
+  if(source.next) {
+    source.next.previous = source.previous;
+  }
+  // re-wire the prev/next relations for the target
+  if(left) {
+    if(target.previous) {
+      // (previous --> source --> target)
+      target.previous.next = source;
+      source.previous = target.previous;
+
+      source.next = target;
+      target.previous = source;
+    } else {
+      // (null --> source --> target)
+      source.previous = null;
+
+      source.next = target;
+      target.previous = source;
+    }
+  } else {
+    if(target.next) {
+      // (target --> source --> next)
+      target.next.previous = source;
+      source.next = target.next;
+
+      source.previous = target;
+      target.next = source;
+    } else {
+      // (target --> source --> null)
+      source.next = null;
+
+      source.previous = target;
+      target.next = source;
+      this.setLastColumn(source);
+    }
+  }
+
+  this._graphicsFactory.moveColumn(source, target, left);
+
+  this._eventBus.fire('column.moved', {
+    source: source,
+    target: target,
+    left: left
+  });
+
+};
+
+
 ///////////// add functionality ///////////////////////////////
 
 Sheet.prototype._ensureValid = function(type, element) {
@@ -13391,21 +14151,21 @@ Sheet.prototype.setRootElement = function(root) {
   this._rootNode = root;
 };
 
-},{"569":569,"570":570,"619":619,"622":622}],413:[function(_dereq_,module,exports){
+},{"483":483,"484":484,"542":542,"545":545}],417:[function(_dereq_,module,exports){
 module.exports = {
-  __depends__: [ _dereq_(415) ],
+  __depends__: [ _dereq_(419) ],
   __init__: [ 'sheet' ],
-  sheet: [ 'type', _dereq_(412) ],
-  elementRegistry: [ 'type', _dereq_(410) ],
-  elementFactory: ['type', _dereq_(409)],
-  graphicsFactory: [ 'type', _dereq_(411) ],
-  eventBus: [ 'type', _dereq_(458) ]
+  sheet: [ 'type', _dereq_(416) ],
+  elementRegistry: [ 'type', _dereq_(414) ],
+  elementFactory: ['type', _dereq_(413)],
+  graphicsFactory: [ 'type', _dereq_(415) ],
+  eventBus: [ 'type', _dereq_(467) ]
 };
 
-},{"409":409,"410":410,"411":411,"412":412,"415":415,"458":458}],414:[function(_dereq_,module,exports){
+},{"413":413,"414":414,"415":415,"416":416,"419":419,"467":467}],418:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(570),
+var forEach = _dereq_(484),
     colDistance = function colDistance(from, to) {
       var i = 0,
           current = from.column;
@@ -13507,18 +14267,18 @@ Renderer.prototype.drawCell = function drawCell(gfx, data) {
 };
 
 
-},{"570":570}],415:[function(_dereq_,module,exports){
+},{"484":484}],419:[function(_dereq_,module,exports){
 module.exports = {
-  renderer: [ 'type', _dereq_(414) ]
+  renderer: [ 'type', _dereq_(418) ]
 };
 
-},{"414":414}],416:[function(_dereq_,module,exports){
+},{"418":418}],420:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(632);
+var domify = _dereq_(554);
 
 // document wide unique overlay ids
-var ids = new (_dereq_(463))('row');
+var ids = new (_dereq_(472))('row');
 
 /**
  * Adds a control to the table to add more rows
@@ -13561,10 +14321,10 @@ AddRow.prototype.getRow = function() {
   return this.row;
 };
 
-},{"463":463,"632":632}],417:[function(_dereq_,module,exports){
+},{"472":472,"554":554}],421:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(630);
+var domClasses = _dereq_(552);
 
 function AddRowRenderer(
     eventBus,
@@ -13592,18 +14352,18 @@ AddRowRenderer.$inject = [
 
 module.exports = AddRowRenderer;
 
-},{"630":630}],418:[function(_dereq_,module,exports){
+},{"552":552}],422:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'addRow', 'addRowRenderer'],
   __depends__: [
-    _dereq_(446),
-    _dereq_(453)
+    _dereq_(452),
+    _dereq_(462)
   ],
-  addRow: [ 'type', _dereq_(416) ],
-  addRowRenderer: [ 'type', _dereq_(417) ]
+  addRow: [ 'type', _dereq_(420) ],
+  addRowRenderer: [ 'type', _dereq_(421) ]
 };
 
-},{"416":416,"417":417,"446":446,"453":453}],419:[function(_dereq_,module,exports){
+},{"420":420,"421":421,"452":452,"462":462}],423:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -13668,21 +14428,21 @@ ChangeSupport.$inject = [ 'eventBus', 'elementRegistry', 'graphicsFactory' ];
 
 module.exports = ChangeSupport;
 
-},{}],420:[function(_dereq_,module,exports){
+},{}],424:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'changeSupport'],
-  changeSupport: [ 'type', _dereq_(419) ]
+  changeSupport: [ 'type', _dereq_(423) ]
 };
 
-},{"419":419}],421:[function(_dereq_,module,exports){
+},{"423":423}],425:[function(_dereq_,module,exports){
 'use strict';
 
 
 
-var domify = _dereq_(632),
-    domClasses = _dereq_(630),
-    assign = _dereq_(622),
-    forEach = _dereq_(570);
+var domify = _dereq_(554),
+    domClasses = _dereq_(552),
+    assign = _dereq_(545),
+    forEach = _dereq_(484);
 
 /**
  * Offers the ability to create a combobox which is a combination of an
@@ -13971,12 +14731,12 @@ ComboBox.prototype.enable = function() {
 
 module.exports = ComboBox;
 
-},{"570":570,"622":622,"630":630,"632":632}],422:[function(_dereq_,module,exports){
+},{"484":484,"545":545,"552":552,"554":554}],426:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(622),
-    domClasses = _dereq_(630),
-    domRemove = _dereq_(635);
+var assign = _dereq_(545),
+    domClasses = _dereq_(552),
+    domRemove = _dereq_(557);
 
 
 /**
@@ -14068,6 +14828,10 @@ ComplexCell.prototype.setupListeners = function() {
           offset.y -= e.scrollTop;
           e = e.parentNode;
       }
+
+      // add the global scroll offset
+      offset.x += window.pageXOffset;
+      offset.y += window.pageYOffset;
 
       event.element.complex.position = {
         x: offset.x,
@@ -14184,18 +14948,18 @@ ComplexCell.$inject = [ 'eventBus', 'elementRegistry' ];
 
 module.exports = ComplexCell;
 
-},{"622":622,"630":630,"635":635}],423:[function(_dereq_,module,exports){
+},{"545":545,"552":552,"557":557}],427:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'complexCell' ],
-  complexCell: [ 'type', _dereq_(422) ]
+  complexCell: [ 'type', _dereq_(426) ]
 };
 
-},{"422":422}],424:[function(_dereq_,module,exports){
+},{"426":426}],428:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(630);
+var domClasses = _dereq_(552);
 /**
  *  The controls module adds a container to the top-right corner of the table which holds
  *  some control elements
@@ -14247,18 +15011,18 @@ Controls.$inject = [ 'eventBus' ];
 
 module.exports = Controls;
 
-},{"630":630}],425:[function(_dereq_,module,exports){
+},{"552":552}],429:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'controls' ],
-  controls: [ 'type', _dereq_(424) ]
+  controls: [ 'type', _dereq_(428) ]
 };
 
-},{"424":424}],426:[function(_dereq_,module,exports){
+},{"428":428}],430:[function(_dereq_,module,exports){
 'use strict';
 
-var debounce = _dereq_(572);
+var debounce = _dereq_(486);
 var DEBOUNCE_DELAY = 300;
 
 function EditBehavior(
@@ -14466,10 +15230,10 @@ EditBehavior.$inject = [
 
 module.exports = EditBehavior;
 
-},{"572":572}],427:[function(_dereq_,module,exports){
+},{"486":486}],431:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(630);
+var domClasses = _dereq_(552);
 
 function EditRenderer(
     eventBus,
@@ -14528,7 +15292,7 @@ EditRenderer.$inject = [
 
 module.exports = EditRenderer;
 
-},{"630":630}],428:[function(_dereq_,module,exports){
+},{"552":552}],432:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -14637,24 +15401,24 @@ Selection.prototype.selectBelow = function() {
   }
 };
 
-},{}],429:[function(_dereq_,module,exports){
+},{}],433:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'editBehavior', 'editRenderer' ],
   __depends__: [
-    _dereq_(433),
-    _dereq_(446),
-    _dereq_(435),
-    _dereq_(461)
+    _dereq_(437),
+    _dereq_(452),
+    _dereq_(439),
+    _dereq_(470)
   ],
-  selection: [ 'type', _dereq_(428) ],
-  editBehavior: [ 'type', _dereq_(426) ],
-  editRenderer: [ 'type', _dereq_(427) ]
+  selection: [ 'type', _dereq_(432) ],
+  editBehavior: [ 'type', _dereq_(430) ],
+  editRenderer: [ 'type', _dereq_(431) ]
 };
 
-},{"426":426,"427":427,"428":428,"433":433,"435":435,"446":446,"461":461}],430:[function(_dereq_,module,exports){
+},{"430":430,"431":431,"432":432,"437":437,"439":439,"452":452,"470":470}],434:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(570);
+var forEach = _dereq_(484);
 
 var NOT_REGISTERED_ERROR = 'is not a registered action',
     IS_REGISTERED_ERROR = 'is already registered';
@@ -14785,20 +15549,20 @@ function error(action, message) {
   return new Error(action + ' ' + message);
 }
 
-},{"570":570}],431:[function(_dereq_,module,exports){
+},{"484":484}],435:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'editorActions' ],
-  editorActions: [ 'type', _dereq_(430) ]
+  editorActions: [ 'type', _dereq_(434) ]
 };
 
-},{"430":430}],432:[function(_dereq_,module,exports){
+},{"434":434}],436:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(570),
-    domDelegate = _dereq_(631);
+var forEach = _dereq_(484),
+    domDelegate = _dereq_(553);
 
 
-var isPrimaryButton = _dereq_(464).isPrimaryButton;
+var isPrimaryButton = _dereq_(473).isPrimaryButton;
 
 /**
  * A plugin that provides interaction events for table elements.
@@ -14863,6 +15627,7 @@ function InteractionEvents(eventBus, elementRegistry) {
     click: 'element.click',
     dblclick: 'element.dblclick',
     mousedown: 'element.mousedown',
+    mousemove: 'element.mousemove',
     mouseup: 'element.mouseup',
     focus: 'element.focus',
     blur: 'element.blur',
@@ -15037,17 +15802,17 @@ module.exports = InteractionEvents;
  * @property {Event} originalEvent
  */
 
-},{"464":464,"570":570,"631":631}],433:[function(_dereq_,module,exports){
+},{"473":473,"484":484,"553":553}],437:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'interactionEvents' ],
-  interactionEvents: [ 'type', _dereq_(432) ]
+  interactionEvents: [ 'type', _dereq_(436) ]
 };
 
-},{"432":432}],434:[function(_dereq_,module,exports){
+},{"436":436}],438:[function(_dereq_,module,exports){
 'use strict';
 
-var domEvent = _dereq_(633),
-    domMatches = _dereq_(634);
+var domEvent = _dereq_(555),
+    domMatches = _dereq_(556);
 
 /**
  * A keyboard abstraction that may be activated and
@@ -15220,19 +15985,19 @@ function isShift(modifiers) {
   return modifiers.shiftKey;
 }
 
-},{"633":633,"634":634}],435:[function(_dereq_,module,exports){
+},{"555":555,"556":556}],439:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(431)
+    _dereq_(435)
   ],
   __init__: [ 'keyboard' ],
-  keyboard: [ 'type', _dereq_(434) ]
+  keyboard: [ 'type', _dereq_(438) ]
 };
 
-},{"431":431,"434":434}],436:[function(_dereq_,module,exports){
+},{"435":435,"438":438}],440:[function(_dereq_,module,exports){
 'use strict';
 
-var debounce = _dereq_(572);
+var debounce = _dereq_(486);
 
 function LineNumbers(eventBus, sheet) {
 
@@ -15246,7 +16011,7 @@ function LineNumbers(eventBus, sheet) {
     self._utilityColumn = column;
     self.updateLineNumbers();
   });
-  eventBus.on([ 'cells.added', 'row.removed' ], debounce(self.updateLineNumbers.bind(self), 100, {
+  eventBus.on([ 'cells.added', 'row.removed', 'row.moved' ], debounce(self.updateLineNumbers.bind(self), 100, {
     'leading': true,
     'trailing': true
   }));
@@ -15282,19 +16047,19 @@ LineNumbers.prototype.updateLineNumbers = function() {
   }
 };
 
-},{"572":572}],437:[function(_dereq_,module,exports){
+},{"486":486}],441:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'lineNumbers' ],
   __depends__: [
-    _dereq_(453)
+    _dereq_(462)
   ],
-  lineNumbers: [ 'type', _dereq_(436) ]
+  lineNumbers: [ 'type', _dereq_(440) ]
 };
 
-},{"436":436,"453":453}],438:[function(_dereq_,module,exports){
+},{"440":440,"462":462}],442:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(570);
+var forEach = _dereq_(484);
 
 
 /**
@@ -15327,16 +16092,18 @@ module.exports = Modeling;
 
 Modeling.prototype.getHandlers = function() {
   return {
-    'row.create': _dereq_(441),
-    'row.delete': _dereq_(443),
-    'row.clear': _dereq_(439),
+    'row.create': _dereq_(445),
+    'row.delete': _dereq_(447),
+    'row.clear': _dereq_(443),
+    'row.move': _dereq_(451),
 
-    'column.create': _dereq_(440),
-    'column.delete': _dereq_(442),
+    'column.create': _dereq_(444),
+    'column.delete': _dereq_(446),
+    'column.move': _dereq_(450),
 
-    'cell.edit': _dereq_(444),
+    'cell.edit': _dereq_(448),
 
-    'name.edit': _dereq_(445)
+    'name.edit': _dereq_(449)
   };
 };
 
@@ -15364,6 +16131,18 @@ Modeling.prototype.createRow = function(row) {
   this._commandStack.execute('row.create', context);
 
   return context.row;
+};
+
+Modeling.prototype.moveRow = function(source, target, above) {
+  var context = {
+    source: source,
+    target: target,
+    above: above
+  };
+
+  this._commandStack.execute('row.move', context);
+
+  return context;
 };
 
 Modeling.prototype.createColumn = function(column) {
@@ -15412,6 +16191,18 @@ Modeling.prototype.deleteColumn = function(column) {
   return context.column;
 };
 
+Modeling.prototype.moveColumn = function(source, target, left) {
+  var context = {
+    source: source,
+    target: target,
+    left: left
+  };
+
+  this._commandStack.execute('column.move', context);
+
+  return context;
+};
+
 Modeling.prototype.editCell = function(row, column, content) {
 
   var context = {
@@ -15438,10 +16229,10 @@ Modeling.prototype.editName = function(newName) {
   return context;
 };
 
-},{"439":439,"440":440,"441":441,"442":442,"443":443,"444":444,"445":445,"570":570}],439:[function(_dereq_,module,exports){
+},{"443":443,"444":444,"445":445,"446":446,"447":447,"448":448,"449":449,"450":450,"451":451,"484":484}],443:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(570);
+var forEach = _dereq_(484);
 
 /**
  * A handler that implements reversible clear of rows
@@ -15505,7 +16296,7 @@ DeleteRowHandler.prototype.revert = function(context) {
   });
 };
 
-},{"570":570}],440:[function(_dereq_,module,exports){
+},{"484":484}],444:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -15555,7 +16346,7 @@ CreateColumnHandler.prototype.revert = function(context) {
   this._sheet.removeColumn(context.column);
 };
 
-},{}],441:[function(_dereq_,module,exports){
+},{}],445:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -15605,10 +16396,10 @@ CreateRowHandler.prototype.revert = function(context) {
   this._sheet.removeRow(context.row);
 };
 
-},{}],442:[function(_dereq_,module,exports){
+},{}],446:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(570);
+var forEach = _dereq_(484);
 
 /**
  * A handler that implements reversible addition of columns.
@@ -15667,10 +16458,10 @@ DeleteColumnHandler.prototype.revert = function(context) {
   });
 };
 
-},{"570":570}],443:[function(_dereq_,module,exports){
+},{"484":484}],447:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(570);
+var forEach = _dereq_(484);
 
 /**
  * A handler that implements reversible addition of rows.
@@ -15729,7 +16520,7 @@ DeleteRowHandler.prototype.revert = function(context) {
   });
 };
 
-},{"570":570}],444:[function(_dereq_,module,exports){
+},{"484":484}],448:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -15770,7 +16561,7 @@ EditCellHandler.prototype.revert = function(context) {
   return context;
 };
 
-},{}],445:[function(_dereq_,module,exports){
+},{}],449:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -15811,28 +16602,126 @@ EditNameHandler.prototype.revert = function(context) {
   return context;
 };
 
-},{}],446:[function(_dereq_,module,exports){
-module.exports = {
-  __depends__: [
-    _dereq_(457),
-    _dereq_(420),
-    _dereq_(461),
-    _dereq_(453)
-  ],
-  __init__: [ 'modeling' ],
-  modeling: [ 'type', _dereq_(438) ]
-};
-
-},{"420":420,"438":438,"453":453,"457":457,"461":461}],447:[function(_dereq_,module,exports){
+},{}],450:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(570),
-    assign = _dereq_(622),
-    domDelegate = _dereq_(631),
-    domify = _dereq_(632),
-    domClasses = _dereq_(630),
-    domAttr = _dereq_(629),
-    domRemove = _dereq_(635);
+/**
+ * A handler that implements reversible move of columns
+ *
+ * @param {sheet} sheet
+ */
+function MoveColumnHandler(sheet) {
+  this._sheet = sheet;
+}
+
+MoveColumnHandler.$inject = [ 'sheet' ];
+
+module.exports = MoveColumnHandler;
+
+
+
+////// api /////////////////////////////////////////
+
+
+/**
+ * Move a column
+ *
+ * @param {Object} context
+ */
+MoveColumnHandler.prototype.execute = function(context) {
+
+  context.previousRight = context.source.next;
+  this._sheet.moveColumn(context.source, context.target, context.left);
+
+};
+
+
+/**
+ * Undo move
+ *
+ * @param {Object} context
+ */
+MoveColumnHandler.prototype.revert = function(context) {
+  if(context.previousRight) {
+    // if it had a column below previously, we can move it back there again
+    this._sheet.moveColumn(context.source, context.previousRight, true);
+  } else {
+    // if it was the last column before moving it, move it back there again
+    this._sheet.moveColumn(context.source, this._sheet.getLastColumn(), false);
+  }
+};
+
+},{}],451:[function(_dereq_,module,exports){
+'use strict';
+
+/**
+ * A handler that implements reversible move of rows
+ *
+ * @param {sheet} sheet
+ */
+function MoveRowHandler(sheet) {
+  this._sheet = sheet;
+}
+
+MoveRowHandler.$inject = [ 'sheet' ];
+
+module.exports = MoveRowHandler;
+
+
+
+////// api /////////////////////////////////////////
+
+
+/**
+ * Move a row
+ *
+ * @param {Object} context
+ */
+MoveRowHandler.prototype.execute = function(context) {
+
+  context.previousBelow = context.source.next;
+  this._sheet.moveRow(context.source, context.target, context.above);
+
+};
+
+
+/**
+ * Undo move
+ *
+ * @param {Object} context
+ */
+MoveRowHandler.prototype.revert = function(context) {
+  if(context.previousBelow) {
+    // if it had a row below previously, we can move it back there again
+    this._sheet.moveRow(context.source, context.previousBelow, true);
+  } else {
+    // if it was the last row before moving it, move it back there again
+    this._sheet.moveRow(context.source, this._sheet.getLastRow('body'), false);
+  }
+};
+
+},{}],452:[function(_dereq_,module,exports){
+module.exports = {
+  __depends__: [
+    _dereq_(466),
+    _dereq_(424),
+    _dereq_(470),
+    _dereq_(462)
+  ],
+  __init__: [ 'modeling' ],
+  modeling: [ 'type', _dereq_(442) ]
+};
+
+},{"424":424,"442":442,"462":462,"466":466,"470":470}],453:[function(_dereq_,module,exports){
+'use strict';
+
+var forEach = _dereq_(484),
+    assign = _dereq_(545),
+    domDelegate = _dereq_(553),
+    domify = _dereq_(554),
+    domClasses = _dereq_(552),
+    domAttr = _dereq_(551),
+    domRemove = _dereq_(557);
 
 
 var DATA_REF = 'data-id';
@@ -16218,18 +17107,228 @@ PopupMenu.prototype._createEntry = function(entry, container) {
 
 module.exports = PopupMenu;
 
-},{"570":570,"622":622,"629":629,"630":630,"631":631,"632":632,"635":635}],448:[function(_dereq_,module,exports){
+},{"484":484,"545":545,"551":551,"552":552,"553":553,"554":554,"557":557}],454:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'popupMenu' ],
-  popupMenu: [ 'type', _dereq_(447) ]
+  popupMenu: [ 'type', _dereq_(453) ]
 };
 
-},{"447":447}],449:[function(_dereq_,module,exports){
+},{"453":453}],455:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(632);
+var domClasses = _dereq_(552);
+
+function DragRenderer(
+    eventBus,
+    utilityColumn) {
+
+  eventBus.on('cell.render', function(event) {
+    if (event.data.column === utilityColumn.getColumn() && !event.data.row.isFoot && !event.data.row.isHead) {
+      domClasses(event.gfx).add('draggable');
+    }
+  });
+}
+
+DragRenderer.$inject = [
+  'eventBus',
+  'utilityColumn'
+];
+
+module.exports = DragRenderer;
+
+},{"552":552}],456:[function(_dereq_,module,exports){
+'use strict';
+
+var domify = _dereq_(554);
+var domClasses = _dereq_(552);
+
+var DRAG_THRESHOLD = 10;
+
+function RowDrag(eventBus, sheet, elementRegistry, modeling) {
+
+  this._sheet = sheet;
+  this._elementRegistry = elementRegistry;
+  this._utilityColumn = null;
+  this._modeling = modeling;
+
+  var self = this;
+
+  eventBus.on('utilityColumn.added', function(event) {
+    var column = event.column;
+    self._utilityColumn = column;
+  });
+
+  this.dragDistance = 0;
+  this.draggedElement = null;
+  this.previousCoordinates = {
+    x: 0,
+    y: 0
+  };
+  this.highlightedBorder = null;
+  this.moveAbove = false;
+
+  eventBus.on('element.mousedown', function(event) {
+    if(event.element.column === self._utilityColumn) {
+      event.preventDefault();
+      self.startDragging(event.element.row);
+      self.setLastDragPoint(event.originalEvent);
+    }
+  });
+  document.body.addEventListener('mouseup', function(event) {
+    if(self.isDragging()) {
+      self.stopDragging();
+    }
+  });
+  document.body.addEventListener('mousemove', function(event) {
+    if(self.isDragging()) {
+      event.preventDefault();
+      self.updateDragDistance(event);
+      if(self.dragDistance > DRAG_THRESHOLD) {
+        self.updateVisuals(event);
+      }
+    }
+  });
+}
+
+RowDrag.$inject = [ 'eventBus', 'sheet', 'elementRegistry', 'modeling' ];
+
+module.exports = RowDrag;
+
+RowDrag.prototype.setLastDragPoint = function(event) {
+  this.previousCoordinates.x = event.clientX;
+  this.previousCoordinates.y = event.clientY;
+};
+
+RowDrag.prototype.updateVisuals = function(event) {
+
+  if(!this.dragVisual) {
+    this.dragVisual = this.createDragVisual(this.draggedElement);
+  }
+
+  var container = this._sheet.getContainer();
+  container.appendChild(this.dragVisual);
+
+  this.dragVisual.style.position = 'fixed';
+  this.dragVisual.style.left = (this.previousCoordinates.x + 5) + 'px';
+  this.dragVisual.style.top = (this.previousCoordinates.y + 5) + 'px';
+
+  // clear the indicator for the previous run
+  if(this.highlightedBorder) {
+    domClasses(this.highlightedBorder).remove('drop');
+    domClasses(this.highlightedBorder).remove('above');
+    domClasses(this.highlightedBorder).remove('below');
+    this.highlightedBorder = null;
+  }
+
+  // get the element we are hovering over
+  var tr = event.target;
+  while(tr && (tr.tagName || '').toLowerCase() !== 'tr') {
+    tr = tr.parentNode;
+  }
+  if(tr) {
+    // tr must be child of tbody
+    if(this._sheet.getBody().contains(tr)) {
+      // check if we hover over the top or the bottom half of the row
+      var e = tr;
+      var offset = {x:0,y:0};
+      while (e)
+      {
+          offset.x += e.offsetLeft;
+          offset.y += e.offsetTop;
+          e = e.offsetParent;
+      }
+      if(event.clientY < offset.y + tr.clientHeight / 2) {
+        domClasses(tr).add('drop');
+        domClasses(tr).add('above');
+        this.moveAbove = true;
+      } else {
+        domClasses(tr).add('drop');
+        domClasses(tr).add('below');
+        this.moveAbove = false;
+      }
+      this.highlightedBorder = tr;
+    }
+  }
+};
+
+RowDrag.prototype.updateDragDistance = function(event) {
+  this.dragDistance +=
+      Math.abs(event.clientX - this.previousCoordinates.x) +
+      Math.abs(event.clientY - this.previousCoordinates.y);
+
+  this.setLastDragPoint(event);
+};
+
+RowDrag.prototype.startDragging = function(element) {
+  this.draggedElement = element;
+  this.dragDistance = 0;
+
+  this.dragVisual = null;
+};
+
+RowDrag.prototype.createDragVisual = function(element) {
+  // get the html representation of the row
+  var gfx = this._elementRegistry.getGraphics(element);
+
+  // create a clone
+  var clone = gfx.cloneNode(true);
+
+  // fix the line number field width
+  clone.firstChild.setAttribute('class', 'hit number');
+
+  // put it in a table tbody
+  var table = domify('<table><tbody></tbody></table>');
+  table.setAttribute('class','dragTable');
+  table.firstChild.appendChild(clone);
+
+  // fade the original element
+  domClasses(gfx).add('dragged');
+
+  return table;
+};
+
+RowDrag.prototype.stopDragging = function() {
+  if(this.highlightedBorder) {
+    // make sure we drop it to the element we have previously highlighted
+    var targetElement = this._elementRegistry.get(this.highlightedBorder.getAttribute('data-element-id'));
+    this._modeling.moveRow(this.draggedElement, targetElement, this.moveAbove);
+  }
+  if(this.dragVisual) {
+    this.dragVisual.parentNode.removeChild(this.dragVisual);
+    // restore opacity of the element
+    domClasses(this._elementRegistry.getGraphics(this.draggedElement)).remove('dragged');
+    this._elementRegistry.getGraphics(this.draggedElement).style.opacity = '';
+  }
+  if(this.highlightedBorder) {
+    domClasses(this.highlightedBorder).remove('drop');
+    domClasses(this.highlightedBorder).remove('above');
+    domClasses(this.highlightedBorder).remove('below');
+    this.highlightedBorder = null;
+  }
+
+  this.draggedElement = null;
+};
+
+RowDrag.prototype.isDragging = function() {
+  return !!this.draggedElement;
+};
+
+},{"552":552,"554":554}],457:[function(_dereq_,module,exports){
+module.exports = {
+  __init__: [ 'rowDrag', 'dragRenderer' ],
+  __depends__: [
+    _dereq_(462)
+  ],
+  rowDrag: [ 'type', _dereq_(456) ],
+  dragRenderer: [ 'type', _dereq_(455) ]
+};
+
+},{"455":455,"456":456,"462":462}],458:[function(_dereq_,module,exports){
+'use strict';
+
+var domify = _dereq_(554);
 
 /**
  * Adds a header to the table containing the table name
@@ -16270,7 +17369,7 @@ TableName.prototype.getNode = function() {
   return this.node.querySelector('h3');
 };
 
-},{"632":632}],450:[function(_dereq_,module,exports){
+},{"554":554}],459:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -16314,10 +17413,10 @@ UtilityColumn.prototype.getColumn = function() {
   return this.column;
 };
 
-},{}],451:[function(_dereq_,module,exports){
+},{}],460:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(630);
+var domClasses = _dereq_(552);
 
 function UtilityColumnRenderer(
     eventBus,
@@ -16338,12 +17437,12 @@ UtilityColumnRenderer.$inject = [
 
 module.exports = UtilityColumnRenderer;
 
-},{"630":630}],452:[function(_dereq_,module,exports){
+},{"552":552}],461:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(567);
+var inherits = _dereq_(479);
 
-var RuleProvider = _dereq_(459);
+var RuleProvider = _dereq_(468);
 
 /**
  * LineNumber specific modeling rule
@@ -16370,22 +17469,22 @@ UtilityColumnRules.prototype.init = function() {
 
 };
 
-},{"459":459,"567":567}],453:[function(_dereq_,module,exports){
+},{"468":468,"479":479}],462:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'utilityColumn', 'utilityColumnRules', 'utilityColumnRenderer' ],
   __depends__: [
-    _dereq_(461)
+    _dereq_(470)
   ],
-  utilityColumn: [ 'type', _dereq_(450) ],
-  utilityColumnRules: [ 'type', _dereq_(452) ],
-  utilityColumnRenderer: [ 'type', _dereq_(451) ]
+  utilityColumn: [ 'type', _dereq_(459) ],
+  utilityColumnRules: [ 'type', _dereq_(461) ],
+  utilityColumnRenderer: [ 'type', _dereq_(460) ]
 };
 
-},{"450":450,"451":451,"452":452,"461":461}],454:[function(_dereq_,module,exports){
+},{"459":459,"460":460,"461":461,"470":470}],463:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(622),
-    inherits = _dereq_(567);
+var assign = _dereq_(545),
+    inherits = _dereq_(479);
 
 function Base() {
   Object.defineProperty(this, 'businessObject', {
@@ -16448,16 +17547,150 @@ module.exports.Table = Table;
 module.exports.Row = Row;
 module.exports.Column = Column;
 
-},{"567":567,"622":622}],455:[function(_dereq_,module,exports){
-arguments[4][48][0].apply(exports,arguments)
-},{"471":471,"48":48,"548":548,"549":549,"551":551}],456:[function(_dereq_,module,exports){
+},{"479":479,"545":545}],464:[function(_dereq_,module,exports){
 'use strict';
 
-var unique = _dereq_(469),
-    isArray = _dereq_(548),
-    assign = _dereq_(554);
+var forEach = _dereq_(484),
+    isFunction = _dereq_(540),
+    isArray = _dereq_(539),
+    isNumber = _dereq_(542);
 
-var InternalEvent = _dereq_(458).Event;
+
+var DEFAULT_PRIORITY = 1000;
+
+
+/**
+ * A utility that can be used to plug-in into the command execution for
+ * extension and/or validation.
+ *
+ * @param {EventBus} eventBus
+ *
+ * @example
+ *
+ * var inherits = require('inherits');
+ *
+ * var CommandInterceptor = require('diagram-js/lib/command/CommandInterceptor');
+ *
+ * function CommandLogger(eventBus) {
+ *   CommandInterceptor.call(this, eventBus);
+ *
+ *   this.preExecute(function(event) {
+ *     console.log('command pre-execute', event);
+ *   });
+ * }
+ *
+ * inherits(CommandLogger, CommandInterceptor);
+ *
+ */
+function CommandInterceptor(eventBus) {
+  this._eventBus = eventBus;
+}
+
+CommandInterceptor.$inject = [ 'eventBus' ];
+
+module.exports = CommandInterceptor;
+
+function unwrapEvent(fn) {
+  return function(event) {
+    return fn(event.context, event.command, event);
+  };
+}
+
+/**
+ * Register an interceptor for a command execution
+ *
+ * @param {String|Array<String>} [events] list of commands to register on
+ * @param {String} [hook] command hook, i.e. preExecute, executed to listen on
+ * @param {Number} [priority] the priority on which to hook into the execution
+ * @param {Function} handlerFn interceptor to be invoked with (event)
+ * @param {Boolean} unwrap if true, unwrap the event and pass (context, command, event) to the
+ *                          listener instead
+ */
+CommandInterceptor.prototype.on = function(events, hook, priority, handlerFn, unwrap) {
+
+  if (isFunction(hook) || isNumber(hook)) {
+    unwrap = handlerFn;
+    handlerFn = priority;
+    priority = hook;
+    hook = null;
+  }
+
+  if (isFunction(priority)) {
+    unwrap = handlerFn;
+    handlerFn = priority;
+    priority = DEFAULT_PRIORITY;
+  }
+
+  if (!isFunction(handlerFn)) {
+    throw new Error('handlerFn must be a function');
+  }
+
+  if (!isArray(events)) {
+    events = [ events ];
+  }
+
+  var eventBus = this._eventBus;
+
+  forEach(events, function(event) {
+    // concat commandStack(.event)?(.hook)?
+    var fullEvent = [ 'commandStack', event, hook ].filter(function(e) { return e; }).join('.');
+
+    eventBus.on(fullEvent, priority, unwrap ? unwrapEvent(handlerFn) : handlerFn);
+  });
+};
+
+
+var hooks = [
+  'canExecute',
+  'preExecute',
+  'preExecuted',
+  'execute',
+  'executed',
+  'postExecute',
+  'postExecuted',
+  'revert',
+  'reverted'
+];
+
+/*
+ * Install hook shortcuts
+ *
+ * This will generate the CommandInterceptor#(preExecute|...|reverted) methods
+ * which will in term forward to CommandInterceptor#on.
+ */
+forEach(hooks, function(hook) {
+
+  /**
+   * {canExecute|preExecute|preExecuted|execute|executed|postExecute|postExecuted|revert|reverted}
+   *
+   * A named hook for plugging into the command execution
+   *
+   * @param {String|Array<String>} [events] list of commands to register on
+   * @param {Number} [priority] the priority on which to hook into the execution
+   * @param {Function} handlerFn interceptor to be invoked with (event)
+   * @param {Boolean} [unwrap=false] if true, unwrap the event and pass (context, command, event) to the
+   *                          listener instead
+   */
+  CommandInterceptor.prototype[hook] = function(events, priority, handlerFn, unwrap) {
+
+    if (isFunction(events) || isNumber(events)) {
+      unwrap = handlerFn;
+      handlerFn = priority;
+      priority = events;
+      events = null;
+    }
+
+    this.on(events, hook, priority, handlerFn, unwrap);
+  };
+});
+},{"484":484,"539":539,"540":540,"542":542}],465:[function(_dereq_,module,exports){
+'use strict';
+
+var unique = _dereq_(482),
+    isArray = _dereq_(539),
+    assign = _dereq_(545);
+
+var InternalEvent = _dereq_(467).Event;
 
 
 /**
@@ -16915,19 +18148,18 @@ CommandStack.prototype._setHandler = function(command, handler) {
   this._handlerMap[command] = handler;
 };
 
-},{"458":458,"469":469,"548":548,"554":554}],457:[function(_dereq_,module,exports){
+},{"467":467,"482":482,"539":539,"545":545}],466:[function(_dereq_,module,exports){
 module.exports = {
-  commandStack: [ 'type', _dereq_(456) ]
+  commandStack: [ 'type', _dereq_(465) ]
 };
 
-},{"456":456}],458:[function(_dereq_,module,exports){
+},{"465":465}],467:[function(_dereq_,module,exports){
 'use strict';
 
-var isFunction = _dereq_(549),
-    isArray = _dereq_(548),
-    isNumber = _dereq_(551),
-    bind = _dereq_(473),
-    assign = _dereq_(554);
+var isFunction = _dereq_(540),
+    isArray = _dereq_(539),
+    isNumber = _dereq_(542),
+    assign = _dereq_(545);
 
 var DEFAULT_PRIORITY = 1000;
 
@@ -16983,12 +18215,6 @@ var DEFAULT_PRIORITY = 1000;
  * eventBus.on('priorityfoo', 1500, function(event) {
  *   console.log('invoked first!');
  * });
- *
- *
- * // listen for event and pass the context (`this`)
- * eventBus.on('foobar', function(event) {
- *   this.foo();
- * }, this);
  * ```
  *
  *
@@ -17047,24 +18273,18 @@ module.exports = EventBus;
  * @param {String|Array<String>} events
  * @param {Number} [priority=1000] the priority in which this listener is called, larger is higher
  * @param {Function} callback
- * @param {Object} [that] Pass context (`this`) to the callback
  */
-EventBus.prototype.on = function(events, priority, callback, that) {
+EventBus.prototype.on = function(events, priority, callback) {
 
   events = isArray(events) ? events : [ events ];
 
   if (isFunction(priority)) {
-    that = callback;
     callback = priority;
     priority = DEFAULT_PRIORITY;
   }
 
   if (!isNumber(priority)) {
     throw new Error('priority must be a number');
-  }
-
-  if (that) {
-    callback = bind(callback, that);
   }
 
   var self = this,
@@ -17081,13 +18301,13 @@ EventBus.prototype.on = function(events, priority, callback, that) {
  *
  * @param {String} event the event name to register for
  * @param {Function} callback the callback to execute
- * @param {Object} [that] Pass context (`this`) to the callback
  */
-EventBus.prototype.once = function(event, callback, that) {
+EventBus.prototype.once = function(event, callback) {
+
   var self = this;
 
   function wrappedCallback() {
-    callback.apply(that || self, arguments);
+    callback.apply(self, arguments);
     self.off(event, wrappedCallback);
   }
 
@@ -17319,9 +18539,82 @@ Event.prototype.init = function(data) {
   assign(this, data || {});
 };
 
-},{"473":473,"548":548,"549":549,"551":551,"554":554}],459:[function(_dereq_,module,exports){
-arguments[4][49][0].apply(exports,arguments)
-},{"455":455,"466":466,"49":49}],460:[function(_dereq_,module,exports){
+},{"539":539,"540":540,"542":542,"545":545}],468:[function(_dereq_,module,exports){
+'use strict';
+
+var inherits = _dereq_(479);
+
+var CommandInterceptor = _dereq_(464);
+
+/**
+ * A basic provider that may be extended to implement modeling rules.
+ *
+ * Extensions should implement the init method to actually add their custom
+ * modeling checks. Checks may be added via the #addRule(action, fn) method.
+ *
+ * @param {EventBus} eventBus
+ */
+function RuleProvider(eventBus) {
+  CommandInterceptor.call(this, eventBus);
+
+  this.init();
+}
+
+RuleProvider.$inject = [ 'eventBus' ];
+
+inherits(RuleProvider, CommandInterceptor);
+
+module.exports = RuleProvider;
+
+
+/**
+ * Adds a modeling rule for the given action, implemented through a callback function.
+ *
+ * The function will receive the modeling specific action context to perform its check.
+ * It must return false or null to disallow the action from happening.
+ *
+ * Returning <code>null</code> may encode simply ignoring the action.
+ *
+ * @example
+ *
+ * ResizableRules.prototype.init = function() {
+ *
+ *   this.addRule('shape.resize', function(context) {
+ *
+ *     var shape = context.shape;
+ *
+ *     if (!context.newBounds) {
+ *       // check general resizability
+ *       if (!shape.resizable) {
+ *         return false;
+ *       }
+ *     } else {
+ *       // element must have minimum size of 10*10 points
+ *       return context.newBounds.width > 10 && context.newBounds.height > 10;
+ *     }
+ *   });
+ * };
+ *
+ * @param {String|Array<String>} actions the identifier for the modeling action to check
+ * @param {Number} [priority] the priority at which this rule is being applied
+ * @param {Function} fn the callback function that performs the actual check
+ */
+RuleProvider.prototype.addRule = function(actions, priority, fn) {
+
+  var self = this;
+
+  if (typeof actions === 'string') {
+    actions = [ actions ];
+  }
+
+  actions.forEach(function(action) {
+
+    self.canExecute(action, priority, function(context, action, event) {
+      return fn(context);
+    }, true);
+  });
+};
+},{"464":464,"479":479}],469:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -17354,14 +18647,14 @@ Rules.prototype.allowed = function(action, context) {
   // map undefined to true, i.e. no rules
   return allowed === undefined ? true : allowed;
 };
-},{}],461:[function(_dereq_,module,exports){
+},{}],470:[function(_dereq_,module,exports){
 module.exports = {
-  __depends__: [ _dereq_(457) ],
+  __depends__: [ _dereq_(466) ],
   __init__: [ 'rules' ],
-  rules: [ 'type', _dereq_(460) ]
+  rules: [ 'type', _dereq_(469) ]
 };
 
-},{"457":457,"460":460}],462:[function(_dereq_,module,exports){
+},{"466":466,"469":469}],471:[function(_dereq_,module,exports){
 'use strict';
 
 function __preventDefault(event) {
@@ -17432,14 +18725,45 @@ function toPoint(event) {
 
 module.exports.toPoint = toPoint;
 
-},{}],463:[function(_dereq_,module,exports){
-arguments[4][50][0].apply(exports,arguments)
-},{"50":50}],464:[function(_dereq_,module,exports){
+},{}],472:[function(_dereq_,module,exports){
 'use strict';
 
-var getOriginalEvent = _dereq_(462).getOriginal;
+/**
+ * Util that provides unique IDs.
+ *
+ * @class djs.util.IdGenerator
+ * @constructor
+ * @memberOf djs.util
+ *
+ * The ids can be customized via a given prefix and contain a random value to avoid collisions.
+ *
+ * @param {String} prefix a prefix to prepend to generated ids (for better readability)
+ */
+function IdGenerator(prefix) {
 
-var isMac = _dereq_(465).isMac;
+  this._counter = 0;
+  this._prefix = (prefix ? prefix + '-' : '') + Math.floor(Math.random() * 1000000000) + '-';
+}
+
+module.exports = IdGenerator;
+
+/**
+ * Returns a next unique ID.
+ *
+ * @method djs.util.IdGenerator#next
+ *
+ * @returns {String} the id
+ */
+IdGenerator.prototype.next = function() {
+  return this._prefix + (++this._counter);
+};
+
+},{}],473:[function(_dereq_,module,exports){
+'use strict';
+
+var getOriginalEvent = _dereq_(471).getOriginal;
+
+var isMac = _dereq_(474).isMac;
 
 
 function isPrimaryButton(event) {
@@ -17473,1493 +18797,13 @@ module.exports.hasSecondaryModifier = function(event) {
   return isPrimaryButton(event) && originalEvent.shiftKey;
 };
 
-},{"462":462,"465":465}],465:[function(_dereq_,module,exports){
+},{"471":471,"474":474}],474:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports.isMac = function isMac() {
   return (/mac/i).test(navigator.platform);
 };
-},{}],466:[function(_dereq_,module,exports){
-arguments[4][51][0].apply(exports,arguments)
-},{"51":51}],467:[function(_dereq_,module,exports){
-arguments[4][117][0].apply(exports,arguments)
-},{"117":117}],468:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(483),
-    baseUniq = _dereq_(503),
-    isIterateeCall = _dereq_(530),
-    sortedUniq = _dereq_(543);
-
-/**
- * Creates a duplicate-free version of an array, using
- * [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
- * for equality comparisons, in which only the first occurence of each element
- * is kept. Providing `true` for `isSorted` performs a faster search algorithm
- * for sorted arrays. If an iteratee function is provided it is invoked for
- * each element in the array to generate the criterion by which uniqueness
- * is computed. The `iteratee` is bound to `thisArg` and invoked with three
- * arguments: (value, index, array).
- *
- * If a property name is provided for `iteratee` the created `_.property`
- * style callback returns the property value of the given element.
- *
- * If a value is also provided for `thisArg` the created `_.matchesProperty`
- * style callback returns `true` for elements that have a matching property
- * value, else `false`.
- *
- * If an object is provided for `iteratee` the created `_.matches` style
- * callback returns `true` for elements that have the properties of the given
- * object, else `false`.
- *
- * @static
- * @memberOf _
- * @alias unique
- * @category Array
- * @param {Array} array The array to inspect.
- * @param {boolean} [isSorted] Specify the array is sorted.
- * @param {Function|Object|string} [iteratee] The function invoked per iteration.
- * @param {*} [thisArg] The `this` binding of `iteratee`.
- * @returns {Array} Returns the new duplicate-value-free array.
- * @example
- *
- * _.uniq([2, 1, 2]);
- * // => [2, 1]
- *
- * // using `isSorted`
- * _.uniq([1, 1, 2], true);
- * // => [1, 2]
- *
- * // using an iteratee function
- * _.uniq([1, 2.5, 1.5, 2], function(n) {
- *   return this.floor(n);
- * }, Math);
- * // => [1, 2.5]
- *
- * // using the `_.property` callback shorthand
- * _.uniq([{ 'x': 1 }, { 'x': 2 }, { 'x': 1 }], 'x');
- * // => [{ 'x': 1 }, { 'x': 2 }]
- */
-function uniq(array, isSorted, iteratee, thisArg) {
-  var length = array ? array.length : 0;
-  if (!length) {
-    return [];
-  }
-  if (isSorted != null && typeof isSorted != 'boolean') {
-    thisArg = iteratee;
-    iteratee = isIterateeCall(array, isSorted, thisArg) ? null : isSorted;
-    isSorted = false;
-  }
-  iteratee = iteratee == null ? iteratee : baseCallback(iteratee, thisArg, 3);
-  return (isSorted)
-    ? sortedUniq(array, iteratee)
-    : baseUniq(array, iteratee);
-}
-
-module.exports = uniq;
-
-},{"483":483,"503":503,"530":530,"543":543}],469:[function(_dereq_,module,exports){
-module.exports = _dereq_(468);
-
-},{"468":468}],470:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(475),
-    LodashWrapper = _dereq_(476),
-    baseLodash = _dereq_(495),
-    isArray = _dereq_(548),
-    isObjectLike = _dereq_(534),
-    wrapperClone = _dereq_(546);
-
-/** Used for native method references. */
-var objectProto = Object.prototype;
-
-/** Used to check objects for own properties. */
-var hasOwnProperty = objectProto.hasOwnProperty;
-
-/**
- * Creates a `lodash` object which wraps `value` to enable implicit chaining.
- * Methods that operate on and return arrays, collections, and functions can
- * be chained together. Methods that return a boolean or single value will
- * automatically end the chain returning the unwrapped value. Explicit chaining
- * may be enabled using `_.chain`. The execution of chained methods is lazy,
- * that is, execution is deferred until `_#value` is implicitly or explicitly
- * called.
- *
- * Lazy evaluation allows several methods to support shortcut fusion. Shortcut
- * fusion is an optimization that merges iteratees to avoid creating intermediate
- * arrays and reduce the number of iteratee executions.
- *
- * Chaining is supported in custom builds as long as the `_#value` method is
- * directly or indirectly included in the build.
- *
- * In addition to lodash methods, wrappers have `Array` and `String` methods.
- *
- * The wrapper `Array` methods are:
- * `concat`, `join`, `pop`, `push`, `reverse`, `shift`, `slice`, `sort`,
- * `splice`, and `unshift`
- *
- * The wrapper `String` methods are:
- * `replace` and `split`
- *
- * The wrapper methods that support shortcut fusion are:
- * `compact`, `drop`, `dropRight`, `dropRightWhile`, `dropWhile`, `filter`,
- * `first`, `initial`, `last`, `map`, `pluck`, `reject`, `rest`, `reverse`,
- * `slice`, `take`, `takeRight`, `takeRightWhile`, `takeWhile`, `toArray`,
- * and `where`
- *
- * The chainable wrapper methods are:
- * `after`, `ary`, `assign`, `at`, `before`, `bind`, `bindAll`, `bindKey`,
- * `callback`, `chain`, `chunk`, `commit`, `compact`, `concat`, `constant`,
- * `countBy`, `create`, `curry`, `debounce`, `defaults`, `defer`, `delay`,
- * `difference`, `drop`, `dropRight`, `dropRightWhile`, `dropWhile`, `fill`,
- * `filter`, `flatten`, `flattenDeep`, `flow`, `flowRight`, `forEach`,
- * `forEachRight`, `forIn`, `forInRight`, `forOwn`, `forOwnRight`, `functions`,
- * `groupBy`, `indexBy`, `initial`, `intersection`, `invert`, `invoke`, `keys`,
- * `keysIn`, `map`, `mapKeys`, `mapValues`, `matches`, `matchesProperty`,
- * `memoize`, `merge`, `method`, `methodOf`, `mixin`, `negate`, `omit`, `once`,
- * `pairs`, `partial`, `partialRight`, `partition`, `pick`, `plant`, `pluck`,
- * `property`, `propertyOf`, `pull`, `pullAt`, `push`, `range`, `rearg`,
- * `reject`, `remove`, `rest`, `restParam`, `reverse`, `set`, `shuffle`,
- * `slice`, `sort`, `sortBy`, `sortByAll`, `sortByOrder`, `splice`, `spread`,
- * `take`, `takeRight`, `takeRightWhile`, `takeWhile`, `tap`, `throttle`,
- * `thru`, `times`, `toArray`, `toPlainObject`, `transform`, `union`, `uniq`,
- * `unshift`, `unzip`, `unzipWith`, `values`, `valuesIn`, `where`, `without`,
- * `wrap`, `xor`, `zip`, `zipObject`, `zipWith`
- *
- * The wrapper methods that are **not** chainable by default are:
- * `add`, `attempt`, `camelCase`, `capitalize`, `clone`, `cloneDeep`, `deburr`,
- * `endsWith`, `escape`, `escapeRegExp`, `every`, `find`, `findIndex`, `findKey`,
- * `findLast`, `findLastIndex`, `findLastKey`, `findWhere`, `first`, `get`,
- * `gt`, `gte`, `has`, `identity`, `includes`, `indexOf`, `inRange`, `isArguments`,
- * `isArray`, `isBoolean`, `isDate`, `isElement`, `isEmpty`, `isEqual`, `isError`,
- * `isFinite` `isFunction`, `isMatch`, `isNative`, `isNaN`, `isNull`, `isNumber`,
- * `isObject`, `isPlainObject`, `isRegExp`, `isString`, `isUndefined`,
- * `isTypedArray`, `join`, `kebabCase`, `last`, `lastIndexOf`, `lt`, `lte`,
- * `max`, `min`, `noConflict`, `noop`, `now`, `pad`, `padLeft`, `padRight`,
- * `parseInt`, `pop`, `random`, `reduce`, `reduceRight`, `repeat`, `result`,
- * `runInContext`, `shift`, `size`, `snakeCase`, `some`, `sortedIndex`,
- * `sortedLastIndex`, `startCase`, `startsWith`, `sum`, `template`, `trim`,
- * `trimLeft`, `trimRight`, `trunc`, `unescape`, `uniqueId`, `value`, and `words`
- *
- * The wrapper method `sample` will return a wrapped value when `n` is provided,
- * otherwise an unwrapped value is returned.
- *
- * @name _
- * @constructor
- * @category Chain
- * @param {*} value The value to wrap in a `lodash` instance.
- * @returns {Object} Returns the new `lodash` wrapper instance.
- * @example
- *
- * var wrapped = _([1, 2, 3]);
- *
- * // returns an unwrapped value
- * wrapped.reduce(function(total, n) {
- *   return total + n;
- * });
- * // => 6
- *
- * // returns a wrapped value
- * var squares = wrapped.map(function(n) {
- *   return n * n;
- * });
- *
- * _.isArray(squares);
- * // => false
- *
- * _.isArray(squares.value());
- * // => true
- */
-function lodash(value) {
-  if (isObjectLike(value) && !isArray(value) && !(value instanceof LazyWrapper)) {
-    if (value instanceof LodashWrapper) {
-      return value;
-    }
-    if (hasOwnProperty.call(value, '__chain__') && hasOwnProperty.call(value, '__wrapped__')) {
-      return wrapperClone(value);
-    }
-  }
-  return new LodashWrapper(value);
-}
-
-// Ensure wrappers are instances of `baseLodash`.
-lodash.prototype = baseLodash.prototype;
-
-module.exports = lodash;
-
-},{"475":475,"476":476,"495":495,"534":534,"546":546,"548":548}],471:[function(_dereq_,module,exports){
-arguments[4][52][0].apply(exports,arguments)
-},{"479":479,"486":486,"515":515,"52":52}],472:[function(_dereq_,module,exports){
-var getNative = _dereq_(526);
-
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeNow = getNative(Date, 'now');
-
-/**
- * Gets the number of milliseconds that have elapsed since the Unix epoch
- * (1 January 1970 00:00:00 UTC).
- *
- * @static
- * @memberOf _
- * @category Date
- * @example
- *
- * _.defer(function(stamp) {
- *   console.log(_.now() - stamp);
- * }, _.now());
- * // => logs the number of milliseconds it took for the deferred function to be invoked
- */
-var now = nativeNow || function() {
-  return new Date().getTime();
-};
-
-module.exports = now;
-
-},{"526":526}],473:[function(_dereq_,module,exports){
-var createWrapper = _dereq_(518),
-    replaceHolders = _dereq_(540),
-    restParam = _dereq_(474);
-
-/** Used to compose bitmasks for wrapper metadata. */
-var BIND_FLAG = 1,
-    PARTIAL_FLAG = 32;
-
-/**
- * Creates a function that invokes `func` with the `this` binding of `thisArg`
- * and prepends any additional `_.bind` arguments to those provided to the
- * bound function.
- *
- * The `_.bind.placeholder` value, which defaults to `_` in monolithic builds,
- * may be used as a placeholder for partially applied arguments.
- *
- * **Note:** Unlike native `Function#bind` this method does not set the "length"
- * property of bound functions.
- *
- * @static
- * @memberOf _
- * @category Function
- * @param {Function} func The function to bind.
- * @param {*} thisArg The `this` binding of `func`.
- * @param {...*} [partials] The arguments to be partially applied.
- * @returns {Function} Returns the new bound function.
- * @example
- *
- * var greet = function(greeting, punctuation) {
- *   return greeting + ' ' + this.user + punctuation;
- * };
- *
- * var object = { 'user': 'fred' };
- *
- * var bound = _.bind(greet, object, 'hi');
- * bound('!');
- * // => 'hi fred!'
- *
- * // using placeholders
- * var bound = _.bind(greet, object, _, '!');
- * bound('hi');
- * // => 'hi fred!'
- */
-var bind = restParam(function(func, thisArg, partials) {
-  var bitmask = BIND_FLAG;
-  if (partials.length) {
-    var holders = replaceHolders(partials, bind.placeholder);
-    bitmask |= PARTIAL_FLAG;
-  }
-  return createWrapper(func, bitmask, thisArg, partials, holders);
-});
-
-// Assign default placeholders.
-bind.placeholder = {};
-
-module.exports = bind;
-
-},{"474":474,"518":518,"540":540}],474:[function(_dereq_,module,exports){
-arguments[4][86][0].apply(exports,arguments)
-},{"86":86}],475:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(485),
-    baseLodash = _dereq_(495);
-
-/** Used as references for `-Infinity` and `Infinity`. */
-var POSITIVE_INFINITY = Number.POSITIVE_INFINITY;
-
-/**
- * Creates a lazy wrapper object which wraps `value` to enable lazy evaluation.
- *
- * @private
- * @param {*} value The value to wrap.
- */
-function LazyWrapper(value) {
-  this.__wrapped__ = value;
-  this.__actions__ = null;
-  this.__dir__ = 1;
-  this.__dropCount__ = 0;
-  this.__filtered__ = false;
-  this.__iteratees__ = null;
-  this.__takeCount__ = POSITIVE_INFINITY;
-  this.__views__ = null;
-}
-
-LazyWrapper.prototype = baseCreate(baseLodash.prototype);
-LazyWrapper.prototype.constructor = LazyWrapper;
-
-module.exports = LazyWrapper;
-
-},{"485":485,"495":495}],476:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(485),
-    baseLodash = _dereq_(495);
-
-/**
- * The base constructor for creating `lodash` wrapper objects.
- *
- * @private
- * @param {*} value The value to wrap.
- * @param {boolean} [chainAll] Enable chaining for all wrapper methods.
- * @param {Array} [actions=[]] Actions to peform to resolve the unwrapped value.
- */
-function LodashWrapper(value, chainAll, actions) {
-  this.__wrapped__ = value;
-  this.__actions__ = actions || [];
-  this.__chain__ = !!chainAll;
-}
-
-LodashWrapper.prototype = baseCreate(baseLodash.prototype);
-LodashWrapper.prototype.constructor = LodashWrapper;
-
-module.exports = LodashWrapper;
-
-},{"485":485,"495":495}],477:[function(_dereq_,module,exports){
-(function (global){
-var cachePush = _dereq_(506),
-    getNative = _dereq_(526);
-
-/** Native method references. */
-var Set = getNative(global, 'Set');
-
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeCreate = getNative(Object, 'create');
-
-/**
- *
- * Creates a cache object to store unique values.
- *
- * @private
- * @param {Array} [values] The values to cache.
- */
-function SetCache(values) {
-  var length = values ? values.length : 0;
-
-  this.data = { 'hash': nativeCreate(null), 'set': new Set };
-  while (length--) {
-    this.push(values[length]);
-  }
-}
-
-// Add functions to the `Set` cache.
-SetCache.prototype.push = cachePush;
-
-module.exports = SetCache;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-//# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy90YWJsZS1qcy9ub2RlX21vZHVsZXMvZGlhZ3JhbS1qcy9ub2RlX21vZHVsZXMvbG9kYXNoL2ludGVybmFsL1NldENhY2hlLmpzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7QUFBQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EiLCJmaWxlIjoiZ2VuZXJhdGVkLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXNDb250ZW50IjpbInZhciBjYWNoZVB1c2ggPSByZXF1aXJlKCcuL2NhY2hlUHVzaCcpLFxuICAgIGdldE5hdGl2ZSA9IHJlcXVpcmUoJy4vZ2V0TmF0aXZlJyk7XG5cbi8qKiBOYXRpdmUgbWV0aG9kIHJlZmVyZW5jZXMuICovXG52YXIgU2V0ID0gZ2V0TmF0aXZlKGdsb2JhbCwgJ1NldCcpO1xuXG4vKiBOYXRpdmUgbWV0aG9kIHJlZmVyZW5jZXMgZm9yIHRob3NlIHdpdGggdGhlIHNhbWUgbmFtZSBhcyBvdGhlciBgbG9kYXNoYCBtZXRob2RzLiAqL1xudmFyIG5hdGl2ZUNyZWF0ZSA9IGdldE5hdGl2ZShPYmplY3QsICdjcmVhdGUnKTtcblxuLyoqXG4gKlxuICogQ3JlYXRlcyBhIGNhY2hlIG9iamVjdCB0byBzdG9yZSB1bmlxdWUgdmFsdWVzLlxuICpcbiAqIEBwcml2YXRlXG4gKiBAcGFyYW0ge0FycmF5fSBbdmFsdWVzXSBUaGUgdmFsdWVzIHRvIGNhY2hlLlxuICovXG5mdW5jdGlvbiBTZXRDYWNoZSh2YWx1ZXMpIHtcbiAgdmFyIGxlbmd0aCA9IHZhbHVlcyA/IHZhbHVlcy5sZW5ndGggOiAwO1xuXG4gIHRoaXMuZGF0YSA9IHsgJ2hhc2gnOiBuYXRpdmVDcmVhdGUobnVsbCksICdzZXQnOiBuZXcgU2V0IH07XG4gIHdoaWxlIChsZW5ndGgtLSkge1xuICAgIHRoaXMucHVzaCh2YWx1ZXNbbGVuZ3RoXSk7XG4gIH1cbn1cblxuLy8gQWRkIGZ1bmN0aW9ucyB0byB0aGUgYFNldGAgY2FjaGUuXG5TZXRDYWNoZS5wcm90b3R5cGUucHVzaCA9IGNhY2hlUHVzaDtcblxubW9kdWxlLmV4cG9ydHMgPSBTZXRDYWNoZTtcbiJdfQ==
-},{"506":506,"526":526}],478:[function(_dereq_,module,exports){
-/**
- * Copies the values of `source` to `array`.
- *
- * @private
- * @param {Array} source The array to copy values from.
- * @param {Array} [array=[]] The array to copy values to.
- * @returns {Array} Returns `array`.
- */
-function arrayCopy(source, array) {
-  var index = -1,
-      length = source.length;
-
-  array || (array = Array(length));
-  while (++index < length) {
-    array[index] = source[index];
-  }
-  return array;
-}
-
-module.exports = arrayCopy;
-
-},{}],479:[function(_dereq_,module,exports){
-arguments[4][53][0].apply(exports,arguments)
-},{"53":53}],480:[function(_dereq_,module,exports){
-arguments[4][129][0].apply(exports,arguments)
-},{"129":129}],481:[function(_dereq_,module,exports){
-arguments[4][87][0].apply(exports,arguments)
-},{"555":555,"87":87}],482:[function(_dereq_,module,exports){
-arguments[4][88][0].apply(exports,arguments)
-},{"484":484,"555":555,"88":88}],483:[function(_dereq_,module,exports){
-arguments[4][132][0].apply(exports,arguments)
-},{"132":132,"496":496,"497":497,"504":504,"560":560,"562":562}],484:[function(_dereq_,module,exports){
-arguments[4][89][0].apply(exports,arguments)
-},{"89":89}],485:[function(_dereq_,module,exports){
-var isObject = _dereq_(552);
-
-/**
- * The base implementation of `_.create` without support for assigning
- * properties to the created object.
- *
- * @private
- * @param {Object} prototype The object to inherit from.
- * @returns {Object} Returns the new object.
- */
-var baseCreate = (function() {
-  function object() {}
-  return function(prototype) {
-    if (isObject(prototype)) {
-      object.prototype = prototype;
-      var result = new object;
-      object.prototype = null;
-    }
-    return result || {};
-  };
-}());
-
-module.exports = baseCreate;
-
-},{"552":552}],486:[function(_dereq_,module,exports){
-arguments[4][54][0].apply(exports,arguments)
-},{"488":488,"510":510,"54":54}],487:[function(_dereq_,module,exports){
-arguments[4][55][0].apply(exports,arguments)
-},{"511":511,"55":55}],488:[function(_dereq_,module,exports){
-arguments[4][56][0].apply(exports,arguments)
-},{"487":487,"555":555,"56":56}],489:[function(_dereq_,module,exports){
-arguments[4][141][0].apply(exports,arguments)
-},{"141":141,"544":544}],490:[function(_dereq_,module,exports){
-arguments[4][364][0].apply(exports,arguments)
-},{"364":364,"527":527}],491:[function(_dereq_,module,exports){
-arguments[4][142][0].apply(exports,arguments)
-},{"142":142,"492":492,"534":534,"552":552}],492:[function(_dereq_,module,exports){
-arguments[4][143][0].apply(exports,arguments)
-},{"143":143,"519":519,"520":520,"521":521,"548":548,"553":553}],493:[function(_dereq_,module,exports){
-arguments[4][57][0].apply(exports,arguments)
-},{"57":57}],494:[function(_dereq_,module,exports){
-arguments[4][144][0].apply(exports,arguments)
-},{"144":144,"491":491,"544":544}],495:[function(_dereq_,module,exports){
-/**
- * The function whose prototype all chaining wrappers inherit from.
- *
- * @private
- */
-function baseLodash() {
-  // No operation performed.
-}
-
-module.exports = baseLodash;
-
-},{}],496:[function(_dereq_,module,exports){
-arguments[4][146][0].apply(exports,arguments)
-},{"146":146,"494":494,"525":525,"544":544}],497:[function(_dereq_,module,exports){
-arguments[4][147][0].apply(exports,arguments)
-},{"147":147,"467":467,"489":489,"491":491,"501":501,"531":531,"535":535,"544":544,"545":545,"548":548}],498:[function(_dereq_,module,exports){
-arguments[4][58][0].apply(exports,arguments)
-},{"58":58}],499:[function(_dereq_,module,exports){
-arguments[4][149][0].apply(exports,arguments)
-},{"149":149,"489":489,"545":545}],500:[function(_dereq_,module,exports){
-var identity = _dereq_(560),
-    metaMap = _dereq_(537);
-
-/**
- * The base implementation of `setData` without support for hot loop detection.
- *
- * @private
- * @param {Function} func The function to associate metadata with.
- * @param {*} data The metadata.
- * @returns {Function} Returns `func`.
- */
-var baseSetData = !metaMap ? identity : function(func, data) {
-  metaMap.set(func, data);
-  return func;
-};
-
-module.exports = baseSetData;
-
-},{"537":537,"560":560}],501:[function(_dereq_,module,exports){
-arguments[4][151][0].apply(exports,arguments)
-},{"151":151}],502:[function(_dereq_,module,exports){
-arguments[4][59][0].apply(exports,arguments)
-},{"59":59}],503:[function(_dereq_,module,exports){
-var baseIndexOf = _dereq_(490),
-    cacheIndexOf = _dereq_(505),
-    createCache = _dereq_(513);
-
-/**
- * The base implementation of `_.uniq` without support for callback shorthands
- * and `this` binding.
- *
- * @private
- * @param {Array} array The array to inspect.
- * @param {Function} [iteratee] The function invoked per iteration.
- * @returns {Array} Returns the new duplicate-value-free array.
- */
-function baseUniq(array, iteratee) {
-  var index = -1,
-      indexOf = baseIndexOf,
-      length = array.length,
-      isCommon = true,
-      isLarge = isCommon && length >= 200,
-      seen = isLarge ? createCache() : null,
-      result = [];
-
-  if (seen) {
-    indexOf = cacheIndexOf;
-    isCommon = false;
-  } else {
-    isLarge = false;
-    seen = iteratee ? [] : result;
-  }
-  outer:
-  while (++index < length) {
-    var value = array[index],
-        computed = iteratee ? iteratee(value, index, array) : value;
-
-    if (isCommon && value === value) {
-      var seenIndex = seen.length;
-      while (seenIndex--) {
-        if (seen[seenIndex] === computed) {
-          continue outer;
-        }
-      }
-      if (iteratee) {
-        seen.push(computed);
-      }
-      result.push(value);
-    }
-    else if (indexOf(seen, computed, 0) < 0) {
-      if (iteratee || isLarge) {
-        seen.push(computed);
-      }
-      result.push(value);
-    }
-  }
-  return result;
-}
-
-module.exports = baseUniq;
-
-},{"490":490,"505":505,"513":513}],504:[function(_dereq_,module,exports){
-arguments[4][60][0].apply(exports,arguments)
-},{"560":560,"60":60}],505:[function(_dereq_,module,exports){
-arguments[4][368][0].apply(exports,arguments)
-},{"368":368,"552":552}],506:[function(_dereq_,module,exports){
-arguments[4][369][0].apply(exports,arguments)
-},{"369":369,"552":552}],507:[function(_dereq_,module,exports){
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeMax = Math.max;
-
-/**
- * Creates an array that is the composition of partially applied arguments,
- * placeholders, and provided arguments into a single array of arguments.
- *
- * @private
- * @param {Array|Object} args The provided arguments.
- * @param {Array} partials The arguments to prepend to those provided.
- * @param {Array} holders The `partials` placeholder indexes.
- * @returns {Array} Returns the new array of composed arguments.
- */
-function composeArgs(args, partials, holders) {
-  var holdersLength = holders.length,
-      argsIndex = -1,
-      argsLength = nativeMax(args.length - holdersLength, 0),
-      leftIndex = -1,
-      leftLength = partials.length,
-      result = Array(argsLength + leftLength);
-
-  while (++leftIndex < leftLength) {
-    result[leftIndex] = partials[leftIndex];
-  }
-  while (++argsIndex < holdersLength) {
-    result[holders[argsIndex]] = args[argsIndex];
-  }
-  while (argsLength--) {
-    result[leftIndex++] = args[argsIndex++];
-  }
-  return result;
-}
-
-module.exports = composeArgs;
-
-},{}],508:[function(_dereq_,module,exports){
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeMax = Math.max;
-
-/**
- * This function is like `composeArgs` except that the arguments composition
- * is tailored for `_.partialRight`.
- *
- * @private
- * @param {Array|Object} args The provided arguments.
- * @param {Array} partials The arguments to append to those provided.
- * @param {Array} holders The `partials` placeholder indexes.
- * @returns {Array} Returns the new array of composed arguments.
- */
-function composeArgsRight(args, partials, holders) {
-  var holdersIndex = -1,
-      holdersLength = holders.length,
-      argsIndex = -1,
-      argsLength = nativeMax(args.length - holdersLength, 0),
-      rightIndex = -1,
-      rightLength = partials.length,
-      result = Array(argsLength + rightLength);
-
-  while (++argsIndex < argsLength) {
-    result[argsIndex] = args[argsIndex];
-  }
-  var offset = argsIndex;
-  while (++rightIndex < rightLength) {
-    result[offset + rightIndex] = partials[rightIndex];
-  }
-  while (++holdersIndex < holdersLength) {
-    result[offset + holders[holdersIndex]] = args[argsIndex++];
-  }
-  return result;
-}
-
-module.exports = composeArgsRight;
-
-},{}],509:[function(_dereq_,module,exports){
-arguments[4][94][0].apply(exports,arguments)
-},{"474":474,"504":504,"530":530,"94":94}],510:[function(_dereq_,module,exports){
-arguments[4][61][0].apply(exports,arguments)
-},{"524":524,"533":533,"544":544,"61":61}],511:[function(_dereq_,module,exports){
-arguments[4][62][0].apply(exports,arguments)
-},{"544":544,"62":62}],512:[function(_dereq_,module,exports){
-(function (global){
-var createCtorWrapper = _dereq_(514);
-
-/**
- * Creates a function that wraps `func` and invokes it with the `this`
- * binding of `thisArg`.
- *
- * @private
- * @param {Function} func The function to bind.
- * @param {*} [thisArg] The `this` binding of `func`.
- * @returns {Function} Returns the new bound function.
- */
-function createBindWrapper(func, thisArg) {
-  var Ctor = createCtorWrapper(func);
-
-  function wrapper() {
-    var fn = (this && this !== global && this instanceof wrapper) ? Ctor : func;
-    return fn.apply(thisArg, arguments);
-  }
-  return wrapper;
-}
-
-module.exports = createBindWrapper;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-//# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy90YWJsZS1qcy9ub2RlX21vZHVsZXMvZGlhZ3JhbS1qcy9ub2RlX21vZHVsZXMvbG9kYXNoL2ludGVybmFsL2NyZWF0ZUJpbmRXcmFwcGVyLmpzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7QUFBQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBIiwiZmlsZSI6ImdlbmVyYXRlZC5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzQ29udGVudCI6WyJ2YXIgY3JlYXRlQ3RvcldyYXBwZXIgPSByZXF1aXJlKCcuL2NyZWF0ZUN0b3JXcmFwcGVyJyk7XG5cbi8qKlxuICogQ3JlYXRlcyBhIGZ1bmN0aW9uIHRoYXQgd3JhcHMgYGZ1bmNgIGFuZCBpbnZva2VzIGl0IHdpdGggdGhlIGB0aGlzYFxuICogYmluZGluZyBvZiBgdGhpc0FyZ2AuXG4gKlxuICogQHByaXZhdGVcbiAqIEBwYXJhbSB7RnVuY3Rpb259IGZ1bmMgVGhlIGZ1bmN0aW9uIHRvIGJpbmQuXG4gKiBAcGFyYW0geyp9IFt0aGlzQXJnXSBUaGUgYHRoaXNgIGJpbmRpbmcgb2YgYGZ1bmNgLlxuICogQHJldHVybnMge0Z1bmN0aW9ufSBSZXR1cm5zIHRoZSBuZXcgYm91bmQgZnVuY3Rpb24uXG4gKi9cbmZ1bmN0aW9uIGNyZWF0ZUJpbmRXcmFwcGVyKGZ1bmMsIHRoaXNBcmcpIHtcbiAgdmFyIEN0b3IgPSBjcmVhdGVDdG9yV3JhcHBlcihmdW5jKTtcblxuICBmdW5jdGlvbiB3cmFwcGVyKCkge1xuICAgIHZhciBmbiA9ICh0aGlzICYmIHRoaXMgIT09IGdsb2JhbCAmJiB0aGlzIGluc3RhbmNlb2Ygd3JhcHBlcikgPyBDdG9yIDogZnVuYztcbiAgICByZXR1cm4gZm4uYXBwbHkodGhpc0FyZywgYXJndW1lbnRzKTtcbiAgfVxuICByZXR1cm4gd3JhcHBlcjtcbn1cblxubW9kdWxlLmV4cG9ydHMgPSBjcmVhdGVCaW5kV3JhcHBlcjtcbiJdfQ==
-},{"514":514}],513:[function(_dereq_,module,exports){
-(function (global){
-var SetCache = _dereq_(477),
-    constant = _dereq_(559),
-    getNative = _dereq_(526);
-
-/** Native method references. */
-var Set = getNative(global, 'Set');
-
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeCreate = getNative(Object, 'create');
-
-/**
- * Creates a `Set` cache object to optimize linear searches of large arrays.
- *
- * @private
- * @param {Array} [values] The values to cache.
- * @returns {null|Object} Returns the new cache object if `Set` is supported, else `null`.
- */
-var createCache = !(nativeCreate && Set) ? constant(null) : function(values) {
-  return new SetCache(values);
-};
-
-module.exports = createCache;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-//# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy90YWJsZS1qcy9ub2RlX21vZHVsZXMvZGlhZ3JhbS1qcy9ub2RlX21vZHVsZXMvbG9kYXNoL2ludGVybmFsL2NyZWF0ZUNhY2hlLmpzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7QUFBQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBIiwiZmlsZSI6ImdlbmVyYXRlZC5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzQ29udGVudCI6WyJ2YXIgU2V0Q2FjaGUgPSByZXF1aXJlKCcuL1NldENhY2hlJyksXG4gICAgY29uc3RhbnQgPSByZXF1aXJlKCcuLi91dGlsaXR5L2NvbnN0YW50JyksXG4gICAgZ2V0TmF0aXZlID0gcmVxdWlyZSgnLi9nZXROYXRpdmUnKTtcblxuLyoqIE5hdGl2ZSBtZXRob2QgcmVmZXJlbmNlcy4gKi9cbnZhciBTZXQgPSBnZXROYXRpdmUoZ2xvYmFsLCAnU2V0Jyk7XG5cbi8qIE5hdGl2ZSBtZXRob2QgcmVmZXJlbmNlcyBmb3IgdGhvc2Ugd2l0aCB0aGUgc2FtZSBuYW1lIGFzIG90aGVyIGBsb2Rhc2hgIG1ldGhvZHMuICovXG52YXIgbmF0aXZlQ3JlYXRlID0gZ2V0TmF0aXZlKE9iamVjdCwgJ2NyZWF0ZScpO1xuXG4vKipcbiAqIENyZWF0ZXMgYSBgU2V0YCBjYWNoZSBvYmplY3QgdG8gb3B0aW1pemUgbGluZWFyIHNlYXJjaGVzIG9mIGxhcmdlIGFycmF5cy5cbiAqXG4gKiBAcHJpdmF0ZVxuICogQHBhcmFtIHtBcnJheX0gW3ZhbHVlc10gVGhlIHZhbHVlcyB0byBjYWNoZS5cbiAqIEByZXR1cm5zIHtudWxsfE9iamVjdH0gUmV0dXJucyB0aGUgbmV3IGNhY2hlIG9iamVjdCBpZiBgU2V0YCBpcyBzdXBwb3J0ZWQsIGVsc2UgYG51bGxgLlxuICovXG52YXIgY3JlYXRlQ2FjaGUgPSAhKG5hdGl2ZUNyZWF0ZSAmJiBTZXQpID8gY29uc3RhbnQobnVsbCkgOiBmdW5jdGlvbih2YWx1ZXMpIHtcbiAgcmV0dXJuIG5ldyBTZXRDYWNoZSh2YWx1ZXMpO1xufTtcblxubW9kdWxlLmV4cG9ydHMgPSBjcmVhdGVDYWNoZTtcbiJdfQ==
-},{"477":477,"526":526,"559":559}],514:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(485),
-    isObject = _dereq_(552);
-
-/**
- * Creates a function that produces an instance of `Ctor` regardless of
- * whether it was invoked as part of a `new` expression or by `call` or `apply`.
- *
- * @private
- * @param {Function} Ctor The constructor to wrap.
- * @returns {Function} Returns the new wrapped function.
- */
-function createCtorWrapper(Ctor) {
-  return function() {
-    // Use a `switch` statement to work with class constructors.
-    // See https://people.mozilla.org/~jorendorff/es6-draft.html#sec-ecmascript-function-objects-call-thisargument-argumentslist
-    // for more details.
-    var args = arguments;
-    switch (args.length) {
-      case 0: return new Ctor;
-      case 1: return new Ctor(args[0]);
-      case 2: return new Ctor(args[0], args[1]);
-      case 3: return new Ctor(args[0], args[1], args[2]);
-      case 4: return new Ctor(args[0], args[1], args[2], args[3]);
-      case 5: return new Ctor(args[0], args[1], args[2], args[3], args[4]);
-    }
-    var thisBinding = baseCreate(Ctor.prototype),
-        result = Ctor.apply(thisBinding, args);
-
-    // Mimic the constructor's `return` behavior.
-    // See https://es5.github.io/#x13.2.2 for more details.
-    return isObject(result) ? result : thisBinding;
-  };
-}
-
-module.exports = createCtorWrapper;
-
-},{"485":485,"552":552}],515:[function(_dereq_,module,exports){
-arguments[4][63][0].apply(exports,arguments)
-},{"504":504,"548":548,"63":63}],516:[function(_dereq_,module,exports){
-(function (global){
-var arrayCopy = _dereq_(478),
-    composeArgs = _dereq_(507),
-    composeArgsRight = _dereq_(508),
-    createCtorWrapper = _dereq_(514),
-    isLaziable = _dereq_(532),
-    reorder = _dereq_(539),
-    replaceHolders = _dereq_(540),
-    setData = _dereq_(541);
-
-/** Used to compose bitmasks for wrapper metadata. */
-var BIND_FLAG = 1,
-    BIND_KEY_FLAG = 2,
-    CURRY_BOUND_FLAG = 4,
-    CURRY_FLAG = 8,
-    CURRY_RIGHT_FLAG = 16,
-    PARTIAL_FLAG = 32,
-    PARTIAL_RIGHT_FLAG = 64,
-    ARY_FLAG = 128;
-
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeMax = Math.max;
-
-/**
- * Creates a function that wraps `func` and invokes it with optional `this`
- * binding of, partial application, and currying.
- *
- * @private
- * @param {Function|string} func The function or method name to reference.
- * @param {number} bitmask The bitmask of flags. See `createWrapper` for more details.
- * @param {*} [thisArg] The `this` binding of `func`.
- * @param {Array} [partials] The arguments to prepend to those provided to the new function.
- * @param {Array} [holders] The `partials` placeholder indexes.
- * @param {Array} [partialsRight] The arguments to append to those provided to the new function.
- * @param {Array} [holdersRight] The `partialsRight` placeholder indexes.
- * @param {Array} [argPos] The argument positions of the new function.
- * @param {number} [ary] The arity cap of `func`.
- * @param {number} [arity] The arity of `func`.
- * @returns {Function} Returns the new wrapped function.
- */
-function createHybridWrapper(func, bitmask, thisArg, partials, holders, partialsRight, holdersRight, argPos, ary, arity) {
-  var isAry = bitmask & ARY_FLAG,
-      isBind = bitmask & BIND_FLAG,
-      isBindKey = bitmask & BIND_KEY_FLAG,
-      isCurry = bitmask & CURRY_FLAG,
-      isCurryBound = bitmask & CURRY_BOUND_FLAG,
-      isCurryRight = bitmask & CURRY_RIGHT_FLAG,
-      Ctor = isBindKey ? null : createCtorWrapper(func);
-
-  function wrapper() {
-    // Avoid `arguments` object use disqualifying optimizations by
-    // converting it to an array before providing it to other functions.
-    var length = arguments.length,
-        index = length,
-        args = Array(length);
-
-    while (index--) {
-      args[index] = arguments[index];
-    }
-    if (partials) {
-      args = composeArgs(args, partials, holders);
-    }
-    if (partialsRight) {
-      args = composeArgsRight(args, partialsRight, holdersRight);
-    }
-    if (isCurry || isCurryRight) {
-      var placeholder = wrapper.placeholder,
-          argsHolders = replaceHolders(args, placeholder);
-
-      length -= argsHolders.length;
-      if (length < arity) {
-        var newArgPos = argPos ? arrayCopy(argPos) : null,
-            newArity = nativeMax(arity - length, 0),
-            newsHolders = isCurry ? argsHolders : null,
-            newHoldersRight = isCurry ? null : argsHolders,
-            newPartials = isCurry ? args : null,
-            newPartialsRight = isCurry ? null : args;
-
-        bitmask |= (isCurry ? PARTIAL_FLAG : PARTIAL_RIGHT_FLAG);
-        bitmask &= ~(isCurry ? PARTIAL_RIGHT_FLAG : PARTIAL_FLAG);
-
-        if (!isCurryBound) {
-          bitmask &= ~(BIND_FLAG | BIND_KEY_FLAG);
-        }
-        var newData = [func, bitmask, thisArg, newPartials, newsHolders, newPartialsRight, newHoldersRight, newArgPos, ary, newArity],
-            result = createHybridWrapper.apply(undefined, newData);
-
-        if (isLaziable(func)) {
-          setData(result, newData);
-        }
-        result.placeholder = placeholder;
-        return result;
-      }
-    }
-    var thisBinding = isBind ? thisArg : this,
-        fn = isBindKey ? thisBinding[func] : func;
-
-    if (argPos) {
-      args = reorder(args, argPos);
-    }
-    if (isAry && ary < args.length) {
-      args.length = ary;
-    }
-    if (this && this !== global && this instanceof wrapper) {
-      fn = Ctor || createCtorWrapper(func);
-    }
-    return fn.apply(thisBinding, args);
-  }
-  return wrapper;
-}
-
-module.exports = createHybridWrapper;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-//# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy90YWJsZS1qcy9ub2RlX21vZHVsZXMvZGlhZ3JhbS1qcy9ub2RlX21vZHVsZXMvbG9kYXNoL2ludGVybmFsL2NyZWF0ZUh5YnJpZFdyYXBwZXIuanMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IjtBQUFBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBIiwiZmlsZSI6ImdlbmVyYXRlZC5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzQ29udGVudCI6WyJ2YXIgYXJyYXlDb3B5ID0gcmVxdWlyZSgnLi9hcnJheUNvcHknKSxcbiAgICBjb21wb3NlQXJncyA9IHJlcXVpcmUoJy4vY29tcG9zZUFyZ3MnKSxcbiAgICBjb21wb3NlQXJnc1JpZ2h0ID0gcmVxdWlyZSgnLi9jb21wb3NlQXJnc1JpZ2h0JyksXG4gICAgY3JlYXRlQ3RvcldyYXBwZXIgPSByZXF1aXJlKCcuL2NyZWF0ZUN0b3JXcmFwcGVyJyksXG4gICAgaXNMYXppYWJsZSA9IHJlcXVpcmUoJy4vaXNMYXppYWJsZScpLFxuICAgIHJlb3JkZXIgPSByZXF1aXJlKCcuL3Jlb3JkZXInKSxcbiAgICByZXBsYWNlSG9sZGVycyA9IHJlcXVpcmUoJy4vcmVwbGFjZUhvbGRlcnMnKSxcbiAgICBzZXREYXRhID0gcmVxdWlyZSgnLi9zZXREYXRhJyk7XG5cbi8qKiBVc2VkIHRvIGNvbXBvc2UgYml0bWFza3MgZm9yIHdyYXBwZXIgbWV0YWRhdGEuICovXG52YXIgQklORF9GTEFHID0gMSxcbiAgICBCSU5EX0tFWV9GTEFHID0gMixcbiAgICBDVVJSWV9CT1VORF9GTEFHID0gNCxcbiAgICBDVVJSWV9GTEFHID0gOCxcbiAgICBDVVJSWV9SSUdIVF9GTEFHID0gMTYsXG4gICAgUEFSVElBTF9GTEFHID0gMzIsXG4gICAgUEFSVElBTF9SSUdIVF9GTEFHID0gNjQsXG4gICAgQVJZX0ZMQUcgPSAxMjg7XG5cbi8qIE5hdGl2ZSBtZXRob2QgcmVmZXJlbmNlcyBmb3IgdGhvc2Ugd2l0aCB0aGUgc2FtZSBuYW1lIGFzIG90aGVyIGBsb2Rhc2hgIG1ldGhvZHMuICovXG52YXIgbmF0aXZlTWF4ID0gTWF0aC5tYXg7XG5cbi8qKlxuICogQ3JlYXRlcyBhIGZ1bmN0aW9uIHRoYXQgd3JhcHMgYGZ1bmNgIGFuZCBpbnZva2VzIGl0IHdpdGggb3B0aW9uYWwgYHRoaXNgXG4gKiBiaW5kaW5nIG9mLCBwYXJ0aWFsIGFwcGxpY2F0aW9uLCBhbmQgY3VycnlpbmcuXG4gKlxuICogQHByaXZhdGVcbiAqIEBwYXJhbSB7RnVuY3Rpb258c3RyaW5nfSBmdW5jIFRoZSBmdW5jdGlvbiBvciBtZXRob2QgbmFtZSB0byByZWZlcmVuY2UuXG4gKiBAcGFyYW0ge251bWJlcn0gYml0bWFzayBUaGUgYml0bWFzayBvZiBmbGFncy4gU2VlIGBjcmVhdGVXcmFwcGVyYCBmb3IgbW9yZSBkZXRhaWxzLlxuICogQHBhcmFtIHsqfSBbdGhpc0FyZ10gVGhlIGB0aGlzYCBiaW5kaW5nIG9mIGBmdW5jYC5cbiAqIEBwYXJhbSB7QXJyYXl9IFtwYXJ0aWFsc10gVGhlIGFyZ3VtZW50cyB0byBwcmVwZW5kIHRvIHRob3NlIHByb3ZpZGVkIHRvIHRoZSBuZXcgZnVuY3Rpb24uXG4gKiBAcGFyYW0ge0FycmF5fSBbaG9sZGVyc10gVGhlIGBwYXJ0aWFsc2AgcGxhY2Vob2xkZXIgaW5kZXhlcy5cbiAqIEBwYXJhbSB7QXJyYXl9IFtwYXJ0aWFsc1JpZ2h0XSBUaGUgYXJndW1lbnRzIHRvIGFwcGVuZCB0byB0aG9zZSBwcm92aWRlZCB0byB0aGUgbmV3IGZ1bmN0aW9uLlxuICogQHBhcmFtIHtBcnJheX0gW2hvbGRlcnNSaWdodF0gVGhlIGBwYXJ0aWFsc1JpZ2h0YCBwbGFjZWhvbGRlciBpbmRleGVzLlxuICogQHBhcmFtIHtBcnJheX0gW2FyZ1Bvc10gVGhlIGFyZ3VtZW50IHBvc2l0aW9ucyBvZiB0aGUgbmV3IGZ1bmN0aW9uLlxuICogQHBhcmFtIHtudW1iZXJ9IFthcnldIFRoZSBhcml0eSBjYXAgb2YgYGZ1bmNgLlxuICogQHBhcmFtIHtudW1iZXJ9IFthcml0eV0gVGhlIGFyaXR5IG9mIGBmdW5jYC5cbiAqIEByZXR1cm5zIHtGdW5jdGlvbn0gUmV0dXJucyB0aGUgbmV3IHdyYXBwZWQgZnVuY3Rpb24uXG4gKi9cbmZ1bmN0aW9uIGNyZWF0ZUh5YnJpZFdyYXBwZXIoZnVuYywgYml0bWFzaywgdGhpc0FyZywgcGFydGlhbHMsIGhvbGRlcnMsIHBhcnRpYWxzUmlnaHQsIGhvbGRlcnNSaWdodCwgYXJnUG9zLCBhcnksIGFyaXR5KSB7XG4gIHZhciBpc0FyeSA9IGJpdG1hc2sgJiBBUllfRkxBRyxcbiAgICAgIGlzQmluZCA9IGJpdG1hc2sgJiBCSU5EX0ZMQUcsXG4gICAgICBpc0JpbmRLZXkgPSBiaXRtYXNrICYgQklORF9LRVlfRkxBRyxcbiAgICAgIGlzQ3VycnkgPSBiaXRtYXNrICYgQ1VSUllfRkxBRyxcbiAgICAgIGlzQ3VycnlCb3VuZCA9IGJpdG1hc2sgJiBDVVJSWV9CT1VORF9GTEFHLFxuICAgICAgaXNDdXJyeVJpZ2h0ID0gYml0bWFzayAmIENVUlJZX1JJR0hUX0ZMQUcsXG4gICAgICBDdG9yID0gaXNCaW5kS2V5ID8gbnVsbCA6IGNyZWF0ZUN0b3JXcmFwcGVyKGZ1bmMpO1xuXG4gIGZ1bmN0aW9uIHdyYXBwZXIoKSB7XG4gICAgLy8gQXZvaWQgYGFyZ3VtZW50c2Agb2JqZWN0IHVzZSBkaXNxdWFsaWZ5aW5nIG9wdGltaXphdGlvbnMgYnlcbiAgICAvLyBjb252ZXJ0aW5nIGl0IHRvIGFuIGFycmF5IGJlZm9yZSBwcm92aWRpbmcgaXQgdG8gb3RoZXIgZnVuY3Rpb25zLlxuICAgIHZhciBsZW5ndGggPSBhcmd1bWVudHMubGVuZ3RoLFxuICAgICAgICBpbmRleCA9IGxlbmd0aCxcbiAgICAgICAgYXJncyA9IEFycmF5KGxlbmd0aCk7XG5cbiAgICB3aGlsZSAoaW5kZXgtLSkge1xuICAgICAgYXJnc1tpbmRleF0gPSBhcmd1bWVudHNbaW5kZXhdO1xuICAgIH1cbiAgICBpZiAocGFydGlhbHMpIHtcbiAgICAgIGFyZ3MgPSBjb21wb3NlQXJncyhhcmdzLCBwYXJ0aWFscywgaG9sZGVycyk7XG4gICAgfVxuICAgIGlmIChwYXJ0aWFsc1JpZ2h0KSB7XG4gICAgICBhcmdzID0gY29tcG9zZUFyZ3NSaWdodChhcmdzLCBwYXJ0aWFsc1JpZ2h0LCBob2xkZXJzUmlnaHQpO1xuICAgIH1cbiAgICBpZiAoaXNDdXJyeSB8fCBpc0N1cnJ5UmlnaHQpIHtcbiAgICAgIHZhciBwbGFjZWhvbGRlciA9IHdyYXBwZXIucGxhY2Vob2xkZXIsXG4gICAgICAgICAgYXJnc0hvbGRlcnMgPSByZXBsYWNlSG9sZGVycyhhcmdzLCBwbGFjZWhvbGRlcik7XG5cbiAgICAgIGxlbmd0aCAtPSBhcmdzSG9sZGVycy5sZW5ndGg7XG4gICAgICBpZiAobGVuZ3RoIDwgYXJpdHkpIHtcbiAgICAgICAgdmFyIG5ld0FyZ1BvcyA9IGFyZ1BvcyA/IGFycmF5Q29weShhcmdQb3MpIDogbnVsbCxcbiAgICAgICAgICAgIG5ld0FyaXR5ID0gbmF0aXZlTWF4KGFyaXR5IC0gbGVuZ3RoLCAwKSxcbiAgICAgICAgICAgIG5ld3NIb2xkZXJzID0gaXNDdXJyeSA/IGFyZ3NIb2xkZXJzIDogbnVsbCxcbiAgICAgICAgICAgIG5ld0hvbGRlcnNSaWdodCA9IGlzQ3VycnkgPyBudWxsIDogYXJnc0hvbGRlcnMsXG4gICAgICAgICAgICBuZXdQYXJ0aWFscyA9IGlzQ3VycnkgPyBhcmdzIDogbnVsbCxcbiAgICAgICAgICAgIG5ld1BhcnRpYWxzUmlnaHQgPSBpc0N1cnJ5ID8gbnVsbCA6IGFyZ3M7XG5cbiAgICAgICAgYml0bWFzayB8PSAoaXNDdXJyeSA/IFBBUlRJQUxfRkxBRyA6IFBBUlRJQUxfUklHSFRfRkxBRyk7XG4gICAgICAgIGJpdG1hc2sgJj0gfihpc0N1cnJ5ID8gUEFSVElBTF9SSUdIVF9GTEFHIDogUEFSVElBTF9GTEFHKTtcblxuICAgICAgICBpZiAoIWlzQ3VycnlCb3VuZCkge1xuICAgICAgICAgIGJpdG1hc2sgJj0gfihCSU5EX0ZMQUcgfCBCSU5EX0tFWV9GTEFHKTtcbiAgICAgICAgfVxuICAgICAgICB2YXIgbmV3RGF0YSA9IFtmdW5jLCBiaXRtYXNrLCB0aGlzQXJnLCBuZXdQYXJ0aWFscywgbmV3c0hvbGRlcnMsIG5ld1BhcnRpYWxzUmlnaHQsIG5ld0hvbGRlcnNSaWdodCwgbmV3QXJnUG9zLCBhcnksIG5ld0FyaXR5XSxcbiAgICAgICAgICAgIHJlc3VsdCA9IGNyZWF0ZUh5YnJpZFdyYXBwZXIuYXBwbHkodW5kZWZpbmVkLCBuZXdEYXRhKTtcblxuICAgICAgICBpZiAoaXNMYXppYWJsZShmdW5jKSkge1xuICAgICAgICAgIHNldERhdGEocmVzdWx0LCBuZXdEYXRhKTtcbiAgICAgICAgfVxuICAgICAgICByZXN1bHQucGxhY2Vob2xkZXIgPSBwbGFjZWhvbGRlcjtcbiAgICAgICAgcmV0dXJuIHJlc3VsdDtcbiAgICAgIH1cbiAgICB9XG4gICAgdmFyIHRoaXNCaW5kaW5nID0gaXNCaW5kID8gdGhpc0FyZyA6IHRoaXMsXG4gICAgICAgIGZuID0gaXNCaW5kS2V5ID8gdGhpc0JpbmRpbmdbZnVuY10gOiBmdW5jO1xuXG4gICAgaWYgKGFyZ1Bvcykge1xuICAgICAgYXJncyA9IHJlb3JkZXIoYXJncywgYXJnUG9zKTtcbiAgICB9XG4gICAgaWYgKGlzQXJ5ICYmIGFyeSA8IGFyZ3MubGVuZ3RoKSB7XG4gICAgICBhcmdzLmxlbmd0aCA9IGFyeTtcbiAgICB9XG4gICAgaWYgKHRoaXMgJiYgdGhpcyAhPT0gZ2xvYmFsICYmIHRoaXMgaW5zdGFuY2VvZiB3cmFwcGVyKSB7XG4gICAgICBmbiA9IEN0b3IgfHwgY3JlYXRlQ3RvcldyYXBwZXIoZnVuYyk7XG4gICAgfVxuICAgIHJldHVybiBmbi5hcHBseSh0aGlzQmluZGluZywgYXJncyk7XG4gIH1cbiAgcmV0dXJuIHdyYXBwZXI7XG59XG5cbm1vZHVsZS5leHBvcnRzID0gY3JlYXRlSHlicmlkV3JhcHBlcjtcbiJdfQ==
-},{"478":478,"507":507,"508":508,"514":514,"532":532,"539":539,"540":540,"541":541}],517:[function(_dereq_,module,exports){
-(function (global){
-var createCtorWrapper = _dereq_(514);
-
-/** Used to compose bitmasks for wrapper metadata. */
-var BIND_FLAG = 1;
-
-/**
- * Creates a function that wraps `func` and invokes it with the optional `this`
- * binding of `thisArg` and the `partials` prepended to those provided to
- * the wrapper.
- *
- * @private
- * @param {Function} func The function to partially apply arguments to.
- * @param {number} bitmask The bitmask of flags. See `createWrapper` for more details.
- * @param {*} thisArg The `this` binding of `func`.
- * @param {Array} partials The arguments to prepend to those provided to the new function.
- * @returns {Function} Returns the new bound function.
- */
-function createPartialWrapper(func, bitmask, thisArg, partials) {
-  var isBind = bitmask & BIND_FLAG,
-      Ctor = createCtorWrapper(func);
-
-  function wrapper() {
-    // Avoid `arguments` object use disqualifying optimizations by
-    // converting it to an array before providing it `func`.
-    var argsIndex = -1,
-        argsLength = arguments.length,
-        leftIndex = -1,
-        leftLength = partials.length,
-        args = Array(argsLength + leftLength);
-
-    while (++leftIndex < leftLength) {
-      args[leftIndex] = partials[leftIndex];
-    }
-    while (argsLength--) {
-      args[leftIndex++] = arguments[++argsIndex];
-    }
-    var fn = (this && this !== global && this instanceof wrapper) ? Ctor : func;
-    return fn.apply(isBind ? thisArg : this, args);
-  }
-  return wrapper;
-}
-
-module.exports = createPartialWrapper;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-//# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy90YWJsZS1qcy9ub2RlX21vZHVsZXMvZGlhZ3JhbS1qcy9ub2RlX21vZHVsZXMvbG9kYXNoL2ludGVybmFsL2NyZWF0ZVBhcnRpYWxXcmFwcGVyLmpzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7QUFBQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBIiwiZmlsZSI6ImdlbmVyYXRlZC5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzQ29udGVudCI6WyJ2YXIgY3JlYXRlQ3RvcldyYXBwZXIgPSByZXF1aXJlKCcuL2NyZWF0ZUN0b3JXcmFwcGVyJyk7XG5cbi8qKiBVc2VkIHRvIGNvbXBvc2UgYml0bWFza3MgZm9yIHdyYXBwZXIgbWV0YWRhdGEuICovXG52YXIgQklORF9GTEFHID0gMTtcblxuLyoqXG4gKiBDcmVhdGVzIGEgZnVuY3Rpb24gdGhhdCB3cmFwcyBgZnVuY2AgYW5kIGludm9rZXMgaXQgd2l0aCB0aGUgb3B0aW9uYWwgYHRoaXNgXG4gKiBiaW5kaW5nIG9mIGB0aGlzQXJnYCBhbmQgdGhlIGBwYXJ0aWFsc2AgcHJlcGVuZGVkIHRvIHRob3NlIHByb3ZpZGVkIHRvXG4gKiB0aGUgd3JhcHBlci5cbiAqXG4gKiBAcHJpdmF0ZVxuICogQHBhcmFtIHtGdW5jdGlvbn0gZnVuYyBUaGUgZnVuY3Rpb24gdG8gcGFydGlhbGx5IGFwcGx5IGFyZ3VtZW50cyB0by5cbiAqIEBwYXJhbSB7bnVtYmVyfSBiaXRtYXNrIFRoZSBiaXRtYXNrIG9mIGZsYWdzLiBTZWUgYGNyZWF0ZVdyYXBwZXJgIGZvciBtb3JlIGRldGFpbHMuXG4gKiBAcGFyYW0geyp9IHRoaXNBcmcgVGhlIGB0aGlzYCBiaW5kaW5nIG9mIGBmdW5jYC5cbiAqIEBwYXJhbSB7QXJyYXl9IHBhcnRpYWxzIFRoZSBhcmd1bWVudHMgdG8gcHJlcGVuZCB0byB0aG9zZSBwcm92aWRlZCB0byB0aGUgbmV3IGZ1bmN0aW9uLlxuICogQHJldHVybnMge0Z1bmN0aW9ufSBSZXR1cm5zIHRoZSBuZXcgYm91bmQgZnVuY3Rpb24uXG4gKi9cbmZ1bmN0aW9uIGNyZWF0ZVBhcnRpYWxXcmFwcGVyKGZ1bmMsIGJpdG1hc2ssIHRoaXNBcmcsIHBhcnRpYWxzKSB7XG4gIHZhciBpc0JpbmQgPSBiaXRtYXNrICYgQklORF9GTEFHLFxuICAgICAgQ3RvciA9IGNyZWF0ZUN0b3JXcmFwcGVyKGZ1bmMpO1xuXG4gIGZ1bmN0aW9uIHdyYXBwZXIoKSB7XG4gICAgLy8gQXZvaWQgYGFyZ3VtZW50c2Agb2JqZWN0IHVzZSBkaXNxdWFsaWZ5aW5nIG9wdGltaXphdGlvbnMgYnlcbiAgICAvLyBjb252ZXJ0aW5nIGl0IHRvIGFuIGFycmF5IGJlZm9yZSBwcm92aWRpbmcgaXQgYGZ1bmNgLlxuICAgIHZhciBhcmdzSW5kZXggPSAtMSxcbiAgICAgICAgYXJnc0xlbmd0aCA9IGFyZ3VtZW50cy5sZW5ndGgsXG4gICAgICAgIGxlZnRJbmRleCA9IC0xLFxuICAgICAgICBsZWZ0TGVuZ3RoID0gcGFydGlhbHMubGVuZ3RoLFxuICAgICAgICBhcmdzID0gQXJyYXkoYXJnc0xlbmd0aCArIGxlZnRMZW5ndGgpO1xuXG4gICAgd2hpbGUgKCsrbGVmdEluZGV4IDwgbGVmdExlbmd0aCkge1xuICAgICAgYXJnc1tsZWZ0SW5kZXhdID0gcGFydGlhbHNbbGVmdEluZGV4XTtcbiAgICB9XG4gICAgd2hpbGUgKGFyZ3NMZW5ndGgtLSkge1xuICAgICAgYXJnc1tsZWZ0SW5kZXgrK10gPSBhcmd1bWVudHNbKythcmdzSW5kZXhdO1xuICAgIH1cbiAgICB2YXIgZm4gPSAodGhpcyAmJiB0aGlzICE9PSBnbG9iYWwgJiYgdGhpcyBpbnN0YW5jZW9mIHdyYXBwZXIpID8gQ3RvciA6IGZ1bmM7XG4gICAgcmV0dXJuIGZuLmFwcGx5KGlzQmluZCA/IHRoaXNBcmcgOiB0aGlzLCBhcmdzKTtcbiAgfVxuICByZXR1cm4gd3JhcHBlcjtcbn1cblxubW9kdWxlLmV4cG9ydHMgPSBjcmVhdGVQYXJ0aWFsV3JhcHBlcjtcbiJdfQ==
-},{"514":514}],518:[function(_dereq_,module,exports){
-var baseSetData = _dereq_(500),
-    createBindWrapper = _dereq_(512),
-    createHybridWrapper = _dereq_(516),
-    createPartialWrapper = _dereq_(517),
-    getData = _dereq_(522),
-    mergeData = _dereq_(536),
-    setData = _dereq_(541);
-
-/** Used to compose bitmasks for wrapper metadata. */
-var BIND_FLAG = 1,
-    BIND_KEY_FLAG = 2,
-    PARTIAL_FLAG = 32,
-    PARTIAL_RIGHT_FLAG = 64;
-
-/** Used as the `TypeError` message for "Functions" methods. */
-var FUNC_ERROR_TEXT = 'Expected a function';
-
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeMax = Math.max;
-
-/**
- * Creates a function that either curries or invokes `func` with optional
- * `this` binding and partially applied arguments.
- *
- * @private
- * @param {Function|string} func The function or method name to reference.
- * @param {number} bitmask The bitmask of flags.
- *  The bitmask may be composed of the following flags:
- *     1 - `_.bind`
- *     2 - `_.bindKey`
- *     4 - `_.curry` or `_.curryRight` of a bound function
- *     8 - `_.curry`
- *    16 - `_.curryRight`
- *    32 - `_.partial`
- *    64 - `_.partialRight`
- *   128 - `_.rearg`
- *   256 - `_.ary`
- * @param {*} [thisArg] The `this` binding of `func`.
- * @param {Array} [partials] The arguments to be partially applied.
- * @param {Array} [holders] The `partials` placeholder indexes.
- * @param {Array} [argPos] The argument positions of the new function.
- * @param {number} [ary] The arity cap of `func`.
- * @param {number} [arity] The arity of `func`.
- * @returns {Function} Returns the new wrapped function.
- */
-function createWrapper(func, bitmask, thisArg, partials, holders, argPos, ary, arity) {
-  var isBindKey = bitmask & BIND_KEY_FLAG;
-  if (!isBindKey && typeof func != 'function') {
-    throw new TypeError(FUNC_ERROR_TEXT);
-  }
-  var length = partials ? partials.length : 0;
-  if (!length) {
-    bitmask &= ~(PARTIAL_FLAG | PARTIAL_RIGHT_FLAG);
-    partials = holders = null;
-  }
-  length -= (holders ? holders.length : 0);
-  if (bitmask & PARTIAL_RIGHT_FLAG) {
-    var partialsRight = partials,
-        holdersRight = holders;
-
-    partials = holders = null;
-  }
-  var data = isBindKey ? null : getData(func),
-      newData = [func, bitmask, thisArg, partials, holders, partialsRight, holdersRight, argPos, ary, arity];
-
-  if (data) {
-    mergeData(newData, data);
-    bitmask = newData[1];
-    arity = newData[9];
-  }
-  newData[9] = arity == null
-    ? (isBindKey ? 0 : func.length)
-    : (nativeMax(arity - length, 0) || 0);
-
-  if (bitmask == BIND_FLAG) {
-    var result = createBindWrapper(newData[0], newData[2]);
-  } else if ((bitmask == PARTIAL_FLAG || bitmask == (BIND_FLAG | PARTIAL_FLAG)) && !newData[4].length) {
-    result = createPartialWrapper.apply(undefined, newData);
-  } else {
-    result = createHybridWrapper.apply(undefined, newData);
-  }
-  var setter = data ? baseSetData : setData;
-  return setter(result, newData);
-}
-
-module.exports = createWrapper;
-
-},{"500":500,"512":512,"516":516,"517":517,"522":522,"536":536,"541":541}],519:[function(_dereq_,module,exports){
-arguments[4][160][0].apply(exports,arguments)
-},{"160":160,"480":480}],520:[function(_dereq_,module,exports){
-arguments[4][161][0].apply(exports,arguments)
-},{"161":161}],521:[function(_dereq_,module,exports){
-arguments[4][162][0].apply(exports,arguments)
-},{"162":162,"555":555}],522:[function(_dereq_,module,exports){
-var metaMap = _dereq_(537),
-    noop = _dereq_(561);
-
-/**
- * Gets metadata for `func`.
- *
- * @private
- * @param {Function} func The function to query.
- * @returns {*} Returns the metadata for `func`.
- */
-var getData = !metaMap ? noop : function(func) {
-  return metaMap.get(func);
-};
-
-module.exports = getData;
-
-},{"537":537,"561":561}],523:[function(_dereq_,module,exports){
-var realNames = _dereq_(538);
-
-/**
- * Gets the name of `func`.
- *
- * @private
- * @param {Function} func The function to query.
- * @returns {string} Returns the function name.
- */
-function getFuncName(func) {
-  var result = func.name,
-      array = realNames[result],
-      length = array ? array.length : 0;
-
-  while (length--) {
-    var data = array[length],
-        otherFunc = data.func;
-    if (otherFunc == null || otherFunc == func) {
-      return data.name;
-    }
-  }
-  return result;
-}
-
-module.exports = getFuncName;
-
-},{"538":538}],524:[function(_dereq_,module,exports){
-arguments[4][64][0].apply(exports,arguments)
-},{"498":498,"64":64}],525:[function(_dereq_,module,exports){
-arguments[4][164][0].apply(exports,arguments)
-},{"164":164,"535":535,"557":557}],526:[function(_dereq_,module,exports){
-arguments[4][65][0].apply(exports,arguments)
-},{"550":550,"65":65}],527:[function(_dereq_,module,exports){
-arguments[4][377][0].apply(exports,arguments)
-},{"377":377}],528:[function(_dereq_,module,exports){
-arguments[4][66][0].apply(exports,arguments)
-},{"524":524,"533":533,"66":66}],529:[function(_dereq_,module,exports){
-arguments[4][67][0].apply(exports,arguments)
-},{"67":67}],530:[function(_dereq_,module,exports){
-arguments[4][99][0].apply(exports,arguments)
-},{"528":528,"529":529,"552":552,"99":99}],531:[function(_dereq_,module,exports){
-arguments[4][169][0].apply(exports,arguments)
-},{"169":169,"544":544,"548":548}],532:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(475),
-    getData = _dereq_(522),
-    getFuncName = _dereq_(523),
-    lodash = _dereq_(470);
-
-/**
- * Checks if `func` has a lazy counterpart.
- *
- * @private
- * @param {Function} func The function to check.
- * @returns {boolean} Returns `true` if `func` has a lazy counterpart, else `false`.
- */
-function isLaziable(func) {
-  var funcName = getFuncName(func);
-  if (!(funcName in LazyWrapper.prototype)) {
-    return false;
-  }
-  var other = lodash[funcName];
-  if (func === other) {
-    return true;
-  }
-  var data = getData(other);
-  return !!data && func === data[0];
-}
-
-module.exports = isLaziable;
-
-},{"470":470,"475":475,"522":522,"523":523}],533:[function(_dereq_,module,exports){
-arguments[4][68][0].apply(exports,arguments)
-},{"68":68}],534:[function(_dereq_,module,exports){
-arguments[4][69][0].apply(exports,arguments)
-},{"69":69}],535:[function(_dereq_,module,exports){
-arguments[4][172][0].apply(exports,arguments)
-},{"172":172,"552":552}],536:[function(_dereq_,module,exports){
-var arrayCopy = _dereq_(478),
-    composeArgs = _dereq_(507),
-    composeArgsRight = _dereq_(508),
-    replaceHolders = _dereq_(540);
-
-/** Used to compose bitmasks for wrapper metadata. */
-var BIND_FLAG = 1,
-    CURRY_BOUND_FLAG = 4,
-    CURRY_FLAG = 8,
-    ARY_FLAG = 128,
-    REARG_FLAG = 256;
-
-/** Used as the internal argument placeholder. */
-var PLACEHOLDER = '__lodash_placeholder__';
-
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeMin = Math.min;
-
-/**
- * Merges the function metadata of `source` into `data`.
- *
- * Merging metadata reduces the number of wrappers required to invoke a function.
- * This is possible because methods like `_.bind`, `_.curry`, and `_.partial`
- * may be applied regardless of execution order. Methods like `_.ary` and `_.rearg`
- * augment function arguments, making the order in which they are executed important,
- * preventing the merging of metadata. However, we make an exception for a safe
- * common case where curried functions have `_.ary` and or `_.rearg` applied.
- *
- * @private
- * @param {Array} data The destination metadata.
- * @param {Array} source The source metadata.
- * @returns {Array} Returns `data`.
- */
-function mergeData(data, source) {
-  var bitmask = data[1],
-      srcBitmask = source[1],
-      newBitmask = bitmask | srcBitmask,
-      isCommon = newBitmask < ARY_FLAG;
-
-  var isCombo =
-    (srcBitmask == ARY_FLAG && bitmask == CURRY_FLAG) ||
-    (srcBitmask == ARY_FLAG && bitmask == REARG_FLAG && data[7].length <= source[8]) ||
-    (srcBitmask == (ARY_FLAG | REARG_FLAG) && bitmask == CURRY_FLAG);
-
-  // Exit early if metadata can't be merged.
-  if (!(isCommon || isCombo)) {
-    return data;
-  }
-  // Use source `thisArg` if available.
-  if (srcBitmask & BIND_FLAG) {
-    data[2] = source[2];
-    // Set when currying a bound function.
-    newBitmask |= (bitmask & BIND_FLAG) ? 0 : CURRY_BOUND_FLAG;
-  }
-  // Compose partial arguments.
-  var value = source[3];
-  if (value) {
-    var partials = data[3];
-    data[3] = partials ? composeArgs(partials, value, source[4]) : arrayCopy(value);
-    data[4] = partials ? replaceHolders(data[3], PLACEHOLDER) : arrayCopy(source[4]);
-  }
-  // Compose partial right arguments.
-  value = source[5];
-  if (value) {
-    partials = data[5];
-    data[5] = partials ? composeArgsRight(partials, value, source[6]) : arrayCopy(value);
-    data[6] = partials ? replaceHolders(data[5], PLACEHOLDER) : arrayCopy(source[6]);
-  }
-  // Use source `argPos` if available.
-  value = source[7];
-  if (value) {
-    data[7] = arrayCopy(value);
-  }
-  // Use source `ary` if it's smaller.
-  if (srcBitmask & ARY_FLAG) {
-    data[8] = data[8] == null ? source[8] : nativeMin(data[8], source[8]);
-  }
-  // Use source `arity` if one is not provided.
-  if (data[9] == null) {
-    data[9] = source[9];
-  }
-  // Use source `func` and merge bitmasks.
-  data[0] = source[0];
-  data[1] = newBitmask;
-
-  return data;
-}
-
-module.exports = mergeData;
-
-},{"478":478,"507":507,"508":508,"540":540}],537:[function(_dereq_,module,exports){
-(function (global){
-var getNative = _dereq_(526);
-
-/** Native method references. */
-var WeakMap = getNative(global, 'WeakMap');
-
-/** Used to store function metadata. */
-var metaMap = WeakMap && new WeakMap;
-
-module.exports = metaMap;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-//# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy90YWJsZS1qcy9ub2RlX21vZHVsZXMvZGlhZ3JhbS1qcy9ub2RlX21vZHVsZXMvbG9kYXNoL2ludGVybmFsL21ldGFNYXAuanMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IjtBQUFBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBIiwiZmlsZSI6ImdlbmVyYXRlZC5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzQ29udGVudCI6WyJ2YXIgZ2V0TmF0aXZlID0gcmVxdWlyZSgnLi9nZXROYXRpdmUnKTtcblxuLyoqIE5hdGl2ZSBtZXRob2QgcmVmZXJlbmNlcy4gKi9cbnZhciBXZWFrTWFwID0gZ2V0TmF0aXZlKGdsb2JhbCwgJ1dlYWtNYXAnKTtcblxuLyoqIFVzZWQgdG8gc3RvcmUgZnVuY3Rpb24gbWV0YWRhdGEuICovXG52YXIgbWV0YU1hcCA9IFdlYWtNYXAgJiYgbmV3IFdlYWtNYXA7XG5cbm1vZHVsZS5leHBvcnRzID0gbWV0YU1hcDtcbiJdfQ==
-},{"526":526}],538:[function(_dereq_,module,exports){
-/** Used to lookup unminified function names. */
-var realNames = {};
-
-module.exports = realNames;
-
-},{}],539:[function(_dereq_,module,exports){
-var arrayCopy = _dereq_(478),
-    isIndex = _dereq_(529);
-
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeMin = Math.min;
-
-/**
- * Reorder `array` according to the specified indexes where the element at
- * the first index is assigned as the first element, the element at
- * the second index is assigned as the second element, and so on.
- *
- * @private
- * @param {Array} array The array to reorder.
- * @param {Array} indexes The arranged array indexes.
- * @returns {Array} Returns `array`.
- */
-function reorder(array, indexes) {
-  var arrLength = array.length,
-      length = nativeMin(indexes.length, arrLength),
-      oldArray = arrayCopy(array);
-
-  while (length--) {
-    var index = indexes[length];
-    array[length] = isIndex(index, arrLength) ? oldArray[index] : undefined;
-  }
-  return array;
-}
-
-module.exports = reorder;
-
-},{"478":478,"529":529}],540:[function(_dereq_,module,exports){
-/** Used as the internal argument placeholder. */
-var PLACEHOLDER = '__lodash_placeholder__';
-
-/**
- * Replaces all `placeholder` elements in `array` with an internal placeholder
- * and returns an array of their indexes.
- *
- * @private
- * @param {Array} array The array to modify.
- * @param {*} placeholder The placeholder to replace.
- * @returns {Array} Returns the new array of placeholder indexes.
- */
-function replaceHolders(array, placeholder) {
-  var index = -1,
-      length = array.length,
-      resIndex = -1,
-      result = [];
-
-  while (++index < length) {
-    if (array[index] === placeholder) {
-      array[index] = PLACEHOLDER;
-      result[++resIndex] = index;
-    }
-  }
-  return result;
-}
-
-module.exports = replaceHolders;
-
-},{}],541:[function(_dereq_,module,exports){
-var baseSetData = _dereq_(500),
-    now = _dereq_(472);
-
-/** Used to detect when a function becomes hot. */
-var HOT_COUNT = 150,
-    HOT_SPAN = 16;
-
-/**
- * Sets metadata for `func`.
- *
- * **Note:** If this function becomes hot, i.e. is invoked a lot in a short
- * period of time, it will trip its breaker and transition to an identity function
- * to avoid garbage collection pauses in V8. See [V8 issue 2070](https://code.google.com/p/v8/issues/detail?id=2070)
- * for more details.
- *
- * @private
- * @param {Function} func The function to associate metadata with.
- * @param {*} data The metadata.
- * @returns {Function} Returns `func`.
- */
-var setData = (function() {
-  var count = 0,
-      lastCalled = 0;
-
-  return function(key, value) {
-    var stamp = now(),
-        remaining = HOT_SPAN - (stamp - lastCalled);
-
-    lastCalled = stamp;
-    if (remaining > 0) {
-      if (++count >= HOT_COUNT) {
-        return key;
-      }
-    } else {
-      count = 0;
-    }
-    return baseSetData(key, value);
-  };
-}());
-
-module.exports = setData;
-
-},{"472":472,"500":500}],542:[function(_dereq_,module,exports){
-arguments[4][70][0].apply(exports,arguments)
-},{"529":529,"533":533,"547":547,"548":548,"556":556,"70":70}],543:[function(_dereq_,module,exports){
-/**
- * An implementation of `_.uniq` optimized for sorted arrays without support
- * for callback shorthands and `this` binding.
- *
- * @private
- * @param {Array} array The array to inspect.
- * @param {Function} [iteratee] The function invoked per iteration.
- * @returns {Array} Returns the new duplicate-value-free array.
- */
-function sortedUniq(array, iteratee) {
-  var seen,
-      index = -1,
-      length = array.length,
-      resIndex = -1,
-      result = [];
-
-  while (++index < length) {
-    var value = array[index],
-        computed = iteratee ? iteratee(value, index, array) : value;
-
-    if (!index || seen !== computed) {
-      seen = computed;
-      result[++resIndex] = value;
-    }
-  }
-  return result;
-}
-
-module.exports = sortedUniq;
-
-},{}],544:[function(_dereq_,module,exports){
-arguments[4][71][0].apply(exports,arguments)
-},{"552":552,"71":71}],545:[function(_dereq_,module,exports){
-arguments[4][175][0].apply(exports,arguments)
-},{"175":175,"502":502,"548":548}],546:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(475),
-    LodashWrapper = _dereq_(476),
-    arrayCopy = _dereq_(478);
-
-/**
- * Creates a clone of `wrapper`.
- *
- * @private
- * @param {Object} wrapper The wrapper to clone.
- * @returns {Object} Returns the cloned wrapper.
- */
-function wrapperClone(wrapper) {
-  return wrapper instanceof LazyWrapper
-    ? wrapper.clone()
-    : new LodashWrapper(wrapper.__wrapped__, wrapper.__chain__, arrayCopy(wrapper.__actions__));
-}
-
-module.exports = wrapperClone;
-
-},{"475":475,"476":476,"478":478}],547:[function(_dereq_,module,exports){
-arguments[4][72][0].apply(exports,arguments)
-},{"528":528,"534":534,"72":72}],548:[function(_dereq_,module,exports){
-arguments[4][73][0].apply(exports,arguments)
-},{"526":526,"533":533,"534":534,"73":73}],549:[function(_dereq_,module,exports){
-(function (global){
-var baseIsFunction = _dereq_(493),
-    getNative = _dereq_(526);
-
-/** `Object#toString` result references. */
-var funcTag = '[object Function]';
-
-/** Used for native method references. */
-var objectProto = Object.prototype;
-
-/**
- * Used to resolve the [`toStringTag`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.prototype.tostring)
- * of values.
- */
-var objToString = objectProto.toString;
-
-/** Native method references. */
-var Uint8Array = getNative(global, 'Uint8Array');
-
-/**
- * Checks if `value` is classified as a `Function` object.
- *
- * @static
- * @memberOf _
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is correctly classified, else `false`.
- * @example
- *
- * _.isFunction(_);
- * // => true
- *
- * _.isFunction(/abc/);
- * // => false
- */
-var isFunction = !(baseIsFunction(/x/) || (Uint8Array && !baseIsFunction(Uint8Array))) ? baseIsFunction : function(value) {
-  // The use of `Object#toString` avoids issues with the `typeof` operator
-  // in older versions of Chrome and Safari which return 'function' for regexes
-  // and Safari 8 equivalents which return 'object' for typed array constructors.
-  return objToString.call(value) == funcTag;
-};
-
-module.exports = isFunction;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-//# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy90YWJsZS1qcy9ub2RlX21vZHVsZXMvZGlhZ3JhbS1qcy9ub2RlX21vZHVsZXMvbG9kYXNoL2xhbmcvaXNGdW5jdGlvbi5qcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiO0FBQUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EiLCJmaWxlIjoiZ2VuZXJhdGVkLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXNDb250ZW50IjpbInZhciBiYXNlSXNGdW5jdGlvbiA9IHJlcXVpcmUoJy4uL2ludGVybmFsL2Jhc2VJc0Z1bmN0aW9uJyksXG4gICAgZ2V0TmF0aXZlID0gcmVxdWlyZSgnLi4vaW50ZXJuYWwvZ2V0TmF0aXZlJyk7XG5cbi8qKiBgT2JqZWN0I3RvU3RyaW5nYCByZXN1bHQgcmVmZXJlbmNlcy4gKi9cbnZhciBmdW5jVGFnID0gJ1tvYmplY3QgRnVuY3Rpb25dJztcblxuLyoqIFVzZWQgZm9yIG5hdGl2ZSBtZXRob2QgcmVmZXJlbmNlcy4gKi9cbnZhciBvYmplY3RQcm90byA9IE9iamVjdC5wcm90b3R5cGU7XG5cbi8qKlxuICogVXNlZCB0byByZXNvbHZlIHRoZSBbYHRvU3RyaW5nVGFnYF0oaHR0cHM6Ly9wZW9wbGUubW96aWxsYS5vcmcvfmpvcmVuZG9yZmYvZXM2LWRyYWZ0Lmh0bWwjc2VjLW9iamVjdC5wcm90b3R5cGUudG9zdHJpbmcpXG4gKiBvZiB2YWx1ZXMuXG4gKi9cbnZhciBvYmpUb1N0cmluZyA9IG9iamVjdFByb3RvLnRvU3RyaW5nO1xuXG4vKiogTmF0aXZlIG1ldGhvZCByZWZlcmVuY2VzLiAqL1xudmFyIFVpbnQ4QXJyYXkgPSBnZXROYXRpdmUoZ2xvYmFsLCAnVWludDhBcnJheScpO1xuXG4vKipcbiAqIENoZWNrcyBpZiBgdmFsdWVgIGlzIGNsYXNzaWZpZWQgYXMgYSBgRnVuY3Rpb25gIG9iamVjdC5cbiAqXG4gKiBAc3RhdGljXG4gKiBAbWVtYmVyT2YgX1xuICogQGNhdGVnb3J5IExhbmdcbiAqIEBwYXJhbSB7Kn0gdmFsdWUgVGhlIHZhbHVlIHRvIGNoZWNrLlxuICogQHJldHVybnMge2Jvb2xlYW59IFJldHVybnMgYHRydWVgIGlmIGB2YWx1ZWAgaXMgY29ycmVjdGx5IGNsYXNzaWZpZWQsIGVsc2UgYGZhbHNlYC5cbiAqIEBleGFtcGxlXG4gKlxuICogXy5pc0Z1bmN0aW9uKF8pO1xuICogLy8gPT4gdHJ1ZVxuICpcbiAqIF8uaXNGdW5jdGlvbigvYWJjLyk7XG4gKiAvLyA9PiBmYWxzZVxuICovXG52YXIgaXNGdW5jdGlvbiA9ICEoYmFzZUlzRnVuY3Rpb24oL3gvKSB8fCAoVWludDhBcnJheSAmJiAhYmFzZUlzRnVuY3Rpb24oVWludDhBcnJheSkpKSA/IGJhc2VJc0Z1bmN0aW9uIDogZnVuY3Rpb24odmFsdWUpIHtcbiAgLy8gVGhlIHVzZSBvZiBgT2JqZWN0I3RvU3RyaW5nYCBhdm9pZHMgaXNzdWVzIHdpdGggdGhlIGB0eXBlb2ZgIG9wZXJhdG9yXG4gIC8vIGluIG9sZGVyIHZlcnNpb25zIG9mIENocm9tZSBhbmQgU2FmYXJpIHdoaWNoIHJldHVybiAnZnVuY3Rpb24nIGZvciByZWdleGVzXG4gIC8vIGFuZCBTYWZhcmkgOCBlcXVpdmFsZW50cyB3aGljaCByZXR1cm4gJ29iamVjdCcgZm9yIHR5cGVkIGFycmF5IGNvbnN0cnVjdG9ycy5cbiAgcmV0dXJuIG9ialRvU3RyaW5nLmNhbGwodmFsdWUpID09IGZ1bmNUYWc7XG59O1xuXG5tb2R1bGUuZXhwb3J0cyA9IGlzRnVuY3Rpb247XG4iXX0=
-},{"493":493,"526":526}],550:[function(_dereq_,module,exports){
-arguments[4][75][0].apply(exports,arguments)
-},{"534":534,"558":558,"75":75}],551:[function(_dereq_,module,exports){
-arguments[4][76][0].apply(exports,arguments)
-},{"534":534,"76":76}],552:[function(_dereq_,module,exports){
-arguments[4][77][0].apply(exports,arguments)
-},{"77":77}],553:[function(_dereq_,module,exports){
-arguments[4][181][0].apply(exports,arguments)
-},{"181":181,"533":533,"534":534}],554:[function(_dereq_,module,exports){
-arguments[4][109][0].apply(exports,arguments)
-},{"109":109,"481":481,"482":482,"509":509}],555:[function(_dereq_,module,exports){
-arguments[4][78][0].apply(exports,arguments)
-},{"526":526,"528":528,"542":542,"552":552,"78":78}],556:[function(_dereq_,module,exports){
-arguments[4][79][0].apply(exports,arguments)
-},{"529":529,"533":533,"547":547,"548":548,"552":552,"79":79}],557:[function(_dereq_,module,exports){
-arguments[4][185][0].apply(exports,arguments)
-},{"185":185,"544":544,"555":555}],558:[function(_dereq_,module,exports){
-arguments[4][80][0].apply(exports,arguments)
-},{"502":502,"80":80}],559:[function(_dereq_,module,exports){
-/**
- * Creates a function that returns `value`.
- *
- * @static
- * @memberOf _
- * @category Utility
- * @param {*} value The value to return from the new function.
- * @returns {Function} Returns the new function.
- * @example
- *
- * var object = { 'user': 'fred' };
- * var getter = _.constant(object);
- *
- * getter() === object;
- * // => true
- */
-function constant(value) {
-  return function() {
-    return value;
-  };
-}
-
-module.exports = constant;
-
-},{}],560:[function(_dereq_,module,exports){
-arguments[4][81][0].apply(exports,arguments)
-},{"81":81}],561:[function(_dereq_,module,exports){
-/**
- * A no-operation function that returns `undefined` regardless of the
- * arguments it receives.
- *
- * @static
- * @memberOf _
- * @category Utility
- * @example
- *
- * var object = { 'user': 'fred' };
- *
- * _.noop(object) === undefined;
- * // => true
- */
-function noop() {
-  // No operation performed.
-}
-
-module.exports = noop;
-
-},{}],562:[function(_dereq_,module,exports){
-arguments[4][188][0].apply(exports,arguments)
-},{"188":188,"498":498,"499":499,"531":531}],563:[function(_dereq_,module,exports){
+},{}],475:[function(_dereq_,module,exports){
 
 var isArray = function(obj) {
   return Object.prototype.toString.call(obj) === '[object Array]';
@@ -19009,18 +18853,18 @@ exports.annotate = annotate;
 exports.parse = parse;
 exports.isArray = isArray;
 
-},{}],564:[function(_dereq_,module,exports){
+},{}],476:[function(_dereq_,module,exports){
 module.exports = {
-  annotate: _dereq_(563).annotate,
-  Module: _dereq_(566),
-  Injector: _dereq_(565)
+  annotate: _dereq_(475).annotate,
+  Module: _dereq_(478),
+  Injector: _dereq_(477)
 };
 
-},{"563":563,"565":565,"566":566}],565:[function(_dereq_,module,exports){
-var Module = _dereq_(566);
-var autoAnnotate = _dereq_(563).parse;
-var annotate = _dereq_(563).annotate;
-var isArray = _dereq_(563).isArray;
+},{"475":475,"477":477,"478":478}],477:[function(_dereq_,module,exports){
+var Module = _dereq_(478);
+var autoAnnotate = _dereq_(475).parse;
+var annotate = _dereq_(475).annotate;
+var isArray = _dereq_(475).isArray;
 
 
 var Injector = function(modules, parent) {
@@ -19232,7 +19076,7 @@ var Injector = function(modules, parent) {
 
 module.exports = Injector;
 
-},{"563":563,"566":566}],566:[function(_dereq_,module,exports){
+},{"475":475,"478":478}],478:[function(_dereq_,module,exports){
 var Module = function() {
   var providers = [];
 
@@ -19258,16 +19102,92 @@ var Module = function() {
 
 module.exports = Module;
 
-},{}],567:[function(_dereq_,module,exports){
-arguments[4][51][0].apply(exports,arguments)
-},{"51":51}],568:[function(_dereq_,module,exports){
-arguments[4][117][0].apply(exports,arguments)
-},{"117":117}],569:[function(_dereq_,module,exports){
-var arrayEvery = _dereq_(575),
-    baseCallback = _dereq_(579),
-    baseEvery = _dereq_(582),
-    isArray = _dereq_(617),
-    isIterateeCall = _dereq_(608);
+},{}],479:[function(_dereq_,module,exports){
+arguments[4][54][0].apply(exports,arguments)
+},{"54":54}],480:[function(_dereq_,module,exports){
+arguments[4][120][0].apply(exports,arguments)
+},{"120":120}],481:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(494),
+    baseUniq = _dereq_(511),
+    isIterateeCall = _dereq_(529),
+    sortedUniq = _dereq_(535);
+
+/**
+ * Creates a duplicate-free version of an array, using
+ * [`SameValueZero`](http://ecma-international.org/ecma-262/6.0/#sec-samevaluezero)
+ * for equality comparisons, in which only the first occurence of each element
+ * is kept. Providing `true` for `isSorted` performs a faster search algorithm
+ * for sorted arrays. If an iteratee function is provided it's invoked for
+ * each element in the array to generate the criterion by which uniqueness
+ * is computed. The `iteratee` is bound to `thisArg` and invoked with three
+ * arguments: (value, index, array).
+ *
+ * If a property name is provided for `iteratee` the created `_.property`
+ * style callback returns the property value of the given element.
+ *
+ * If a value is also provided for `thisArg` the created `_.matchesProperty`
+ * style callback returns `true` for elements that have a matching property
+ * value, else `false`.
+ *
+ * If an object is provided for `iteratee` the created `_.matches` style
+ * callback returns `true` for elements that have the properties of the given
+ * object, else `false`.
+ *
+ * @static
+ * @memberOf _
+ * @alias unique
+ * @category Array
+ * @param {Array} array The array to inspect.
+ * @param {boolean} [isSorted] Specify the array is sorted.
+ * @param {Function|Object|string} [iteratee] The function invoked per iteration.
+ * @param {*} [thisArg] The `this` binding of `iteratee`.
+ * @returns {Array} Returns the new duplicate-value-free array.
+ * @example
+ *
+ * _.uniq([2, 1, 2]);
+ * // => [2, 1]
+ *
+ * // using `isSorted`
+ * _.uniq([1, 1, 2], true);
+ * // => [1, 2]
+ *
+ * // using an iteratee function
+ * _.uniq([1, 2.5, 1.5, 2], function(n) {
+ *   return this.floor(n);
+ * }, Math);
+ * // => [1, 2.5]
+ *
+ * // using the `_.property` callback shorthand
+ * _.uniq([{ 'x': 1 }, { 'x': 2 }, { 'x': 1 }], 'x');
+ * // => [{ 'x': 1 }, { 'x': 2 }]
+ */
+function uniq(array, isSorted, iteratee, thisArg) {
+  var length = array ? array.length : 0;
+  if (!length) {
+    return [];
+  }
+  if (isSorted != null && typeof isSorted != 'boolean') {
+    thisArg = iteratee;
+    iteratee = isIterateeCall(array, isSorted, thisArg) ? undefined : isSorted;
+    isSorted = false;
+  }
+  iteratee = iteratee == null ? iteratee : baseCallback(iteratee, thisArg, 3);
+  return (isSorted)
+    ? sortedUniq(array, iteratee)
+    : baseUniq(array, iteratee);
+}
+
+module.exports = uniq;
+
+},{"494":494,"511":511,"529":529,"535":535}],482:[function(_dereq_,module,exports){
+module.exports = _dereq_(481);
+
+},{"481":481}],483:[function(_dereq_,module,exports){
+var arrayEvery = _dereq_(490),
+    baseCallback = _dereq_(494),
+    baseEvery = _dereq_(497),
+    isArray = _dereq_(539),
+    isIterateeCall = _dereq_(529);
 
 /**
  * Checks if `predicate` returns truthy for **all** elements of `collection`.
@@ -19320,7 +19240,7 @@ var arrayEvery = _dereq_(575),
 function every(collection, predicate, thisArg) {
   var func = isArray(collection) ? arrayEvery : baseEvery;
   if (thisArg && isIterateeCall(collection, predicate, thisArg)) {
-    predicate = null;
+    predicate = undefined;
   }
   if (typeof predicate != 'function' || thisArg !== undefined) {
     predicate = baseCallback(predicate, thisArg, 3);
@@ -19330,13 +19250,37 @@ function every(collection, predicate, thisArg) {
 
 module.exports = every;
 
-},{"575":575,"579":579,"582":582,"608":608,"617":617}],570:[function(_dereq_,module,exports){
-arguments[4][52][0].apply(exports,arguments)
-},{"52":52,"574":574,"581":581,"599":599}],571:[function(_dereq_,module,exports){
-arguments[4][472][0].apply(exports,arguments)
-},{"472":472,"605":605}],572:[function(_dereq_,module,exports){
-var isObject = _dereq_(620),
-    now = _dereq_(571);
+},{"490":490,"494":494,"497":497,"529":529,"539":539}],484:[function(_dereq_,module,exports){
+arguments[4][55][0].apply(exports,arguments)
+},{"489":489,"496":496,"519":519,"55":55}],485:[function(_dereq_,module,exports){
+var getNative = _dereq_(525);
+
+/* Native method references for those with the same name as other `lodash` methods. */
+var nativeNow = getNative(Date, 'now');
+
+/**
+ * Gets the number of milliseconds that have elapsed since the Unix epoch
+ * (1 January 1970 00:00:00 UTC).
+ *
+ * @static
+ * @memberOf _
+ * @category Date
+ * @example
+ *
+ * _.defer(function(stamp) {
+ *   console.log(_.now() - stamp);
+ * }, _.now());
+ * // => logs the number of milliseconds it took for the deferred function to be invoked
+ */
+var now = nativeNow || function() {
+  return new Date().getTime();
+};
+
+module.exports = now;
+
+},{"525":525}],486:[function(_dereq_,module,exports){
+var isObject = _dereq_(543),
+    now = _dereq_(485);
 
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
@@ -19369,7 +19313,7 @@ var nativeMax = Math.max;
  * @param {boolean} [options.leading=false] Specify invoking on the leading
  *  edge of the timeout.
  * @param {number} [options.maxWait] The maximum time `func` is allowed to be
- *  delayed before it is invoked.
+ *  delayed before it's invoked.
  * @param {boolean} [options.trailing=true] Specify invoking on the trailing
  *  edge of the timeout.
  * @returns {Function} Returns the new debounced function.
@@ -19427,9 +19371,9 @@ function debounce(func, wait, options) {
     var leading = true;
     trailing = false;
   } else if (isObject(options)) {
-    leading = options.leading;
+    leading = !!options.leading;
     maxWait = 'maxWait' in options && nativeMax(+options.maxWait || 0, wait);
-    trailing = 'trailing' in options ? options.trailing : trailing;
+    trailing = 'trailing' in options ? !!options.trailing : trailing;
   }
 
   function cancel() {
@@ -19439,41 +19383,35 @@ function debounce(func, wait, options) {
     if (maxTimeoutId) {
       clearTimeout(maxTimeoutId);
     }
+    lastCalled = 0;
     maxTimeoutId = timeoutId = trailingCall = undefined;
+  }
+
+  function complete(isCalled, id) {
+    if (id) {
+      clearTimeout(id);
+    }
+    maxTimeoutId = timeoutId = trailingCall = undefined;
+    if (isCalled) {
+      lastCalled = now();
+      result = func.apply(thisArg, args);
+      if (!timeoutId && !maxTimeoutId) {
+        args = thisArg = undefined;
+      }
+    }
   }
 
   function delayed() {
     var remaining = wait - (now() - stamp);
     if (remaining <= 0 || remaining > wait) {
-      if (maxTimeoutId) {
-        clearTimeout(maxTimeoutId);
-      }
-      var isCalled = trailingCall;
-      maxTimeoutId = timeoutId = trailingCall = undefined;
-      if (isCalled) {
-        lastCalled = now();
-        result = func.apply(thisArg, args);
-        if (!timeoutId && !maxTimeoutId) {
-          args = thisArg = null;
-        }
-      }
+      complete(trailingCall, maxTimeoutId);
     } else {
       timeoutId = setTimeout(delayed, remaining);
     }
   }
 
   function maxDelayed() {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
-    maxTimeoutId = timeoutId = trailingCall = undefined;
-    if (trailing || (maxWait !== wait)) {
-      lastCalled = now();
-      result = func.apply(thisArg, args);
-      if (!timeoutId && !maxTimeoutId) {
-        args = thisArg = null;
-      }
-    }
+    complete(trailing, timeoutId);
   }
 
   function debounced() {
@@ -19513,7 +19451,7 @@ function debounce(func, wait, options) {
       result = func.apply(thisArg, args);
     }
     if (isCalled && !timeoutId && !maxTimeoutId) {
-      args = thisArg = null;
+      args = thisArg = undefined;
     }
     return result;
   }
@@ -19523,11 +19461,45 @@ function debounce(func, wait, options) {
 
 module.exports = debounce;
 
-},{"571":571,"620":620}],573:[function(_dereq_,module,exports){
-arguments[4][86][0].apply(exports,arguments)
-},{"86":86}],574:[function(_dereq_,module,exports){
-arguments[4][53][0].apply(exports,arguments)
-},{"53":53}],575:[function(_dereq_,module,exports){
+},{"485":485,"543":543}],487:[function(_dereq_,module,exports){
+arguments[4][349][0].apply(exports,arguments)
+},{"349":349}],488:[function(_dereq_,module,exports){
+(function (global){
+var cachePush = _dereq_(514),
+    getNative = _dereq_(525);
+
+/** Native method references. */
+var Set = getNative(global, 'Set');
+
+/* Native method references for those with the same name as other `lodash` methods. */
+var nativeCreate = getNative(Object, 'create');
+
+/**
+ *
+ * Creates a cache object to store unique values.
+ *
+ * @private
+ * @param {Array} [values] The values to cache.
+ */
+function SetCache(values) {
+  var length = values ? values.length : 0;
+
+  this.data = { 'hash': nativeCreate(null), 'set': new Set };
+  while (length--) {
+    this.push(values[length]);
+  }
+}
+
+// Add functions to the `Set` cache.
+SetCache.prototype.push = cachePush;
+
+module.exports = SetCache;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+//# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy90YWJsZS1qcy9ub2RlX21vZHVsZXMvbG9kYXNoL2ludGVybmFsL1NldENhY2hlLmpzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7QUFBQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EiLCJmaWxlIjoiZ2VuZXJhdGVkLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXNDb250ZW50IjpbInZhciBjYWNoZVB1c2ggPSByZXF1aXJlKCcuL2NhY2hlUHVzaCcpLFxuICAgIGdldE5hdGl2ZSA9IHJlcXVpcmUoJy4vZ2V0TmF0aXZlJyk7XG5cbi8qKiBOYXRpdmUgbWV0aG9kIHJlZmVyZW5jZXMuICovXG52YXIgU2V0ID0gZ2V0TmF0aXZlKGdsb2JhbCwgJ1NldCcpO1xuXG4vKiBOYXRpdmUgbWV0aG9kIHJlZmVyZW5jZXMgZm9yIHRob3NlIHdpdGggdGhlIHNhbWUgbmFtZSBhcyBvdGhlciBgbG9kYXNoYCBtZXRob2RzLiAqL1xudmFyIG5hdGl2ZUNyZWF0ZSA9IGdldE5hdGl2ZShPYmplY3QsICdjcmVhdGUnKTtcblxuLyoqXG4gKlxuICogQ3JlYXRlcyBhIGNhY2hlIG9iamVjdCB0byBzdG9yZSB1bmlxdWUgdmFsdWVzLlxuICpcbiAqIEBwcml2YXRlXG4gKiBAcGFyYW0ge0FycmF5fSBbdmFsdWVzXSBUaGUgdmFsdWVzIHRvIGNhY2hlLlxuICovXG5mdW5jdGlvbiBTZXRDYWNoZSh2YWx1ZXMpIHtcbiAgdmFyIGxlbmd0aCA9IHZhbHVlcyA/IHZhbHVlcy5sZW5ndGggOiAwO1xuXG4gIHRoaXMuZGF0YSA9IHsgJ2hhc2gnOiBuYXRpdmVDcmVhdGUobnVsbCksICdzZXQnOiBuZXcgU2V0IH07XG4gIHdoaWxlIChsZW5ndGgtLSkge1xuICAgIHRoaXMucHVzaCh2YWx1ZXNbbGVuZ3RoXSk7XG4gIH1cbn1cblxuLy8gQWRkIGZ1bmN0aW9ucyB0byB0aGUgYFNldGAgY2FjaGUuXG5TZXRDYWNoZS5wcm90b3R5cGUucHVzaCA9IGNhY2hlUHVzaDtcblxubW9kdWxlLmV4cG9ydHMgPSBTZXRDYWNoZTtcbiJdfQ==
+},{"514":514,"525":525}],489:[function(_dereq_,module,exports){
+arguments[4][56][0].apply(exports,arguments)
+},{"56":56}],490:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.every` for arrays without support for callback
  * shorthands and `this` binding.
@@ -19552,20 +19524,20 @@ function arrayEvery(array, predicate) {
 
 module.exports = arrayEvery;
 
-},{}],576:[function(_dereq_,module,exports){
-arguments[4][129][0].apply(exports,arguments)
-},{"129":129}],577:[function(_dereq_,module,exports){
-arguments[4][87][0].apply(exports,arguments)
-},{"623":623,"87":87}],578:[function(_dereq_,module,exports){
-arguments[4][88][0].apply(exports,arguments)
-},{"580":580,"623":623,"88":88}],579:[function(_dereq_,module,exports){
+},{}],491:[function(_dereq_,module,exports){
 arguments[4][132][0].apply(exports,arguments)
-},{"132":132,"589":589,"590":590,"595":595,"627":627,"628":628}],580:[function(_dereq_,module,exports){
-arguments[4][89][0].apply(exports,arguments)
-},{"89":89}],581:[function(_dereq_,module,exports){
-arguments[4][54][0].apply(exports,arguments)
-},{"54":54,"584":584,"597":597}],582:[function(_dereq_,module,exports){
-var baseEach = _dereq_(581);
+},{"132":132}],492:[function(_dereq_,module,exports){
+arguments[4][90][0].apply(exports,arguments)
+},{"546":546,"90":90}],493:[function(_dereq_,module,exports){
+arguments[4][91][0].apply(exports,arguments)
+},{"495":495,"546":546,"91":91}],494:[function(_dereq_,module,exports){
+arguments[4][135][0].apply(exports,arguments)
+},{"135":135,"505":505,"506":506,"512":512,"549":549,"550":550}],495:[function(_dereq_,module,exports){
+arguments[4][92][0].apply(exports,arguments)
+},{"92":92}],496:[function(_dereq_,module,exports){
+arguments[4][57][0].apply(exports,arguments)
+},{"499":499,"516":516,"57":57}],497:[function(_dereq_,module,exports){
+var baseEach = _dereq_(496);
 
 /**
  * The base implementation of `_.every` without support for callback
@@ -19588,99 +19560,403 @@ function baseEvery(collection, predicate) {
 
 module.exports = baseEvery;
 
-},{"581":581}],583:[function(_dereq_,module,exports){
-arguments[4][55][0].apply(exports,arguments)
-},{"55":55,"598":598}],584:[function(_dereq_,module,exports){
-arguments[4][56][0].apply(exports,arguments)
-},{"56":56,"583":583,"623":623}],585:[function(_dereq_,module,exports){
-arguments[4][141][0].apply(exports,arguments)
-},{"141":141,"614":614}],586:[function(_dereq_,module,exports){
-arguments[4][142][0].apply(exports,arguments)
-},{"142":142,"587":587,"611":611,"620":620}],587:[function(_dereq_,module,exports){
-arguments[4][143][0].apply(exports,arguments)
-},{"143":143,"600":600,"601":601,"602":602,"617":617,"621":621}],588:[function(_dereq_,module,exports){
-arguments[4][144][0].apply(exports,arguments)
-},{"144":144,"586":586,"614":614}],589:[function(_dereq_,module,exports){
-arguments[4][146][0].apply(exports,arguments)
-},{"146":146,"588":588,"604":604,"614":614}],590:[function(_dereq_,module,exports){
-arguments[4][147][0].apply(exports,arguments)
-},{"147":147,"568":568,"585":585,"586":586,"593":593,"609":609,"612":612,"614":614,"615":615,"617":617}],591:[function(_dereq_,module,exports){
+},{"496":496}],498:[function(_dereq_,module,exports){
 arguments[4][58][0].apply(exports,arguments)
-},{"58":58}],592:[function(_dereq_,module,exports){
-arguments[4][149][0].apply(exports,arguments)
-},{"149":149,"585":585,"615":615}],593:[function(_dereq_,module,exports){
-arguments[4][151][0].apply(exports,arguments)
-},{"151":151}],594:[function(_dereq_,module,exports){
+},{"517":517,"58":58}],499:[function(_dereq_,module,exports){
 arguments[4][59][0].apply(exports,arguments)
-},{"59":59}],595:[function(_dereq_,module,exports){
-arguments[4][60][0].apply(exports,arguments)
-},{"60":60,"627":627}],596:[function(_dereq_,module,exports){
-arguments[4][94][0].apply(exports,arguments)
-},{"573":573,"595":595,"608":608,"94":94}],597:[function(_dereq_,module,exports){
+},{"498":498,"546":546,"59":59}],500:[function(_dereq_,module,exports){
+arguments[4][144][0].apply(exports,arguments)
+},{"144":144,"536":536}],501:[function(_dereq_,module,exports){
+arguments[4][367][0].apply(exports,arguments)
+},{"367":367,"526":526}],502:[function(_dereq_,module,exports){
+arguments[4][145][0].apply(exports,arguments)
+},{"145":145,"503":503,"532":532,"543":543}],503:[function(_dereq_,module,exports){
+var equalArrays = _dereq_(520),
+    equalByTag = _dereq_(521),
+    equalObjects = _dereq_(522),
+    isArray = _dereq_(539),
+    isTypedArray = _dereq_(544);
+
+/** `Object#toString` result references. */
+var argsTag = '[object Arguments]',
+    arrayTag = '[object Array]',
+    objectTag = '[object Object]';
+
+/** Used for native method references. */
+var objectProto = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/**
+ * Used to resolve the [`toStringTag`](http://ecma-international.org/ecma-262/6.0/#sec-object.prototype.tostring)
+ * of values.
+ */
+var objToString = objectProto.toString;
+
+/**
+ * A specialized version of `baseIsEqual` for arrays and objects which performs
+ * deep comparisons and tracks traversed objects enabling objects with circular
+ * references to be compared.
+ *
+ * @private
+ * @param {Object} object The object to compare.
+ * @param {Object} other The other object to compare.
+ * @param {Function} equalFunc The function to determine equivalents of values.
+ * @param {Function} [customizer] The function to customize comparing objects.
+ * @param {boolean} [isLoose] Specify performing partial comparisons.
+ * @param {Array} [stackA=[]] Tracks traversed `value` objects.
+ * @param {Array} [stackB=[]] Tracks traversed `other` objects.
+ * @returns {boolean} Returns `true` if the objects are equivalent, else `false`.
+ */
+function baseIsEqualDeep(object, other, equalFunc, customizer, isLoose, stackA, stackB) {
+  var objIsArr = isArray(object),
+      othIsArr = isArray(other),
+      objTag = arrayTag,
+      othTag = arrayTag;
+
+  if (!objIsArr) {
+    objTag = objToString.call(object);
+    if (objTag == argsTag) {
+      objTag = objectTag;
+    } else if (objTag != objectTag) {
+      objIsArr = isTypedArray(object);
+    }
+  }
+  if (!othIsArr) {
+    othTag = objToString.call(other);
+    if (othTag == argsTag) {
+      othTag = objectTag;
+    } else if (othTag != objectTag) {
+      othIsArr = isTypedArray(other);
+    }
+  }
+  var objIsObj = objTag == objectTag,
+      othIsObj = othTag == objectTag,
+      isSameTag = objTag == othTag;
+
+  if (isSameTag && !(objIsArr || objIsObj)) {
+    return equalByTag(object, other, objTag);
+  }
+  if (!isLoose) {
+    var objIsWrapped = objIsObj && hasOwnProperty.call(object, '__wrapped__'),
+        othIsWrapped = othIsObj && hasOwnProperty.call(other, '__wrapped__');
+
+    if (objIsWrapped || othIsWrapped) {
+      return equalFunc(objIsWrapped ? object.value() : object, othIsWrapped ? other.value() : other, customizer, isLoose, stackA, stackB);
+    }
+  }
+  if (!isSameTag) {
+    return false;
+  }
+  // Assume cyclic values are equal.
+  // For more information on detecting circular references see https://es5.github.io/#JO.
+  stackA || (stackA = []);
+  stackB || (stackB = []);
+
+  var length = stackA.length;
+  while (length--) {
+    if (stackA[length] == object) {
+      return stackB[length] == other;
+    }
+  }
+  // Add `object` and `other` to the stack of traversed objects.
+  stackA.push(object);
+  stackB.push(other);
+
+  var result = (objIsArr ? equalArrays : equalObjects)(object, other, equalFunc, customizer, isLoose, stackA, stackB);
+
+  stackA.pop();
+  stackB.pop();
+
+  return result;
+}
+
+module.exports = baseIsEqualDeep;
+
+},{"520":520,"521":521,"522":522,"539":539,"544":544}],504:[function(_dereq_,module,exports){
+arguments[4][147][0].apply(exports,arguments)
+},{"147":147,"502":502,"536":536}],505:[function(_dereq_,module,exports){
+arguments[4][149][0].apply(exports,arguments)
+},{"149":149,"504":504,"524":524,"536":536}],506:[function(_dereq_,module,exports){
+arguments[4][150][0].apply(exports,arguments)
+},{"150":150,"480":480,"500":500,"502":502,"509":509,"530":530,"533":533,"536":536,"537":537,"539":539}],507:[function(_dereq_,module,exports){
 arguments[4][61][0].apply(exports,arguments)
-},{"603":603,"61":61,"610":610,"614":614}],598:[function(_dereq_,module,exports){
-arguments[4][62][0].apply(exports,arguments)
-},{"614":614,"62":62}],599:[function(_dereq_,module,exports){
+},{"61":61}],508:[function(_dereq_,module,exports){
+arguments[4][152][0].apply(exports,arguments)
+},{"152":152,"500":500,"537":537}],509:[function(_dereq_,module,exports){
+arguments[4][154][0].apply(exports,arguments)
+},{"154":154}],510:[function(_dereq_,module,exports){
+/**
+ * Converts `value` to a string if it's not one. An empty string is returned
+ * for `null` or `undefined` values.
+ *
+ * @private
+ * @param {*} value The value to process.
+ * @returns {string} Returns the string.
+ */
+function baseToString(value) {
+  return value == null ? '' : (value + '');
+}
+
+module.exports = baseToString;
+
+},{}],511:[function(_dereq_,module,exports){
+arguments[4][369][0].apply(exports,arguments)
+},{"369":369,"501":501,"513":513,"518":518}],512:[function(_dereq_,module,exports){
 arguments[4][63][0].apply(exports,arguments)
-},{"595":595,"617":617,"63":63}],600:[function(_dereq_,module,exports){
-arguments[4][160][0].apply(exports,arguments)
-},{"160":160,"576":576}],601:[function(_dereq_,module,exports){
-arguments[4][161][0].apply(exports,arguments)
-},{"161":161}],602:[function(_dereq_,module,exports){
-arguments[4][162][0].apply(exports,arguments)
-},{"162":162,"623":623}],603:[function(_dereq_,module,exports){
+},{"549":549,"63":63}],513:[function(_dereq_,module,exports){
+arguments[4][371][0].apply(exports,arguments)
+},{"371":371,"543":543}],514:[function(_dereq_,module,exports){
+arguments[4][372][0].apply(exports,arguments)
+},{"372":372,"543":543}],515:[function(_dereq_,module,exports){
+arguments[4][373][0].apply(exports,arguments)
+},{"373":373,"487":487,"512":512,"529":529}],516:[function(_dereq_,module,exports){
 arguments[4][64][0].apply(exports,arguments)
-},{"591":591,"64":64}],604:[function(_dereq_,module,exports){
-arguments[4][164][0].apply(exports,arguments)
-},{"164":164,"612":612,"625":625}],605:[function(_dereq_,module,exports){
+},{"523":523,"531":531,"536":536,"64":64}],517:[function(_dereq_,module,exports){
 arguments[4][65][0].apply(exports,arguments)
-},{"618":618,"65":65}],606:[function(_dereq_,module,exports){
+},{"536":536,"65":65}],518:[function(_dereq_,module,exports){
+(function (global){
+var SetCache = _dereq_(488),
+    getNative = _dereq_(525);
+
+/** Native method references. */
+var Set = getNative(global, 'Set');
+
+/* Native method references for those with the same name as other `lodash` methods. */
+var nativeCreate = getNative(Object, 'create');
+
+/**
+ * Creates a `Set` cache object to optimize linear searches of large arrays.
+ *
+ * @private
+ * @param {Array} [values] The values to cache.
+ * @returns {null|Object} Returns the new cache object if `Set` is supported, else `null`.
+ */
+function createCache(values) {
+  return (nativeCreate && Set) ? new SetCache(values) : null;
+}
+
+module.exports = createCache;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+//# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy90YWJsZS1qcy9ub2RlX21vZHVsZXMvbG9kYXNoL2ludGVybmFsL2NyZWF0ZUNhY2hlLmpzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7QUFBQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSIsImZpbGUiOiJnZW5lcmF0ZWQuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlc0NvbnRlbnQiOlsidmFyIFNldENhY2hlID0gcmVxdWlyZSgnLi9TZXRDYWNoZScpLFxuICAgIGdldE5hdGl2ZSA9IHJlcXVpcmUoJy4vZ2V0TmF0aXZlJyk7XG5cbi8qKiBOYXRpdmUgbWV0aG9kIHJlZmVyZW5jZXMuICovXG52YXIgU2V0ID0gZ2V0TmF0aXZlKGdsb2JhbCwgJ1NldCcpO1xuXG4vKiBOYXRpdmUgbWV0aG9kIHJlZmVyZW5jZXMgZm9yIHRob3NlIHdpdGggdGhlIHNhbWUgbmFtZSBhcyBvdGhlciBgbG9kYXNoYCBtZXRob2RzLiAqL1xudmFyIG5hdGl2ZUNyZWF0ZSA9IGdldE5hdGl2ZShPYmplY3QsICdjcmVhdGUnKTtcblxuLyoqXG4gKiBDcmVhdGVzIGEgYFNldGAgY2FjaGUgb2JqZWN0IHRvIG9wdGltaXplIGxpbmVhciBzZWFyY2hlcyBvZiBsYXJnZSBhcnJheXMuXG4gKlxuICogQHByaXZhdGVcbiAqIEBwYXJhbSB7QXJyYXl9IFt2YWx1ZXNdIFRoZSB2YWx1ZXMgdG8gY2FjaGUuXG4gKiBAcmV0dXJucyB7bnVsbHxPYmplY3R9IFJldHVybnMgdGhlIG5ldyBjYWNoZSBvYmplY3QgaWYgYFNldGAgaXMgc3VwcG9ydGVkLCBlbHNlIGBudWxsYC5cbiAqL1xuZnVuY3Rpb24gY3JlYXRlQ2FjaGUodmFsdWVzKSB7XG4gIHJldHVybiAobmF0aXZlQ3JlYXRlICYmIFNldCkgPyBuZXcgU2V0Q2FjaGUodmFsdWVzKSA6IG51bGw7XG59XG5cbm1vZHVsZS5leHBvcnRzID0gY3JlYXRlQ2FjaGU7XG4iXX0=
+},{"488":488,"525":525}],519:[function(_dereq_,module,exports){
 arguments[4][66][0].apply(exports,arguments)
-},{"603":603,"610":610,"66":66}],607:[function(_dereq_,module,exports){
+},{"512":512,"539":539,"66":66}],520:[function(_dereq_,module,exports){
+arguments[4][163][0].apply(exports,arguments)
+},{"163":163,"491":491}],521:[function(_dereq_,module,exports){
+/** `Object#toString` result references. */
+var boolTag = '[object Boolean]',
+    dateTag = '[object Date]',
+    errorTag = '[object Error]',
+    numberTag = '[object Number]',
+    regexpTag = '[object RegExp]',
+    stringTag = '[object String]';
+
+/**
+ * A specialized version of `baseIsEqualDeep` for comparing objects of
+ * the same `toStringTag`.
+ *
+ * **Note:** This function only supports comparing values with tags of
+ * `Boolean`, `Date`, `Error`, `Number`, `RegExp`, or `String`.
+ *
+ * @private
+ * @param {Object} object The object to compare.
+ * @param {Object} other The other object to compare.
+ * @param {string} tag The `toStringTag` of the objects to compare.
+ * @returns {boolean} Returns `true` if the objects are equivalent, else `false`.
+ */
+function equalByTag(object, other, tag) {
+  switch (tag) {
+    case boolTag:
+    case dateTag:
+      // Coerce dates and booleans to numbers, dates to milliseconds and booleans
+      // to `1` or `0` treating invalid dates coerced to `NaN` as not equal.
+      return +object == +other;
+
+    case errorTag:
+      return object.name == other.name && object.message == other.message;
+
+    case numberTag:
+      // Treat `NaN` vs. `NaN` as equal.
+      return (object != +object)
+        ? other != +other
+        : object == +other;
+
+    case regexpTag:
+    case stringTag:
+      // Coerce regexes to strings and treat strings primitives and string
+      // objects as equal. See https://es5.github.io/#x15.10.6.4 for more details.
+      return object == (other + '');
+  }
+  return false;
+}
+
+module.exports = equalByTag;
+
+},{}],522:[function(_dereq_,module,exports){
+arguments[4][165][0].apply(exports,arguments)
+},{"165":165,"546":546}],523:[function(_dereq_,module,exports){
 arguments[4][67][0].apply(exports,arguments)
-},{"67":67}],608:[function(_dereq_,module,exports){
-arguments[4][99][0].apply(exports,arguments)
-},{"606":606,"607":607,"620":620,"99":99}],609:[function(_dereq_,module,exports){
-arguments[4][169][0].apply(exports,arguments)
-},{"169":169,"614":614,"617":617}],610:[function(_dereq_,module,exports){
+},{"507":507,"67":67}],524:[function(_dereq_,module,exports){
+arguments[4][167][0].apply(exports,arguments)
+},{"167":167,"533":533,"548":548}],525:[function(_dereq_,module,exports){
 arguments[4][68][0].apply(exports,arguments)
-},{"68":68}],611:[function(_dereq_,module,exports){
+},{"541":541,"68":68}],526:[function(_dereq_,module,exports){
+arguments[4][380][0].apply(exports,arguments)
+},{"380":380}],527:[function(_dereq_,module,exports){
 arguments[4][69][0].apply(exports,arguments)
-},{"69":69}],612:[function(_dereq_,module,exports){
+},{"523":523,"531":531,"69":69}],528:[function(_dereq_,module,exports){
+arguments[4][382][0].apply(exports,arguments)
+},{"382":382}],529:[function(_dereq_,module,exports){
+arguments[4][102][0].apply(exports,arguments)
+},{"102":102,"527":527,"528":528,"543":543}],530:[function(_dereq_,module,exports){
 arguments[4][172][0].apply(exports,arguments)
-},{"172":172,"620":620}],613:[function(_dereq_,module,exports){
-arguments[4][70][0].apply(exports,arguments)
-},{"607":607,"610":610,"616":616,"617":617,"624":624,"70":70}],614:[function(_dereq_,module,exports){
-arguments[4][71][0].apply(exports,arguments)
-},{"620":620,"71":71}],615:[function(_dereq_,module,exports){
-arguments[4][175][0].apply(exports,arguments)
-},{"175":175,"594":594,"617":617}],616:[function(_dereq_,module,exports){
+},{"172":172,"536":536,"539":539}],531:[function(_dereq_,module,exports){
+arguments[4][384][0].apply(exports,arguments)
+},{"384":384}],532:[function(_dereq_,module,exports){
 arguments[4][72][0].apply(exports,arguments)
-},{"606":606,"611":611,"72":72}],617:[function(_dereq_,module,exports){
+},{"72":72}],533:[function(_dereq_,module,exports){
+arguments[4][175][0].apply(exports,arguments)
+},{"175":175,"543":543}],534:[function(_dereq_,module,exports){
 arguments[4][73][0].apply(exports,arguments)
-},{"605":605,"610":610,"611":611,"73":73}],618:[function(_dereq_,module,exports){
-arguments[4][75][0].apply(exports,arguments)
-},{"611":611,"626":626,"75":75}],619:[function(_dereq_,module,exports){
-arguments[4][76][0].apply(exports,arguments)
-},{"611":611,"76":76}],620:[function(_dereq_,module,exports){
-arguments[4][77][0].apply(exports,arguments)
-},{"77":77}],621:[function(_dereq_,module,exports){
-arguments[4][181][0].apply(exports,arguments)
-},{"181":181,"610":610,"611":611}],622:[function(_dereq_,module,exports){
-arguments[4][109][0].apply(exports,arguments)
-},{"109":109,"577":577,"578":578,"596":596}],623:[function(_dereq_,module,exports){
-arguments[4][78][0].apply(exports,arguments)
-},{"605":605,"606":606,"613":613,"620":620,"78":78}],624:[function(_dereq_,module,exports){
-arguments[4][79][0].apply(exports,arguments)
-},{"607":607,"610":610,"616":616,"617":617,"620":620,"79":79}],625:[function(_dereq_,module,exports){
-arguments[4][185][0].apply(exports,arguments)
-},{"185":185,"614":614,"623":623}],626:[function(_dereq_,module,exports){
+},{"528":528,"531":531,"538":538,"539":539,"547":547,"73":73}],535:[function(_dereq_,module,exports){
+/**
+ * An implementation of `_.uniq` optimized for sorted arrays without support
+ * for callback shorthands and `this` binding.
+ *
+ * @private
+ * @param {Array} array The array to inspect.
+ * @param {Function} [iteratee] The function invoked per iteration.
+ * @returns {Array} Returns the new duplicate free array.
+ */
+function sortedUniq(array, iteratee) {
+  var seen,
+      index = -1,
+      length = array.length,
+      resIndex = -1,
+      result = [];
+
+  while (++index < length) {
+    var value = array[index],
+        computed = iteratee ? iteratee(value, index, array) : value;
+
+    if (!index || seen !== computed) {
+      seen = computed;
+      result[++resIndex] = value;
+    }
+  }
+  return result;
+}
+
+module.exports = sortedUniq;
+
+},{}],536:[function(_dereq_,module,exports){
+arguments[4][74][0].apply(exports,arguments)
+},{"543":543,"74":74}],537:[function(_dereq_,module,exports){
+arguments[4][178][0].apply(exports,arguments)
+},{"178":178,"510":510,"539":539}],538:[function(_dereq_,module,exports){
+arguments[4][390][0].apply(exports,arguments)
+},{"390":390,"527":527,"532":532}],539:[function(_dereq_,module,exports){
+arguments[4][391][0].apply(exports,arguments)
+},{"391":391,"525":525,"531":531,"532":532}],540:[function(_dereq_,module,exports){
+arguments[4][392][0].apply(exports,arguments)
+},{"392":392,"543":543}],541:[function(_dereq_,module,exports){
+arguments[4][393][0].apply(exports,arguments)
+},{"393":393,"532":532,"540":540}],542:[function(_dereq_,module,exports){
+arguments[4][394][0].apply(exports,arguments)
+},{"394":394,"532":532}],543:[function(_dereq_,module,exports){
 arguments[4][80][0].apply(exports,arguments)
-},{"594":594,"80":80}],627:[function(_dereq_,module,exports){
-arguments[4][81][0].apply(exports,arguments)
-},{"81":81}],628:[function(_dereq_,module,exports){
+},{"80":80}],544:[function(_dereq_,module,exports){
+var isLength = _dereq_(531),
+    isObjectLike = _dereq_(532);
+
+/** `Object#toString` result references. */
+var argsTag = '[object Arguments]',
+    arrayTag = '[object Array]',
+    boolTag = '[object Boolean]',
+    dateTag = '[object Date]',
+    errorTag = '[object Error]',
+    funcTag = '[object Function]',
+    mapTag = '[object Map]',
+    numberTag = '[object Number]',
+    objectTag = '[object Object]',
+    regexpTag = '[object RegExp]',
+    setTag = '[object Set]',
+    stringTag = '[object String]',
+    weakMapTag = '[object WeakMap]';
+
+var arrayBufferTag = '[object ArrayBuffer]',
+    float32Tag = '[object Float32Array]',
+    float64Tag = '[object Float64Array]',
+    int8Tag = '[object Int8Array]',
+    int16Tag = '[object Int16Array]',
+    int32Tag = '[object Int32Array]',
+    uint8Tag = '[object Uint8Array]',
+    uint8ClampedTag = '[object Uint8ClampedArray]',
+    uint16Tag = '[object Uint16Array]',
+    uint32Tag = '[object Uint32Array]';
+
+/** Used to identify `toStringTag` values of typed arrays. */
+var typedArrayTags = {};
+typedArrayTags[float32Tag] = typedArrayTags[float64Tag] =
+typedArrayTags[int8Tag] = typedArrayTags[int16Tag] =
+typedArrayTags[int32Tag] = typedArrayTags[uint8Tag] =
+typedArrayTags[uint8ClampedTag] = typedArrayTags[uint16Tag] =
+typedArrayTags[uint32Tag] = true;
+typedArrayTags[argsTag] = typedArrayTags[arrayTag] =
+typedArrayTags[arrayBufferTag] = typedArrayTags[boolTag] =
+typedArrayTags[dateTag] = typedArrayTags[errorTag] =
+typedArrayTags[funcTag] = typedArrayTags[mapTag] =
+typedArrayTags[numberTag] = typedArrayTags[objectTag] =
+typedArrayTags[regexpTag] = typedArrayTags[setTag] =
+typedArrayTags[stringTag] = typedArrayTags[weakMapTag] = false;
+
+/** Used for native method references. */
+var objectProto = Object.prototype;
+
+/**
+ * Used to resolve the [`toStringTag`](http://ecma-international.org/ecma-262/6.0/#sec-object.prototype.tostring)
+ * of values.
+ */
+var objToString = objectProto.toString;
+
+/**
+ * Checks if `value` is classified as a typed array.
+ *
+ * @static
+ * @memberOf _
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is correctly classified, else `false`.
+ * @example
+ *
+ * _.isTypedArray(new Uint8Array);
+ * // => true
+ *
+ * _.isTypedArray([]);
+ * // => false
+ */
+function isTypedArray(value) {
+  return isObjectLike(value) && isLength(value.length) && !!typedArrayTags[objToString.call(value)];
+}
+
+module.exports = isTypedArray;
+
+},{"531":531,"532":532}],545:[function(_dereq_,module,exports){
+arguments[4][397][0].apply(exports,arguments)
+},{"397":397,"492":492,"493":493,"515":515}],546:[function(_dereq_,module,exports){
+arguments[4][398][0].apply(exports,arguments)
+},{"398":398,"525":525,"527":527,"534":534,"543":543}],547:[function(_dereq_,module,exports){
+arguments[4][82][0].apply(exports,arguments)
+},{"528":528,"531":531,"538":538,"539":539,"543":543,"82":82}],548:[function(_dereq_,module,exports){
 arguments[4][188][0].apply(exports,arguments)
-},{"188":188,"591":591,"592":592,"609":609}],629:[function(_dereq_,module,exports){
+},{"188":188,"536":536,"546":546}],549:[function(_dereq_,module,exports){
+arguments[4][84][0].apply(exports,arguments)
+},{"84":84}],550:[function(_dereq_,module,exports){
+arguments[4][191][0].apply(exports,arguments)
+},{"191":191,"507":507,"508":508,"530":530}],551:[function(_dereq_,module,exports){
 /**
  * Set attribute `name` to `val`, or get attr `name`.
  *
@@ -19706,24 +19982,24 @@ module.exports = function(el, name, val) {
 
   return el;
 };
-},{}],630:[function(_dereq_,module,exports){
-arguments[4][399][0].apply(exports,arguments)
-},{"399":399,"636":636}],631:[function(_dereq_,module,exports){
-module.exports = _dereq_(639);
-},{"639":639}],632:[function(_dereq_,module,exports){
-arguments[4][400][0].apply(exports,arguments)
-},{"400":400,"643":643}],633:[function(_dereq_,module,exports){
-module.exports = _dereq_(640);
-},{"640":640}],634:[function(_dereq_,module,exports){
-module.exports = _dereq_(641);
-},{"641":641}],635:[function(_dereq_,module,exports){
+},{}],552:[function(_dereq_,module,exports){
 arguments[4][402][0].apply(exports,arguments)
-},{"402":402}],636:[function(_dereq_,module,exports){
+},{"402":402,"558":558}],553:[function(_dereq_,module,exports){
+module.exports = _dereq_(561);
+},{"561":561}],554:[function(_dereq_,module,exports){
 arguments[4][403][0].apply(exports,arguments)
-},{"403":403,"637":637}],637:[function(_dereq_,module,exports){
-arguments[4][404][0].apply(exports,arguments)
-},{"404":404}],638:[function(_dereq_,module,exports){
-var matches = _dereq_(641)
+},{"403":403,"565":565}],555:[function(_dereq_,module,exports){
+module.exports = _dereq_(562);
+},{"562":562}],556:[function(_dereq_,module,exports){
+module.exports = _dereq_(563);
+},{"563":563}],557:[function(_dereq_,module,exports){
+arguments[4][405][0].apply(exports,arguments)
+},{"405":405}],558:[function(_dereq_,module,exports){
+arguments[4][406][0].apply(exports,arguments)
+},{"406":406,"559":559}],559:[function(_dereq_,module,exports){
+arguments[4][407][0].apply(exports,arguments)
+},{"407":407}],560:[function(_dereq_,module,exports){
+var matches = _dereq_(563)
 
 module.exports = function (element, selector, checkYoSelf, root) {
   element = checkYoSelf ? {parentNode: element} : element
@@ -19743,13 +20019,13 @@ module.exports = function (element, selector, checkYoSelf, root) {
   }
 }
 
-},{"641":641}],639:[function(_dereq_,module,exports){
+},{"563":563}],561:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
-var closest = _dereq_(638)
-  , event = _dereq_(640);
+var closest = _dereq_(560)
+  , event = _dereq_(562);
 
 /**
  * Delegate event `type` to `selector`
@@ -19787,7 +20063,7 @@ exports.unbind = function(el, type, fn, capture){
   event.unbind(el, type, fn, capture);
 };
 
-},{"638":638,"640":640}],640:[function(_dereq_,module,exports){
+},{"560":560,"562":562}],562:[function(_dereq_,module,exports){
 var bind = window.addEventListener ? 'addEventListener' : 'attachEvent',
     unbind = window.removeEventListener ? 'removeEventListener' : 'detachEvent',
     prefix = bind !== 'addEventListener' ? 'on' : '';
@@ -19823,12 +20099,12 @@ exports.unbind = function(el, type, fn, capture){
   el[unbind](prefix + type, fn, capture || false);
   return fn;
 };
-},{}],641:[function(_dereq_,module,exports){
+},{}],563:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
-var query = _dereq_(642);
+var query = _dereq_(564);
 
 /**
  * Element prototype.
@@ -19871,118 +20147,10 @@ function match(el, selector) {
   return false;
 }
 
-},{"642":642}],642:[function(_dereq_,module,exports){
-arguments[4][405][0].apply(exports,arguments)
-},{"405":405}],643:[function(_dereq_,module,exports){
-
-/**
- * Expose `parse`.
- */
-
-module.exports = parse;
-
-/**
- * Tests for browser support.
- */
-
-var div = document.createElement('div');
-// Setup
-div.innerHTML = '  <link/><table></table><a href="/a">a</a><input type="checkbox"/>';
-// Make sure that link elements get serialized correctly by innerHTML
-// This requires a wrapper element in IE
-var innerHTMLBug = !div.getElementsByTagName('link').length;
-div = undefined;
-
-/**
- * Wrap map from jquery.
- */
-
-var map = {
-  legend: [1, '<fieldset>', '</fieldset>'],
-  tr: [2, '<table><tbody>', '</tbody></table>'],
-  col: [2, '<table><tbody></tbody><colgroup>', '</colgroup></table>'],
-  // for script/link/style tags to work in IE6-8, you have to wrap
-  // in a div with a non-whitespace character in front, ha!
-  _default: innerHTMLBug ? [1, 'X<div>', '</div>'] : [0, '', '']
-};
-
-map.td =
-map.th = [3, '<table><tbody><tr>', '</tr></tbody></table>'];
-
-map.option =
-map.optgroup = [1, '<select multiple="multiple">', '</select>'];
-
-map.thead =
-map.tbody =
-map.colgroup =
-map.caption =
-map.tfoot = [1, '<table>', '</table>'];
-
-map.polyline =
-map.ellipse =
-map.polygon =
-map.circle =
-map.text =
-map.line =
-map.path =
-map.rect =
-map.g = [1, '<svg xmlns="http://www.w3.org/2000/svg" version="1.1">','</svg>'];
-
-/**
- * Parse `html` and return a DOM Node instance, which could be a TextNode,
- * HTML DOM Node of some kind (<div> for example), or a DocumentFragment
- * instance, depending on the contents of the `html` string.
- *
- * @param {String} html - HTML string to "domify"
- * @param {Document} doc - The `document` instance to create the Node for
- * @return {DOMNode} the TextNode, DOM Node, or DocumentFragment instance
- * @api private
- */
-
-function parse(html, doc) {
-  if ('string' != typeof html) throw new TypeError('String expected');
-
-  // default to the global `document` object
-  if (!doc) doc = document;
-
-  // tag name
-  var m = /<([\w:]+)/.exec(html);
-  if (!m) return doc.createTextNode(html);
-
-  html = html.replace(/^\s+|\s+$/g, ''); // Remove leading/trailing whitespace
-
-  var tag = m[1];
-
-  // body support
-  if (tag == 'body') {
-    var el = doc.createElement('html');
-    el.innerHTML = html;
-    return el.removeChild(el.lastChild);
-  }
-
-  // wrap map
-  var wrap = map[tag] || map._default;
-  var depth = wrap[0];
-  var prefix = wrap[1];
-  var suffix = wrap[2];
-  var el = doc.createElement('div');
-  el.innerHTML = prefix + html + suffix;
-  while (depth--) el = el.lastChild;
-
-  // one element
-  if (el.firstChild == el.lastChild) {
-    return el.removeChild(el.firstChild);
-  }
-
-  // several elements
-  var fragment = doc.createDocumentFragment();
-  while (el.firstChild) {
-    fragment.appendChild(el.removeChild(el.firstChild));
-  }
-
-  return fragment;
-}
-
-},{}]},{},[1])(1)
+},{"564":564}],564:[function(_dereq_,module,exports){
+arguments[4][408][0].apply(exports,arguments)
+},{"408":408}],565:[function(_dereq_,module,exports){
+arguments[4][409][0].apply(exports,arguments)
+},{"409":409}]},{},[1])(1)
 });
 //# sourceMappingURL=dmn-modeler.js.map
