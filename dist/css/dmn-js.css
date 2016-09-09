@@ -288,36 +288,15 @@
   -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
-.dmn-table .dmn-js-logo {
+.dmn-table .dmn-js-powered-by {
   text-decoration: none;
   display: block;
   position: absolute;
-  top: 1px;
+  top: -1px;
   right: 0;
 }
-.dmn-table .dmn-js-logo:after {
-  font-family: "dmn-js";
-  font-style: normal;
-  font-weight: normal;
-  speak: none;
-  display: inline-block;
-  text-decoration: inherit;
-  width: 1em;
-  margin-right: .2em;
-  text-align: center;
-  /* opacity: .8; */
-  /* For safety - reset parent styles, that can break glyph codes*/
-  font-variant: normal;
-  text-transform: none;
-  /* fix buttons height, for twitter bootstrap */
-  line-height: 1em;
-  /* Animation center compensation - margins should be symmetric */
-  /* remove if not needed */
-  /* Font smoothing. That was taken from TWBS */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.dmn-table .dmn-js-powered-by:after {
   margin: 0;
-  content: '\e807';
   text-align: right;
   font-size: 3em;
   color: #52b415;
@@ -386,6 +365,7 @@
 .dmn-table td,
 .dmn-table th {
   overflow: hidden;
+  position: relative;
   text-overflow: ellipsis;
 }
 .dmn-table td [contenteditable],
@@ -410,6 +390,17 @@
   background-color: #f4cecd;
   border-color: #d9534f;
   color: #c9302c;
+}
+.dmn-table td .description-indicator,
+.dmn-table th .description-indicator {
+  float: right;
+  position: absolute;
+  height: 30px;
+  background-color: #52b415;
+  top: -15px;
+  right: -15px;
+  width: 30px;
+  transform: rotate(45deg);
 }
 .dmn-table header {
   background-color: #fff;
@@ -520,10 +511,7 @@
 .dmn-table .mappings .col-focused {
   background-color: #D2D1BA;
 }
-.dmn-table.hide-mappings .mappings {
-  display: none;
-}
-.dmn-table.hide-mappings .values {
+.dmn-table.simple-mode .mappings {
   display: none;
 }
 .dmn-table .labels td:empty:before {
@@ -598,6 +586,12 @@
 .dmn-table .row-focused td {
   background-color: #FEFDE6;
 }
+.dmn-table .edit-expression-language {
+  background-color: #FEFDE6;
+  outline: none;
+  box-shadow: 0px 0px 4px 0px rgba(82, 180, 21, 0.6) inset;
+  border-color: #52b415;
+}
 .dmn-table tr > .input + .output {
   border-left: 3px double #555555;
 }
@@ -618,6 +612,9 @@
 .dmn-table .tjs-controls a {
   cursor: pointer;
 }
+.dmn-table .tjs-controls button {
+  margin: 5px;
+}
 .dmn-table.dmn-table-compact {
   font-size: 95%;
 }
@@ -633,6 +630,11 @@
 .dmn-table.dmn-table-bold td,
 .dmn-table.dmn-table-bold th {
   padding: 6px 12px;
+}
+.dmn-table select {
+  background: none;
+  width: 100%;
+  border: none;
 }
 .dmn-table-clause-controls {
   /*! normalize.css v3.0.2 | MIT License | git.io/normalize */
@@ -991,6 +993,9 @@
 .tjs-context-menu .tjs-icon.minus:before {
   content: '\e804';
 }
+.tjs-context-menu .tjs-icon.info:before {
+  content: '\e805';
+}
 .tjs-context-menu .tjs-icon.input:before {
   content: '\e809';
 }
@@ -1014,6 +1019,9 @@
 }
 .tjs-context-menu .tjs-icon.clear:before {
   content: '\e812';
+}
+.tjs-context-menu .tjs-icon.language:before {
+  content: '\e816';
 }
 .tjs-context-menu ul:empty {
   display: none;
@@ -1085,6 +1093,10 @@
 .tjs-context-menu a.disabled:hover .tjs-label {
   font-weight: 700;
   color: #555555;
+}
+.tjs-context-menu .expression-language.dmn-combobox {
+  margin-left: 22px;
+  width: 173px;
 }
 .dmn-clausevalues-setter,
 .dmn-hitpolicy-setter {
@@ -1286,9 +1298,7 @@
   padding: 3px 6px;
 }
 .dmn-clausevalues-setter .ranged-values,
-.dmn-hitpolicy-setter .ranged-values,
-.dmn-clausevalues-setter .allowed-values,
-.dmn-hitpolicy-setter .allowed-values {
+.dmn-hitpolicy-setter .ranged-values {
   max-height: 0;
   overflow: hidden;
   padding: 0 6px;
@@ -1311,23 +1321,15 @@
 .dmn-hitpolicy-setter.range .datatype {
   border-bottom: 1px solid #eeeeee;
 }
-.dmn-clausevalues-setter.choices .allowed-values,
-.dmn-hitpolicy-setter.choices .allowed-values,
 .dmn-clausevalues-setter.range .ranged-values,
 .dmn-hitpolicy-setter.range .ranged-values {
   padding: 6px;
   max-height: 1000px;
 }
-.dmn-clausevalues-setter .allowed-values ul,
-.dmn-hitpolicy-setter .allowed-values ul,
 .dmn-clausevalues-setter .ranged-values ul,
 .dmn-hitpolicy-setter .ranged-values ul {
   max-height: 180px;
   overflow: auto;
-}
-.dmn-clausevalues-setter .allowed-values input,
-.dmn-hitpolicy-setter .allowed-values input {
-  width: 100%;
 }
 .dmn-clausevalues-setter .ranged-values li,
 .dmn-hitpolicy-setter .ranged-values li {
@@ -1393,6 +1395,45 @@
 .dmn-hitpolicy-setter.read-only .dmn-combobox input {
   padding-bottom: 0;
 }
+.dmn-clausevalues-setter .allowed-values ul {
+  margin-bottom: 6px;
+  list-style: none;
+}
+.dmn-clausevalues-setter .allowed-values ul:empty {
+  display: none;
+}
+.dmn-clausevalues-setter .allowed-values li {
+  overflow: hidden;
+}
+.dmn-clausevalues-setter .allowed-values li:before {
+  float: left;
+  content: '-';
+  display: inline-block;
+  width: 1em;
+  text-align: center;
+}
+.dmn-clausevalues-setter .allowed-values .value-text,
+.dmn-clausevalues-setter .allowed-values .dmn-icon-clear {
+  display: inline-block;
+  float: left;
+}
+.dmn-clausevalues-setter .allowed-values .value-text {
+  max-width: calc(100% - 2em);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.dmn-clausevalues-setter .allowed-values .dmn-icon-clear {
+  width: 1em;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: none;
+  color: #52b415;
+}
+.dmn-clausevalues-setter .allowed-values input {
+  width: 100%;
+}
 .dmn-hitpolicy-setter {
   max-width: 420px;
 }
@@ -1418,7 +1459,6 @@
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
-  transition: all 0.218s linear;
 }
 .dmn-clauseexpression-setter a {
   background-color: transparent;
@@ -1593,8 +1633,16 @@
 }
 .dmn-clauseexpression-setter .toggle-type,
 .dmn-clauseexpression-setter .dmn-icon-clear,
-.dmn-clauseexpression-setter .region {
+.dmn-clauseexpression-setter .region,
+.dmn-clauseexpression-setter .input-expression,
+.dmn-clauseexpression-setter .dmn-combobox.language {
   padding: 6px;
+}
+.dmn-clauseexpression-setter .region textarea {
+  margin: 6px;
+}
+.dmn-clauseexpression-setter .region {
+  padding: 0;
 }
 .dmn-clauseexpression-setter .toggle-type,
 .dmn-clauseexpression-setter .dmn-icon-clear {
@@ -1968,4 +2016,591 @@
 }
 .dmn-table table > thead tr td.draggable:hover .drag-handle {
   visibility: visible;
+}
+.dmn-date-editor {
+  /*! normalize.css v3.0.2 | MIT License | git.io/normalize */
+  font-family: sans-serif;
+  -ms-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  font-size: 16px;
+  position: absolute;
+  display: block;
+  z-index: 99;
+  color: #333333;
+  background-color: #fff;
+  -webkit-box-shadow: 0 0 3px 1px rgba(34, 34, 34, 0.5);
+  box-shadow: 0 0 3px 1px rgba(34, 34, 34, 0.5);
+  min-width: 180px;
+  max-width: 370px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  padding: 15px;
+}
+.dmn-date-editor a {
+  background-color: transparent;
+}
+.dmn-date-editor a:active,
+.dmn-date-editor a:hover {
+  outline: 0;
+}
+.dmn-date-editor h1 {
+  font-size: 2em;
+  margin: 0.67em 0;
+}
+.dmn-date-editor small {
+  font-size: 80%;
+}
+.dmn-date-editor sub,
+.dmn-date-editor sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+.dmn-date-editor sup {
+  top: -0.5em;
+}
+.dmn-date-editor sub {
+  bottom: -0.25em;
+}
+.dmn-date-editor img {
+  border: 0;
+}
+.dmn-date-editor svg:not(:root) {
+  overflow: hidden;
+}
+.dmn-date-editor button,
+.dmn-date-editor input,
+.dmn-date-editor optgroup,
+.dmn-date-editor select,
+.dmn-date-editor textarea {
+  color: inherit;
+  font: inherit;
+  margin: 0;
+}
+.dmn-date-editor button {
+  overflow: visible;
+}
+.dmn-date-editor button,
+.dmn-date-editor select {
+  text-transform: none;
+}
+.dmn-date-editor button,
+.dmn-date-editor input[type="reset"],
+.dmn-date-editor input[type="submit"] {
+  -webkit-appearance: button;
+  cursor: pointer;
+}
+.dmn-date-editor button[disabled] {
+  cursor: default;
+}
+.dmn-date-editor button::-moz-focus-inner,
+.dmn-date-editor input::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+.dmn-date-editor input {
+  line-height: normal;
+}
+.dmn-date-editor input[type="checkbox"],
+.dmn-date-editor input[type="radio"] {
+  box-sizing: border-box;
+  padding: 0;
+}
+.dmn-date-editor input[type="number"]::-webkit-inner-spin-button,
+.dmn-date-editor input[type="number"]::-webkit-outer-spin-button {
+  height: auto;
+}
+.dmn-date-editor input[type="search"] {
+  -webkit-appearance: textfield;
+  -moz-box-sizing: content-box;
+  -webkit-box-sizing: content-box;
+  box-sizing: content-box;
+}
+.dmn-date-editor input[type="search"]::-webkit-search-cancel-button,
+.dmn-date-editor input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+.dmn-date-editor textarea {
+  overflow: auto;
+}
+.dmn-date-editor optgroup {
+  font-weight: bold;
+}
+.dmn-date-editor table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+.dmn-date-editor td,
+.dmn-date-editor th {
+  padding: 0;
+}
+.dmn-date-editor input,
+.dmn-date-editor textarea {
+  font-size: 16px;
+  color: #333333;
+}
+.dmn-date-editor * {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+.dmn-date-editor *:before,
+.dmn-date-editor *:after {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+.dmn-date-editor:after {
+  display: block;
+  position: absolute;
+  content: '';
+}
+.dmn-date-editor:after {
+  right: 100%;
+  top: 8px;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 8px solid #000;
+}
+.dmn-date-editor h3 {
+  margin-top: 0;
+}
+.dmn-date-editor .dateEdit-type-dropdown {
+  background: none;
+  width: 100%;
+  border: none;
+}
+.dmn-date-editor input {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+.dmn-date-editor .helptext {
+  margin-top: -10px;
+  font-size: 11px;
+  text-align: right;
+  color: #9c9c9c;
+}
+.dmn-number-editor {
+  /*! normalize.css v3.0.2 | MIT License | git.io/normalize */
+  font-family: sans-serif;
+  -ms-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  font-size: 16px;
+  position: absolute;
+  display: block;
+  z-index: 99;
+  color: #333333;
+  background-color: #fff;
+  -webkit-box-shadow: 0 0 3px 1px rgba(34, 34, 34, 0.5);
+  box-shadow: 0 0 3px 1px rgba(34, 34, 34, 0.5);
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  min-width: 180px;
+  max-width: 370px;
+  padding: 10px;
+}
+.dmn-number-editor a {
+  background-color: transparent;
+}
+.dmn-number-editor a:active,
+.dmn-number-editor a:hover {
+  outline: 0;
+}
+.dmn-number-editor h1 {
+  font-size: 2em;
+  margin: 0.67em 0;
+}
+.dmn-number-editor small {
+  font-size: 80%;
+}
+.dmn-number-editor sub,
+.dmn-number-editor sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+.dmn-number-editor sup {
+  top: -0.5em;
+}
+.dmn-number-editor sub {
+  bottom: -0.25em;
+}
+.dmn-number-editor img {
+  border: 0;
+}
+.dmn-number-editor svg:not(:root) {
+  overflow: hidden;
+}
+.dmn-number-editor button,
+.dmn-number-editor input,
+.dmn-number-editor optgroup,
+.dmn-number-editor select,
+.dmn-number-editor textarea {
+  color: inherit;
+  font: inherit;
+  margin: 0;
+}
+.dmn-number-editor button {
+  overflow: visible;
+}
+.dmn-number-editor button,
+.dmn-number-editor select {
+  text-transform: none;
+}
+.dmn-number-editor button,
+.dmn-number-editor input[type="reset"],
+.dmn-number-editor input[type="submit"] {
+  -webkit-appearance: button;
+  cursor: pointer;
+}
+.dmn-number-editor button[disabled] {
+  cursor: default;
+}
+.dmn-number-editor button::-moz-focus-inner,
+.dmn-number-editor input::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+.dmn-number-editor input {
+  line-height: normal;
+}
+.dmn-number-editor input[type="checkbox"],
+.dmn-number-editor input[type="radio"] {
+  box-sizing: border-box;
+  padding: 0;
+}
+.dmn-number-editor input[type="number"]::-webkit-inner-spin-button,
+.dmn-number-editor input[type="number"]::-webkit-outer-spin-button {
+  height: auto;
+}
+.dmn-number-editor input[type="search"] {
+  -webkit-appearance: textfield;
+  -moz-box-sizing: content-box;
+  -webkit-box-sizing: content-box;
+  box-sizing: content-box;
+}
+.dmn-number-editor input[type="search"]::-webkit-search-cancel-button,
+.dmn-number-editor input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+.dmn-number-editor textarea {
+  overflow: auto;
+}
+.dmn-number-editor optgroup {
+  font-weight: bold;
+}
+.dmn-number-editor table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+.dmn-number-editor td,
+.dmn-number-editor th {
+  padding: 0;
+}
+.dmn-number-editor input,
+.dmn-number-editor textarea {
+  font-size: 16px;
+  color: #333333;
+}
+.dmn-number-editor * {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+.dmn-number-editor *:before,
+.dmn-number-editor *:after {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+.dmn-number-editor:after {
+  display: block;
+  position: absolute;
+  content: '';
+}
+.dmn-number-editor:after {
+  right: 100%;
+  top: 8px;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 8px solid #000;
+}
+.dmn-number-editor label {
+  color: #555555;
+  font-weight: 700;
+  background-color: transparent;
+  margin-right: 6px;
+}
+.dmn-number-editor h4 {
+  margin-top: 0;
+  margin-bottom: 0;
+  float: left;
+  clear: both;
+}
+.dmn-number-editor a {
+  cursor: pointer;
+  color: #52b415;
+}
+.dmn-number-editor input {
+  padding: 3px 6px;
+  border: 1px solid;
+}
+.dmn-number-editor input[type="text"] {
+  -webkit-transition: box-shadow 0.218s ease;
+  -o-transition: box-shadow 0.218s ease;
+  transition: box-shadow 0.218s ease;
+}
+.dmn-number-editor input[type="text"]:focus {
+  outline: none;
+  box-shadow: 0px 0px 4px 0px rgba(82, 180, 21, 0.6) inset;
+  border-color: #52b415;
+}
+.dmn-number-editor .links {
+  display: table;
+  width: 100%;
+  border-bottom: 1px solid #eeeeee;
+}
+.dmn-number-editor .dmn-icon-clear {
+  float: right;
+}
+.dmn-number-editor .region.range {
+  display: none;
+}
+.dmn-number-editor .links .comparison {
+  text-decoration: underline;
+}
+.dmn-number-editor.use-range {
+  max-width: none;
+}
+.dmn-number-editor.use-range .links .range {
+  text-decoration: underline;
+}
+.dmn-number-editor.use-range .links .comparison {
+  text-decoration: none;
+}
+.dmn-number-editor.use-range .region.comparison {
+  display: none;
+}
+.dmn-number-editor.use-range .region.range {
+  display: block;
+}
+.dmn-number-editor h4,
+.dmn-number-editor .toggle-type,
+.dmn-number-editor .dmn-icon-clear,
+.dmn-number-editor .region {
+  padding: 3px 0;
+}
+.dmn-number-editor .range {
+  clear: both;
+}
+.dmn-number-editor .range input {
+  width: 40%;
+}
+.dmn-number-editor .range label {
+  margin-left: 50%;
+}
+.dmn-number-editor .range .include-inputs {
+  padding: 3px 0;
+}
+.dmn-number-editor .comparison-dropdown {
+  padding: 2px 6px;
+  background: none;
+  width: 45%;
+  float: left;
+  clear: both;
+  overflow: hidden;
+  white-space: pre;
+  text-overflow: ellipsis;
+  -webkit-appearance: none;
+}
+.dmn-number-editor .comparison-number {
+  background: none;
+  width: 50%;
+  float: right;
+}
+.dmn-number-editor .comparison-dropdown .comparison-number {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+.dmn-string-editor {
+  /*! normalize.css v3.0.2 | MIT License | git.io/normalize */
+  font-family: sans-serif;
+  -ms-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  font-size: 16px;
+  position: absolute;
+  display: block;
+  z-index: 99;
+  color: #333333;
+  background-color: #fff;
+  -webkit-box-shadow: 0 0 3px 1px rgba(34, 34, 34, 0.5);
+  box-shadow: 0 0 3px 1px rgba(34, 34, 34, 0.5);
+  min-width: 180px;
+  max-width: 370px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  padding: 15px;
+}
+.dmn-string-editor a {
+  background-color: transparent;
+}
+.dmn-string-editor a:active,
+.dmn-string-editor a:hover {
+  outline: 0;
+}
+.dmn-string-editor h1 {
+  font-size: 2em;
+  margin: 0.67em 0;
+}
+.dmn-string-editor small {
+  font-size: 80%;
+}
+.dmn-string-editor sub,
+.dmn-string-editor sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+.dmn-string-editor sup {
+  top: -0.5em;
+}
+.dmn-string-editor sub {
+  bottom: -0.25em;
+}
+.dmn-string-editor img {
+  border: 0;
+}
+.dmn-string-editor svg:not(:root) {
+  overflow: hidden;
+}
+.dmn-string-editor button,
+.dmn-string-editor input,
+.dmn-string-editor optgroup,
+.dmn-string-editor select,
+.dmn-string-editor textarea {
+  color: inherit;
+  font: inherit;
+  margin: 0;
+}
+.dmn-string-editor button {
+  overflow: visible;
+}
+.dmn-string-editor button,
+.dmn-string-editor select {
+  text-transform: none;
+}
+.dmn-string-editor button,
+.dmn-string-editor input[type="reset"],
+.dmn-string-editor input[type="submit"] {
+  -webkit-appearance: button;
+  cursor: pointer;
+}
+.dmn-string-editor button[disabled] {
+  cursor: default;
+}
+.dmn-string-editor button::-moz-focus-inner,
+.dmn-string-editor input::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+.dmn-string-editor input {
+  line-height: normal;
+}
+.dmn-string-editor input[type="checkbox"],
+.dmn-string-editor input[type="radio"] {
+  box-sizing: border-box;
+  padding: 0;
+}
+.dmn-string-editor input[type="number"]::-webkit-inner-spin-button,
+.dmn-string-editor input[type="number"]::-webkit-outer-spin-button {
+  height: auto;
+}
+.dmn-string-editor input[type="search"] {
+  -webkit-appearance: textfield;
+  -moz-box-sizing: content-box;
+  -webkit-box-sizing: content-box;
+  box-sizing: content-box;
+}
+.dmn-string-editor input[type="search"]::-webkit-search-cancel-button,
+.dmn-string-editor input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+.dmn-string-editor textarea {
+  overflow: auto;
+}
+.dmn-string-editor optgroup {
+  font-weight: bold;
+}
+.dmn-string-editor table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+.dmn-string-editor td,
+.dmn-string-editor th {
+  padding: 0;
+}
+.dmn-string-editor input,
+.dmn-string-editor textarea {
+  font-size: 16px;
+  color: #333333;
+}
+.dmn-string-editor * {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+.dmn-string-editor *:before,
+.dmn-string-editor *:after {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+.dmn-string-editor:after {
+  display: block;
+  position: absolute;
+  content: '';
+}
+.dmn-string-editor:after {
+  right: 100%;
+  top: 8px;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 8px solid #000;
+}
+.dmn-string-editor h3 {
+  margin-top: 0;
+}
+.dmn-string-editor .helptext {
+  font-size: 11px;
+  text-align: right;
+  color: #e65151;
+  display: none;
+}
+.dmn-string-editor ul {
+  list-style: none;
+  padding: 0;
+}
+.dmn-string-editor .free-input li:before {
+  float: left;
+  content: '-';
+  display: inline-block;
+  width: 1em;
+  text-align: center;
+}
+.dmn-string-editor .free-input li .dmn-icon-clear {
+  width: 1em;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: none;
+  color: #52b415;
+}
+.dmn-string-editor .input-values input {
+  margin-right: 10px;
 }
