@@ -1,5 +1,5 @@
 /*!
- * dmn-js - dmn-modeler v0.6.0
+ * dmn-js - dmn-modeler v0.6.2
 
  * Copyright 2015 camunda Services GmbH and other contributors
  *
@@ -8,23 +8,23 @@
  *
  * Source Code: https://github.com/dmn-io/dmn-js
  *
- * Date: 2016-09-09
+ * Date: 2016-10-18
  */
 
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.DmnJS = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(114);
+var inherits = _dereq_(81);
 
-var assign = _dereq_(234);
+var assign = _dereq_(196);
 
-var Ids = _dereq_(113);
+var Ids = _dereq_(80);
 
 var Viewer = _dereq_(2);
 
 var initialTemplate = [
   '<?xml version="1.0" encoding="UTF-8"?>',
-  '<definitions xmlns="http://www.omg.org/spec/DMN/20151101/dmn11.xsd"',
+  '<definitions xmlns="http://www.omg.org/spec/DMN/20151101/dmn.xsd"',
   'id="definitions"',
   'name="definitions"',
   'namespace="http://camunda.org/schema/1.0/dmn">',
@@ -181,19 +181,6 @@ Modeler.prototype._collectIds = function(definitions, context) {
 
 Modeler.prototype._modelingModules = [
   // modeling components
-  _dereq_(288),
-  _dereq_(25),
-  _dereq_(55),
-  _dereq_(13),
-  _dereq_(61),
-  _dereq_(22),
-  _dereq_(294),
-  _dereq_(312),
-  _dereq_(27),
-  _dereq_(11),
-  _dereq_(16),
-  _dereq_(57),
-  _dereq_(66)
 ];
 
 
@@ -207,7 +194,7 @@ Modeler.prototype._modules = [].concat(
   Modeler.prototype._modules,
   Modeler.prototype._modelingModules);
 
-},{"11":11,"113":113,"114":114,"13":13,"16":16,"2":2,"22":22,"234":234,"25":25,"27":27,"288":288,"294":294,"312":312,"55":55,"57":57,"61":61,"66":66}],2:[function(_dereq_,module,exports){
+},{"196":196,"2":2,"80":80,"81":81}],2:[function(_dereq_,module,exports){
 /**
  * The code in the <project-logo></project-logo> area
  * must not be changed.
@@ -216,22 +203,25 @@ Modeler.prototype._modules = [].concat(
  */
 'use strict';
 
-var assign = _dereq_(234),
-    omit = _dereq_(237),
-    isString = _dereq_(232);
+var assign = _dereq_(196),
+    omit = _dereq_(199),
+    isString = _dereq_(194),
+    filter = _dereq_(88);
 
-var domify = _dereq_(246),
-    domQuery = _dereq_(249),
-    domRemove = _dereq_(250);
+var domify = _dereq_(207),
+    domQuery = _dereq_(209),
+    domRemove = _dereq_(210);
 
-var Table = _dereq_(265),
-    DmnModdle = _dereq_(106);
+var Table = _dereq_(224),
+    DmnModdle = _dereq_(71);
 
-var inherits = _dereq_(114);
+var inherits = _dereq_(81);
 
-var Importer = _dereq_(78);
+var Importer = _dereq_(42);
 
-var ComboBox = _dereq_(280);
+var is = _dereq_(47).is;
+
+var ComboBox = _dereq_(234);
 
 
 function checkValidationError(err) {
@@ -307,13 +297,13 @@ function Viewer(options) {
 
   this.container = this._createContainer(options);
 
+  this._init(this.container, this.moddle, options);
+
   /* <project-logo> */
 
-  addProjectLogo(this.container);
+  addProjectLogo(this.container.firstChild);
 
   /* </project-logo> */
-
-  this._init(this.container, this.moddle, options);
 
   this.on([ 'table.destroy', 'table.clear' ], function() {
     if (ComboBox.prototype._openedDropdown) {
@@ -388,6 +378,48 @@ Viewer.prototype.importXML = function(xml, done) {
   });
 };
 
+Viewer.prototype.getDefinitions = function() {
+  return this.definitions;
+};
+
+Viewer.prototype.getDecisions = function(definitions) {
+  var defs = definitions || this.definitions;
+
+  if (!defs) {
+    return;
+  }
+
+  return filter(defs.drgElements, function(element) {
+    return is(element, 'dmn:Decision');
+  });
+};
+
+Viewer.prototype.showDecision = function(decision, done) {
+  var self = this;
+
+  if (!this.definitions) {
+    throw new Error('Definitions not parsed yet');
+  }
+
+  if (!decision) {
+    throw new Error('Unknown decision object');
+  }
+
+  if (!done) {
+    done = function() {};
+  }
+
+  // import the definition with the given index
+  this.importDefinitions(this.definitions, decision, function(err, importWarnings) {
+    var warnings = importWarnings || [];
+
+    self._emit('import.done', { error: err, warnings: warnings });
+
+    done(err, warnings);
+  });
+
+};
+
 Viewer.prototype.saveXML = function(options, done) {
 
   if (!done) {
@@ -404,8 +436,8 @@ Viewer.prototype.saveXML = function(options, done) {
   this.moddle.toXML(definitions, options, done);
 };
 
-
-Viewer.prototype.importDefinitions = function(definitions, done) {
+Viewer.prototype.importDefinitions = function(definitions, decision, done) {
+  var decisions;
 
   // use try/catch to not swallow synchronous exceptions
   // that may be raised during model parsing
@@ -414,15 +446,21 @@ Viewer.prototype.importDefinitions = function(definitions, done) {
       this.clear();
     }
 
+    if (typeof decision === 'function') {
+      done = decision;
+      decisions = this.getDecisions(definitions);
+
+      decision = decisions && decisions[0];
+    }
+
     this.definitions = definitions;
 
     // perform graphical import
-    Importer.importDmnTable(this, definitions, done);
+    Importer.importDmnTable(this, definitions, decision, done);
   } catch (e) {
     done(e);
   }
 };
-
 
 Viewer.prototype._createContainer = function(options) {
 
@@ -440,9 +478,14 @@ Viewer.prototype._createContainer = function(options) {
     parent = domQuery(parent);
   }
 
+  this._parentContainer = parent;
+
   container = domify('<div class="dmn-table"></div>');
 
-  parent.appendChild(container);
+  // append to DOM unless explicity defined otherwise
+  if (!options.isDetached) {
+    parent.appendChild(container);
+  }
 
   return container;
 };
@@ -479,7 +522,7 @@ Viewer.prototype._init = function(container, moddle, options) {
     modules: modules
   });
 
-  // invoke diagram constructor
+  // invoke table constructor
   Table.call(this, options);
 };
 
@@ -541,27 +584,29 @@ Viewer.prototype.off = function(event, callback) {
 // modules the viewer is composed of
 Viewer.prototype._modules = [
   _dereq_(3),
-  _dereq_(296),
-  _dereq_(37),
-  _dereq_(71),
-  _dereq_(8),
-  _dereq_(41),
-  _dereq_(75),
-  _dereq_(63),
-  _dereq_(33),
+  _dereq_(242),
   _dereq_(23),
+  _dereq_(37),
+  _dereq_(8),
+  _dereq_(30),
+  _dereq_(41),
+  _dereq_(32),
   _dereq_(19),
-  _dereq_(69),
-  _dereq_(292),
-  _dereq_(284),
-  _dereq_(282)
+  _dereq_(13),
+  _dereq_(11),
+  _dereq_(35),
+  _dereq_(26),
+
+  _dereq_(240),
+  _dereq_(238),
+  _dereq_(236)
 ];
 
 
 /* <project-logo> */
 
-var PoweredBy = _dereq_(82),
-    domEvent = _dereq_(247);
+var PoweredBy = _dereq_(48),
+    domEvent = _dereq_(208);
 
 /**
  * Adds the project logo to the diagram container as
@@ -596,24 +641,24 @@ function addProjectLogo(container) {
 
 /* </project-logo> */
 
-},{"106":106,"114":114,"19":19,"23":23,"232":232,"234":234,"237":237,"246":246,"247":247,"249":249,"250":250,"265":265,"280":280,"282":282,"284":284,"292":292,"296":296,"3":3,"33":33,"37":37,"41":41,"63":63,"69":69,"71":71,"75":75,"78":78,"8":8,"82":82}],3:[function(_dereq_,module,exports){
+},{"11":11,"13":13,"19":19,"194":194,"196":196,"199":199,"207":207,"208":208,"209":209,"210":210,"224":224,"23":23,"234":234,"236":236,"238":238,"240":240,"242":242,"26":26,"3":3,"30":30,"32":32,"35":35,"37":37,"41":41,"42":42,"47":47,"48":48,"71":71,"8":8,"81":81,"88":88}],3:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(80),
+    _dereq_(46),
     _dereq_(5)
   ]
 };
 
-},{"5":5,"80":80}],4:[function(_dereq_,module,exports){
+},{"46":46,"5":5}],4:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(244);
+var domClasses = _dereq_(205);
 
 var HIGH_PRIORITY = 1500,
     UTILITY_COL_WIDTH = 45;
 
 
-function DmnRenderer(eventBus, elementRegistry, sheet, config, utility) {
+function DmnRenderer(eventBus, elementRegistry, sheet, config) {
 
   eventBus.on('sheet.resized', HIGH_PRIORITY, function(event) {
     var context = event.context;
@@ -696,16 +741,16 @@ DmnRenderer.$inject = [ 'eventBus', 'elementRegistry', 'sheet', 'config' ];
 
 module.exports = DmnRenderer;
 
-},{"244":244}],5:[function(_dereq_,module,exports){
+},{"205":205}],5:[function(_dereq_,module,exports){
 module.exports = {
-  __init__: [ 'dmnRenderer' ],
-  dmnRenderer: [ 'type', _dereq_(4) ]
+  __init__: [ 'tableRenderer' ],
+  tableRenderer: [ 'type', _dereq_(4) ]
 };
 
 },{"4":4}],6:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(246);
+var domify = _dereq_(207);
 
 /**
  * Adds an annotation column to the table
@@ -766,10 +811,10 @@ Annotations.prototype.getColumn = function() {
   return this.column;
 };
 
-},{"246":246}],7:[function(_dereq_,module,exports){
+},{"207":207}],7:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(244);
+var domClasses = _dereq_(205);
 
 function AnnotationsRenderer(
     eventBus,
@@ -793,7 +838,7 @@ AnnotationsRenderer.$inject = [
 
 module.exports = AnnotationsRenderer;
 
-},{"244":244}],8:[function(_dereq_,module,exports){
+},{"205":205}],8:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'annotations', 'annotationsRenderer'],
   __depends__: [
@@ -805,781 +850,8 @@ module.exports = {
 },{"6":6,"7":7}],9:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(246);
-var domClasses = _dereq_(244);
-var forEach = _dereq_(123);
-
-var DRAG_THRESHOLD = 10;
-
-function isOfSameType(element1, element2) {
-  return element1.column.type === element2.column.type;
-}
-
-function ColumnDrag(eventBus, sheet, elementRegistry, modeling) {
-
-  this._sheet = sheet;
-  this._elementRegistry = elementRegistry;
-  this._utilityColumn = null;
-  this._modeling = modeling;
-  this._eventBus = eventBus;
-
-  var self = this;
-
-  eventBus.on('utilityColumn.added', function(event) {
-    var column = event.column;
-    self._utilityColumn = column;
-  });
-
-  this.dragDistance = 0;
-  this.draggedElement = null;
-  this.previousCoordinates = {
-    x: 0,
-    y: 0
-  };
-  this.highlightedBorder = null;
-  this.moveLeft = false;
-
-  eventBus.on('element.mousedown', function(event) {
-    var hasDragHandle = domClasses(event.originalEvent.target).has('drag-handle');
-
-    if (hasDragHandle) {
-      event.preventDefault();
-      self.startDragging(event.element);
-      self.setLastDragPoint(event.originalEvent);
-    }
-  });
-  document.body.addEventListener('mouseup', function(event) {
-    if (self.isDragging()) {
-      self.stopDragging();
-    }
-  });
-  document.body.addEventListener('mousemove', function(event) {
-    if (self.isDragging()) {
-      event.preventDefault();
-      self.updateDragDistance(event);
-      if (self.dragDistance > DRAG_THRESHOLD) {
-        self.updateVisuals(event);
-      }
-    }
-  });
-}
-
-ColumnDrag.$inject = [ 'eventBus', 'sheet', 'elementRegistry', 'modeling' ];
-
-module.exports = ColumnDrag;
-
-ColumnDrag.prototype.setLastDragPoint = function(event) {
-  this.previousCoordinates.x = event.clientX;
-  this.previousCoordinates.y = event.clientY;
-};
-
-ColumnDrag.prototype.highlightColumn = function(domNode, position) {
-
-  var elementRegistry = this._elementRegistry;
-
-  var cellId = domNode.getAttribute('data-element-id');
-  var element = elementRegistry.get(cellId);
-  var column = element.column;
-
-  var cellsInColumn = elementRegistry.filter(function(element) {
-    return element._type === 'cell' && element.column === column;
-  });
-
-  forEach(cellsInColumn, function(cell) {
-    var gfx = elementRegistry.getGraphics(cell);
-    domClasses(gfx).add('drop');
-    domClasses(gfx).add(position);
-  });
-};
-
-ColumnDrag.prototype.clearHighlight = function() {
-  var elements = document.querySelectorAll('.drop');
-  forEach(elements, function(element) {
-    domClasses(element).remove('drop');
-    domClasses(element).remove('left');
-    domClasses(element).remove('right');
-  });
-};
-
-ColumnDrag.prototype.updateVisuals = function(event) {
-
-  if (!this.dragVisual) {
-    this.dragVisual = this.createDragVisual(this.draggedElement);
-  }
-
-  var container = this._sheet.getContainer();
-  container.appendChild(this.dragVisual);
-
-  this.dragVisual.style.position = 'fixed';
-  this.dragVisual.style.left = (this.previousCoordinates.x + 5) + 'px';
-  this.dragVisual.style.top = (this.previousCoordinates.y + 5) + 'px';
-
-  // clear the indicator for the previous run
-  this.clearHighlight();
-  this.highlightedBorder = null;
-
-  // get the element we are hovering over
-  var td = event.target;
-  while (td && (td.tagName || '').toLowerCase() !== 'td') {
-    td = td.parentNode;
-  }
-  if (td && isOfSameType(this.draggedElement, this._elementRegistry.get(td.getAttribute('data-element-id')))) {
-      // check if we hover over the left or the right half of the column
-    var e = td;
-    var offset = { x:0,y:0 };
-    while (e)
-      {
-      offset.x += e.offsetLeft;
-      offset.y += e.offsetTop;
-      e = e.offsetParent;
-    }
-    if (event.clientX < offset.x + td.clientWidth / 2) {
-      this.highlightColumn(td, 'left');
-      this.moveLeft = true;
-    } else {
-      this.highlightColumn(td, 'right');
-      this.moveLeft = false;
-    }
-
-    this.highlightedBorder = td;
-  }
-};
-
-ColumnDrag.prototype.updateDragDistance = function(event) {
-  this.dragDistance +=
-      Math.abs(event.clientX - this.previousCoordinates.x) +
-      Math.abs(event.clientY - this.previousCoordinates.y);
-
-  this.setLastDragPoint(event);
-};
-
-ColumnDrag.prototype.startDragging = function(element) {
-  this.draggedElement = element;
-  this.dragDistance = 0;
-
-  this.dragVisual = null;
-  this._eventBus.fire('column.drag.started');
-};
-
-ColumnDrag.prototype.createDragVisual = function(element) {
-
-  var node,
-      rowClone,
-      cellClone;
-
-  // get the html element of the dragged element
-  var gfx = this._elementRegistry.getGraphics(element);
-
-  // get the index of the element
-  var idx = [].indexOf.call(gfx.parentNode.childNodes, gfx); // childNodes is a NodeList and not an array :(
-
-  var table = domify('<table>');
-
-  // iterate over the rest of the head
-  var thead = domify('<thead>');
-  node = gfx.parentNode;
-  do {
-    // clone row
-    rowClone = node.cloneNode(true);
-
-    // clone cell with correct idx
-    cellClone = rowClone.childNodes.item(idx).cloneNode(true);
-
-    cellClone.style.height = rowClone.childNodes.item(idx).clientHeight + 'px';
-
-    // remove all childNodes from the rowClone
-    while (rowClone.firstChild) {
-      rowClone.removeChild(rowClone.firstChild);
-    }
-
-    // add the cellclone as only child of the row
-    rowClone.appendChild(cellClone);
-    thead.appendChild(rowClone);
-  } while ((node = node.nextSibling));
-  table.appendChild(thead);
-
-  // iterate over the body
-  var tbody = domify('<tbody>');
-  node = this._sheet.getBody().firstChild;
-  if (node) {
-    do {
-      // clone row
-      rowClone = node.cloneNode(true);
-
-      // clone cell with correct idx
-      cellClone = rowClone.childNodes.item(idx).cloneNode(true);
-
-      cellClone.style.height = node.childNodes.item(idx).clientHeight + 'px';
-
-      // remove all childNodes from the rowClone
-      while (rowClone.firstChild) {
-        rowClone.removeChild(rowClone.firstChild);
-      }
-
-      // add the cellclone as only child of the row
-      rowClone.appendChild(cellClone);
-      tbody.appendChild(rowClone);
-    } while ((node = node.nextSibling));
-  }
-  table.appendChild(tbody);
-
-
-  // put it in a table tbody
-  table.setAttribute('class','dragTable');
-  table.style.width = gfx.clientWidth + 'px';
-
-  // fade the original element
-  domClasses(gfx).add('dragged');
-  return table;
-};
-
-ColumnDrag.prototype.stopDragging = function() {
-  if (this.highlightedBorder) {
-    // make sure we drop it to the element we have previously highlighted
-    var targetElement = this._elementRegistry.get(this.highlightedBorder.getAttribute('data-element-id'));
-    this._modeling.moveColumn(this.draggedElement.column, targetElement.column, this.moveLeft);
-  }
-  if (this.dragVisual) {
-    this.dragVisual.parentNode.removeChild(this.dragVisual);
-    // restore opacity of the element
-    domClasses(this._elementRegistry.getGraphics(this.draggedElement)).remove('dragged');
-    this._elementRegistry.getGraphics(this.draggedElement).style.opacity = '';
-  }
-  this.clearHighlight();
-  this.highlightedBorder = null;
-
-  this.draggedElement = null;
-  this._eventBus.fire('column.drag.stopped');
-};
-
-ColumnDrag.prototype.isDragging = function() {
-  return !!this.draggedElement;
-};
-
-},{"123":123,"244":244,"246":246}],10:[function(_dereq_,module,exports){
-'use strict';
-
-var domClasses = _dereq_(244);
-var domify = _dereq_(246);
-
-function DragRenderer(
-    eventBus,
-    utilityColumn) {
-
-  eventBus.on('cell.render', function(event) {
-    if (event.data.row.isClauseRow) {
-      domClasses(event.gfx).add('draggable');
-
-      var hasDragHandle = domClasses(event.gfx.lastChild).has('drag-handle');
-
-      if (!hasDragHandle) {
-        event.gfx.appendChild(domify('<span class="drag-handle dmn-icon-drag"></span>'));
-      }
-    }
-
-    // add drag icon for rows
-    if (event.data.column === utilityColumn.getColumn() && !event.data.row.isFoot && !event.data.row.isHead) {
-      domClasses(event.gfx).add('dmn-icon-drag');
-    }
-  });
-}
-
-DragRenderer.$inject = [
-  'eventBus',
-  'utilityColumn'
-];
-
-module.exports = DragRenderer;
-
-},{"244":244,"246":246}],11:[function(_dereq_,module,exports){
-module.exports = {
-  __init__: [ 'columnDrag', 'columnDragRenderer' ],
-  __depends__: [],
-  columnDrag: [ 'type', _dereq_(9) ],
-  columnDragRenderer: [ 'type', _dereq_(10) ]
-};
-
-},{"10":10,"9":9}],12:[function(_dereq_,module,exports){
-'use strict';
-
-var getEntriesType = _dereq_(83).getEntriesType;
-
-function ContextMenu(popupMenu, eventBus, modeling, elementRegistry, editorActions, selection, sheet) {
-
-  this._popupMenu = popupMenu;
-  this._eventBus = eventBus;
-  this._modeling = modeling;
-  this._elementRegistry = elementRegistry;
-  this._editorActions = editorActions;
-  this._selection = selection;
-  this._sheet = sheet;
-
-  var self = this;
-
-  eventBus.on('element.contextmenu', function(evt) {
-    var element = evt.element,
-        originalEvent = evt.originalEvent;
-
-    // Do not open context menu on table footer
-    if (!element.row.isFoot && (element.column.id !== 'utilityColumn')) {
-      evt.preventDefault();
-      evt.gfx.firstChild.focus();
-
-      self.open(originalEvent.pageX,
-                originalEvent.pageY, element);
-    }
-  });
-
-  var preventFunction = function(evt) {
-    evt.preventDefault();
-  };
-  eventBus.on('popupmenu.open', function(evt) {
-    evt.container.addEventListener('contextmenu', preventFunction);
-    selection.freeze();
-  });
-
-  eventBus.on('popupmenu.close', function(evt) {
-    evt.container.removeEventListener('contextmenu', preventFunction);
-    selection.unfreeze();
-  });
-
-
-  document.addEventListener('click', function(evt) {
-    if (!evt.customHandler) {
-      self.close();
-    }
-  });
-
-}
-
-ContextMenu.$inject = [ 'popupMenu', 'eventBus', 'modeling', 'elementRegistry', 'editorActions', 'selection', 'sheet' ];
-
-module.exports = ContextMenu;
-
-ContextMenu.prototype.getRuleActions = function(context) {
-  return { id: 'rule', content: { label: 'Rule', linkClass: 'disabled', entries: [
-          { id: 'ruleAdd', action: this.ruleAddAction.bind(this),
-           content: { label: 'add', icon: 'plus', entries: [
-            { id: 'ruleAddAbove', content: { label: '', icon: 'above' },
-            action: this.ruleAddAction.bind(this, 'above') },
-            { id: 'ruleAddBelow', content: { label: '', icon: 'below' },
-            action: this.ruleAddAction.bind(this, 'below') }
-           ] } },
-          { id: 'ruleCopy', action: this.ruleCopyAction.bind(this),
-           content: { label: 'copy', icon: 'plus', entries: [
-            { id: 'ruleCopyAbove', content: { label: '', icon: 'above' },
-            action: this.ruleCopyAction.bind(this, 'above') },
-            { id: 'ruleCopyBelow', content: { label: '', icon: 'below' },
-            action: this.ruleCopyAction.bind(this, 'below') }
-           ] } },
-          { id: 'ruleRemove', content: { label: 'remove', icon: 'minus' },
-            action: this.ruleRemoveAction.bind(this) },
-          { id: 'ruleClear', content: { label: 'clear', icon: 'clear' },
-            action: this.ruleClearAction.bind(this) }
-  ] } };
-};
-
-var isLastColumn = function(column) {
-      var type = column.businessObject.$type;
-
-  // return false when the previous or the next column is of the same type
-      return !(column.next.businessObject     && column.next.businessObject.$type === type ||
-           column.previous.businessObject && column.previous.businessObject.$type === type);
-    },
-    noop = function() {};
-
-
-ContextMenu.prototype.getInputActions = function(context) {
-  var lastColumn = isLastColumn(context.column);
-  return { id: 'clause', content: { label: 'Input', linkClass: 'disabled', icon:'input', entries: [
-          { id: 'clauseAdd', action: this.clauseAddInput.bind(this),
-           content: { label: 'add', icon:'plus', entries: [
-            { id: 'clauseAddLeft', content: { label: '', icon: 'left' },
-            action: this.clauseAddAction.bind(this, 'left') },
-            { id: 'clauseAddRight', content: { label: '', icon: 'right' },
-            action: this.clauseAddAction.bind(this, 'right') }
-           ] } },
-          { id: 'clauseRemove', content: { label: 'remove', icon: 'minus', linkClass: lastColumn ? 'disabled' : '' },
-            action: lastColumn ? noop : this.clauseRemoveAction.bind(this) }
-  ] } };
-};
-
-ContextMenu.prototype.getOutputActions = function(context) {
-  var lastColumn = isLastColumn(context.column);
-  return { id: 'clause', content: { label: 'Output', linkClass: 'disabled', icon:'output', entries: [
-          { id: 'clauseAdd', action: this.clauseAddOutput.bind(this),
-           content: { label: 'add', icon:'plus', entries: [
-            { id: 'clauseAddLeft', content: { label: '', icon: 'left' },
-            action: this.clauseAddAction.bind(this, 'left') },
-            { id: 'clauseAddRight', content: { label: '', icon: 'right' },
-            action: this.clauseAddAction.bind(this, 'right') }
-           ] } },
-          { id: 'clauseRemove', content: { label: 'remove', icon: 'minus', linkClass: lastColumn ? 'disabled' : '' },
-            action: lastColumn ? noop : this.clauseRemoveAction.bind(this) }
-  ] } };
-};
-
-ContextMenu.prototype.getActions = function(context) {
-  var activeEntriesType = getEntriesType(context),
-      out = [];
-
-  if (activeEntriesType.rule) {
-    out.push(this.getRuleActions(context));
-  }
-
-  if (activeEntriesType.input) {
-    out.push(this.getInputActions(context));
-  }
-
-  if (activeEntriesType.output) {
-    out.push(this.getOutputActions(context));
-  }
-
-  var cellActions = [];
-  this._eventBus.fire('popupmenu.cellActions', cellActions, context);
-  out = out.concat(cellActions);
-
-  return out;
-};
-
-ContextMenu.prototype.open = function(x, y, context) {
-  var selection = this._selection,
-      popupMenu = this._popupMenu;
-
-  var actions = this.getActions(context);
-
-  selection.select(context);
-
-  if (actions.length > 0) {
-    popupMenu.open({
-      position: { x: x, y: y },
-      entries: actions
-    });
-  }
-};
-
-ContextMenu.prototype.close = function() {
-  var popupMenu = this._popupMenu;
-
-  popupMenu.close();
-};
-
-ContextMenu.prototype.clauseRemoveAction = function() {
-  var editorActions = this._editorActions;
-
-  editorActions.trigger('clauseRemove');
-
-  this.close();
-};
-
-ContextMenu.prototype.clauseAddInput = function() {
-  var editorActions = this._editorActions;
-
-  editorActions.trigger('clauseAdd', 'input');
-
-  this.close();
-};
-
-ContextMenu.prototype.clauseAddOutput = function() {
-  var editorActions = this._editorActions;
-
-  editorActions.trigger('clauseAdd', 'output');
-
-  this.close();
-};
-
-ContextMenu.prototype.clauseAddAction = function(position) {
-  var editorActions = this._editorActions;
-
-  if (position === 'left') {
-    editorActions.trigger('clauseAddLeft');
-
-  } else if (position === 'right') {
-    editorActions.trigger('clauseAddRight');
-  }
-
-  this.close();
-};
-
-ContextMenu.prototype.ruleRemoveAction = function() {
-  this._editorActions.trigger('ruleRemove');
-
-  this.close();
-};
-
-ContextMenu.prototype.ruleAddAction = function(position) {
-  var editorActions = this._editorActions;
-
-  if (position === 'above') {
-    editorActions.trigger('ruleAddAbove');
-
-  } else if (position === 'below') {
-    editorActions.trigger('ruleAddBelow');
-  } else {
-    editorActions.trigger('ruleAdd');
-  }
-
-  this.close();
-};
-
-ContextMenu.prototype.ruleCopyAction = function(position) {
-  var editorActions = this._editorActions;
-
-  if (position === 'above') {
-    editorActions.trigger('ruleCopyAbove');
-  } else if (position === 'below') {
-    editorActions.trigger('ruleCopyBelow');
-  } else {
-    editorActions.trigger('ruleCopy');
-  }
-
-  this.close();
-};
-
-ContextMenu.prototype.ruleClearAction = function() {
-  this._editorActions.trigger('ruleClear');
-
-  this.close();
-};
-
-},{"83":83}],13:[function(_dereq_,module,exports){
-module.exports = {
-  __init__: [ 'contextMenu' ],
-  __depends__: [
-    _dereq_(309)
-  ],
-  contextMenu: [ 'type', _dereq_(12) ]
-};
-
-},{"12":12,"309":309}],14:[function(_dereq_,module,exports){
-'use strict';
-
-var assign = _dereq_(234);
-
-var domify     = _dereq_(246),
-    domClasses = _dereq_(244),
-    utils      = _dereq_(18);
-
-var getSampleDate   = utils.getSampleDate,
-    isDateCell      = utils.isDateCell,
-    isISODateString = utils.isISODateString,
-    parseDate       = utils.parseDate;
-
-function DateEdit(eventBus, simpleMode, elementRegistry, graphicsFactory, modeling, complexCell) {
-  this._eventBus = eventBus;
-  this._simpleMode = simpleMode;
-  this._elementRegistry = elementRegistry;
-  this._graphicsFactory = graphicsFactory;
-  this._modeling = modeling;
-  this._complexCell = complexCell;
-
-  var refreshHandler = function() {
-    if (this._simpleMode.isActive()) {
-      this.refresh();
-    }
-  };
-
-  this._eventBus.on('simpleMode.activated', this.setupComplexCells, this);
-  this._eventBus.on('simpleMode.deactivated', this.teardownComplexCells, this);
-  this._eventBus.on('typeRow.editDataType', refreshHandler, this);
-  this._eventBus.on('contentNode.created', refreshHandler, this);
-  this._eventBus.on('element.changed', refreshHandler, this);
-
-  // whenever an type cell is opened, we have to position the template, because the x offset changes
-  // over time, when columns are added and deleted
-  this._eventBus.on('complexCell.open', function(evt) {
-    var config = evt.config;
-
-    if (config.type === 'dateEdit') {
-      var gfx = elementRegistry.getGraphics(config.element);
-      var template = config.template;
-
-      assign(template.parentNode.style, {
-        left: (gfx.offsetLeft + gfx.offsetWidth - 10) + 'px'
-      });
-    }
-  });
-
-}
-
-DateEdit.prototype.refresh = function() {
-  this.teardownComplexCells();
-  this.setupComplexCells();
-};
-
-DateEdit.prototype.setupComplexCells = function() {
-  var graphicsFactory = this._graphicsFactory;
-  var elementRegistry = this._elementRegistry;
-  var eventBus = this._eventBus;
-  var complexCell = this._complexCell;
-
-  var self = this;
-  elementRegistry.forEach(function(element) {
-    if (isDateCell(element)) {
-      var parsed = element.content && parseDate(element.content.text);
-
-      if (element.content && element.content.text && !parsed) {
-        // in this case, the date contains an expression, we should not show the date editor here
-
-        // show nothing instead
-        element.complex = {
-          template: domify('<div>'),
-          element: element,
-          type: 'dateEdit',
-          offset: {
-            x: 0,
-            y: 0
-          }
-        };
-
-        graphicsFactory.update('cell', element, elementRegistry.getGraphics(element));
-        return;
-      }
-
-      var node = domify(_dereq_(17));
-
-      // set the initial state based on the cell content
-      if (!parsed) {
-        node.querySelector('.dateEdit-type-dropdown').value = '';
-        node.querySelector('.date-1 input').value = getSampleDate();
-        node.querySelector('.date-2 input').value = getSampleDate(true);
-      } else {
-        node.querySelector('.dateEdit-type-dropdown').value = parsed.type;
-        node.querySelector('.date-1 input').value = parsed.date1 || getSampleDate();
-        node.querySelector('.date-2 input').value = parsed.date2 || getSampleDate(true);
-
-        if (parsed.date1) {
-          node.querySelector('.date-1').style.display = 'block';
-        }
-        if (parsed.date2) {
-          node.querySelector('.date-2').style.display = 'block';
-        }
-      }
-
-
-      // wire the elements
-      node.querySelector('.dateEdit-type-dropdown').addEventListener('change', function(evt) {
-        var type = evt.target.value;
-
-        // update visibility of elements
-        node.querySelector('.date-1').style.display = type === '' ? 'none' : 'block';
-        node.querySelector('.date-2').style.display = type === 'between' ? 'block' : 'none';
-      });
-
-      var closeFct = function(evt) {
-        if (evt.keyCode === 13) {
-          complexCell.close();
-        }
-      };
-
-      var validateInput = function(evt) {
-        var val = evt.target.value;
-        var date = new Date(val);
-
-        if (isISODateString(val) && date.toString() !== 'Invalid Date') {
-          // is valid
-          domClasses(evt.target).remove('invalid');
-        } else {
-          // is invalid
-          domClasses(evt.target).add('invalid');
-        }
-
-      };
-      node.querySelector('.date-1 input').addEventListener('keydown', closeFct);
-      node.querySelector('.date-2 input').addEventListener('keydown', closeFct);
-
-      node.querySelector('.date-1 input').addEventListener('input', validateInput);
-      node.querySelector('.date-2 input').addEventListener('input', validateInput);
-
-
-      var complexCellConfig = {
-        className: 'dmn-date-editor',
-        template: node,
-        element: element,
-        type: 'dateEdit',
-        offset: {
-          x: 0,
-          y: 0
-        }
-      };
-
-      eventBus.on('complexCell.close', function(complexCell) {
-        if (complexCell.config === complexCellConfig) {
-          self.updateCellContent(element, {
-            type: node.querySelector('.dateEdit-type-dropdown').value,
-            date1: node.querySelector('.date-1 input').value,
-            date2: node.querySelector('.date-2 input').value
-          });
-        }
-      });
-
-      element.complex = complexCellConfig;
-
-      graphicsFactory.update('cell', element, elementRegistry.getGraphics(element));
-    }
-  });
-};
-
-DateEdit.prototype.updateCellContent = function(element, data) {
-  var type = data.type;
-  var date1 = data.date1;
-  var date2 = data.date2;
-
-  // only apply valid entries
-  if (type) {
-    var date = new Date(date1);
-    if (!isISODateString(date1) || date.toString() === 'Invalid Date') {
-      return;
-    }
-    if (type === 'between') {
-      date = new Date(date2);
-      if (!isISODateString(date2) || date.toString() === 'Invalid Date') {
-        return;
-      }
-    }
-  }
-
-  var content = '';
-  switch (type) {
-  case 'exact':
-    content = 'date and time("' + date1 + '")';
-    break;
-  case 'before':
-    content = '< date and time("' + date1 + '")';
-    break;
-  case 'after':
-    content = '> date and time("' + date1 + '")';
-    break;
-  case 'between':
-    content = '[date and time("' + date1 + '")..date and time("' + date2 + '")]';
-    break;
-  }
-  this._modeling.editCell(element.row.id, element.column.id, content);
-};
-
-DateEdit.prototype.teardownComplexCells = function() {
-  var graphicsFactory = this._graphicsFactory;
-  var elementRegistry = this._elementRegistry;
-
-  elementRegistry.forEach(function(element) {
-    if (element.complex && element.complex.type === 'dateEdit') {
-
-      delete element.complex;
-
-      graphicsFactory.update('cell', element, elementRegistry.getGraphics(element));
-    }
-  });
-};
-
-DateEdit.$inject = [ 'eventBus', 'simpleMode', 'elementRegistry', 'graphicsFactory', 'modeling', 'complexCell' ];
-
-module.exports = DateEdit;
-
-},{"17":17,"18":18,"234":234,"244":244,"246":246}],15:[function(_dereq_,module,exports){
-'use strict';
-
-var domify = _dereq_(246),
-    utils  = _dereq_(18);
+var domify = _dereq_(207),
+    utils  = _dereq_(10);
 
 var isDateCell = utils.isDateCell,
     parseDate  = utils.parseDate;
@@ -1589,6 +861,18 @@ function DateView(eventBus, simpleMode) {
   this._simpleMode = simpleMode;
 
   this._eventBus.on('cell.render', function(evt) {
+
+    // remove potential datafield
+    dateGfx = evt.gfx.querySelector('.date-content');
+    if (dateGfx) {
+      dateGfx.parentNode.removeChild(dateGfx);
+    }
+    if (evt.gfx.childNodes.length === 1) {
+        // make sure the contenteditable field is visible
+      evt.gfx.firstChild.style.display = 'inline';
+      evt.data.preventAutoUpdate = false;
+    }
+
     if (isDateCell(evt.data)) {
       if (this._simpleMode.isActive()) {
         // make sure the contendeditable field is hidden
@@ -1604,11 +888,12 @@ function DateView(eventBus, simpleMode) {
         this.renderDate(evt.data.content, dateGfx);
       } else {
         // make sure the contenteditable field is visible
-        evt.gfx.firstChild.style.display = 'inline';
+        evt.gfx.firstChild.style.display = '';
         evt.data.preventAutoUpdate = false;
 
         // remove potential datafield
         dateGfx = evt.gfx.querySelector('.date-content');
+        
         if (dateGfx) {
           dateGfx.parentNode.removeChild(dateGfx);
         }
@@ -1652,18 +937,7 @@ DateView.$inject = ['eventBus', 'simpleMode'];
 
 module.exports = DateView;
 
-},{"18":18,"246":246}],16:[function(_dereq_,module,exports){
-module.exports = {
-  __init__: [ 'dateEdit' ],
-  __depends__: [],
-  dateEdit: [ 'type', _dereq_(14) ]
-};
-
-
-},{"14":14}],17:[function(_dereq_,module,exports){
-module.exports = "<div>\n  <h3>Edit Date Condition</h3>\n  <select class=\"dateEdit-type-dropdown\">\n    <option value=\"\">-</option>\n    <option value=\"exact\">Exactly</option>\n    <option value=\"before\">Before</option>\n    <option value=\"after\">After</option>\n    <option value=\"between\">Between</option>\n  </select>\n  <div class=\"date-1\" style=\"display: none;\">\n    <input type=\"text\" placeholder=\"yyyy-mm-dd'T'hh:mm:ss\" spellcheck=\"false\">\n    <div class=\"helptext\">yyyy-mm-dd'T'hh:mm:ss</div>\n  </div>\n  <div class=\"date-2\" style=\"display: none;\">\n    <div>and</div>\n    <input type=\"text\" placeholder=\"yyyy-mm-dd'T'hh:mm:ss\" spellcheck=\"false\">\n    <div class=\"helptext\">yyyy-mm-dd'T'hh:mm:ss</div>\n  </div>\n</div>\n";
-
-},{}],18:[function(_dereq_,module,exports){
+},{"10":10,"207":207}],10:[function(_dereq_,module,exports){
 'use strict';
 
 var hasDateType = function(column) {
@@ -1680,9 +954,9 @@ module.exports = {
   isISODateString: function(dateString) {
     return /\d{4}(?:-\d\d){2}T(?:\d\d:){2}\d\d/.test(dateString);
   },
-  getSampleDate: function(alternative) {
+  getSampleDate: function(endOfDay) {
     var date = new Date();
-    if (alternative) {
+    if (endOfDay) {
       date.setUTCHours(23, 59, 59, 0);
     } else {
       date.setUTCHours(0, 0, 0, 0);
@@ -1696,6 +970,14 @@ module.exports = {
       isBodyRow(el.row);
   },
   parseDate: function(dateString) {
+    // try empty
+    if (dateString.trim() === '') {
+      return {
+        type: 'exact',
+        date1: ''
+      };
+    }
+
     // try between
     var info = dateString.match(/^\[date and time\("(\d{4}(?:-\d\d){2}T(?:\d\d:){2}\d\d)"\)..date and time\("(\d{4}(?:-\d\d){2}T(?:\d\d:){2}\d\d)"/);
     if (info) {
@@ -1726,20 +1008,20 @@ module.exports = {
   }
 };
 
-},{}],19:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'dateView' ],
   __depends__: [],
-  dateView: [ 'type', _dereq_(15) ]
+  dateView: [ 'type', _dereq_(9) ]
 };
 
 
-},{"15":15}],20:[function(_dereq_,module,exports){
+},{"9":9}],12:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(246);
+var domify = _dereq_(207);
 
-var hasSecondaryModifier = _dereq_(100).hasSecondaryModifier;
+var hasSecondaryModifier = _dereq_(65).hasSecondaryModifier;
 
 var OFFSET_X = 2,
     OFFSET_Y = 2;
@@ -1840,392 +1122,90 @@ Descriptions.prototype.openPopover = function(context) {
   node.textContent = context.content.description;
 };
 
-},{"100":100,"246":246}],21:[function(_dereq_,module,exports){
-'use strict';
-
-var debounce = _dereq_(129);
-
-var DEBOUNCE_DELAY = 300;
-
-function DescriptionsEditing(eventBus, modeling, graphicsFactory, selection, contextMenu, descriptions) {
-  this._eventBus = eventBus;
-  this._graphicsFactory = graphicsFactory;
-  this._contextMenu = contextMenu;
-  this._descriptions = descriptions;
-  this._selection = selection;
-  this._modeling = modeling;
-
-  var self = this;
-
-  eventBus.on('popupmenu.cellActions', function(evt, actions, context) {
-    if (context.row.isHead) {
-      return;
-    }
-
-    actions.push({
-      id: 'description',
-      action: function(evt) {
-        evt.stopPropagation();
-
-        contextMenu.close();
-
-        self.addComment(context);
-      },
-      content: {
-        label: 'Add description',
-        icon:'info'
-      }
-    });
-  });
-
-  eventBus.on('description.popover.open', function(evt, context) {
-    selection.select(context);
-    selection.freeze();
-  });
-
-  eventBus.on('description.popover.closed', function(evt) {
-    selection.unfreeze();
-    graphicsFactory.redraw();
-  });
-
-  eventBus.on('description.popover.opened', function(evt, node, context) {
-    // removing disabled attribute from textarea
-    node.removeAttribute('disabled');
-
-    node.addEventListener('input', debounce(function(evt) {
-      var value = evt.target.value;
-
-      modeling.editDescription(context.content, value.trim());
-    }, DEBOUNCE_DELAY));
-  });
-}
-
-DescriptionsEditing.$inject = [ 'eventBus', 'modeling', 'graphicsFactory', 'selection', 'contextMenu', 'descriptions' ];
-
-module.exports = DescriptionsEditing;
-
-DescriptionsEditing.prototype.addComment = function(context) {
-  var descriptions = this._descriptions;
-
-  descriptions.openPopover(context);
-};
-
-},{"129":129}],22:[function(_dereq_,module,exports){
-module.exports = {
-  __init__: [ 'descriptionsEditing' ],
-  descriptionsEditing: [ 'type', _dereq_(21) ]
-};
-
-
-},{"21":21}],23:[function(_dereq_,module,exports){
+},{"207":207,"65":65}],13:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'descriptions' ],
-  descriptions: [ 'type', _dereq_(20) ]
+  descriptions: [ 'type', _dereq_(12) ]
 };
 
-},{"20":20}],24:[function(_dereq_,module,exports){
+},{"12":12}],14:[function(_dereq_,module,exports){
 'use strict';
 
-var ids = new (_dereq_(99))('table');
+var inherits = _dereq_(81);
 
-function DmnEditorActions(modeling, elementRegistry, selection, editorActions, simpleMode) {
+var BaseElementFactory = _dereq_(226);
 
-  var actions = {
-    ruleAdd: function() {
-      var newRow = {
-        id: ids.next()
-      };
 
-      modeling.createRow(newRow);
-    },
-    ruleAddAbove: function() {
-      var selected = selection._selectedElement,
-          newRow;
+/**
+ * A dmn-aware factory for table-js elements
+ */
+function ElementFactory(moddle, tableFactory) {
+  BaseElementFactory.call(this);
 
-      if (selected) {
-        newRow = {
-          id: ids.next()
-        };
-        newRow.next = selected.row;
-        modeling.createRow(newRow);
-      }
-    },
-    ruleAddBelow: function() {
-      var selected = selection._selectedElement,
-          newRow;
+  this._moddle = moddle;
+  this._tableFactory = tableFactory;
+}
 
-      if (selected) {
-        newRow = {
-          id: ids.next()
-        };
-        newRow.previous = selected.row;
-        modeling.createRow(newRow);
-      }
+inherits(ElementFactory, BaseElementFactory);
 
-    },
-    ruleCopy: function() {
-      var selected = selection._selectedElement,
-          currRow, newRow;
 
-      if (selected) {
-        currRow = selected.row;
+ElementFactory.$inject = [ 'moddle', 'tableFactory' ];
 
-        while (currRow.next) {
-          currRow = currRow.next;
-        }
+module.exports = ElementFactory;
 
-        newRow = {
-          id: ids.next()
-        };
+ElementFactory.prototype.baseCreate = BaseElementFactory.prototype.create;
 
-        modeling.copyRow(newRow, selected.row);
-      }
-    },
-    ruleCopyAbove: function() {
-      var selected = selection._selectedElement,
-          newRow;
+ElementFactory.prototype.create = function(elementType, attrs) {
+  var tableFactory = this._tableFactory;
 
-      if (selected) {
-        newRow = {
-          id: ids.next()
-        };
-        newRow.next = selected.row;
+  attrs = attrs || {};
 
-        modeling.copyRow(newRow, selected.row);
-      }
-    },
-    ruleCopyBelow: function() {
-      var selected = selection._selectedElement,
-          newRow;
+  var businessObject = attrs.businessObject;
+  if (elementType === 'row') {
+    attrs.type = 'dmn:DecisionRule';
+  } else if (elementType === 'column' && !attrs.type) {
+    attrs.type = attrs.isInput ? 'dmn:InputClause' : 'dmn:OutputClause';
+  }
 
-      if (selected) {
-        newRow = {
-          id: ids.next()
-        };
-        newRow.previous = selected.row;
-
-        modeling.copyRow(newRow, selected.row);
-      }
-
-    },
-    ruleClear: function() {
-      var selected = selection._selectedElement;
-
-      if (selected) {
-        modeling.clearRow(selected.row);
-      }
-    },
-    ruleRemove: function() {
-      var selected = selection._selectedElement;
-
-      if (selected) {
-        modeling.deleteRow(selected.row);
-      }
-    },
-    clauseAdd: function(clauseType) {
-      var newColumn,
-          type,
-          col;
-
-      var clauses = {
-        input: 'dmn:InputClause',
-        output: 'dmn:OutputClause'
-      };
-
-      var columns = elementRegistry.filter(function(element) {
-        if (element.column && element.column.businessObject &&
-            element.column.businessObject.$type === clauses[clauseType]) {
-          return true;
-        }
-        return false;
-      });
-
-      col = columns[0].column;
-      type = col.businessObject.$type;
-
-      while (col.next && col.next.businessObject && col.next.businessObject.$type === type) {
-        col = col.next;
-      }
-
-      newColumn = {
-        id: ids.next(),
-        previous: col,
-        name: '',
-        isInput: clauses[clauseType] === 'dmn:InputClause'
-      };
-
-      modeling.createColumn(newColumn);
-    },
-    clauseAddLeft: function() {
-      var selected = selection._selectedElement,
-          isInput, newColumn;
-
-      if (selected) {
-        isInput = selected.column.businessObject.$type === 'dmn:InputClause';
-
-        newColumn = {
-          id: ids.next(),
-          previous: selected.column.previous,
-          name: '',
-          isInput: isInput
-        };
-
-        modeling.createColumn(newColumn);
-      }
-    },
-    clauseAddRight: function() {
-      var selected = selection._selectedElement,
-          isInput, newColumn;
-
-      if (selected) {
-        isInput = selected.column.businessObject.$type === 'dmn:InputClause';
-
-        newColumn = {
-          id: ids.next(),
-          previous: selected.column,
-          name: '',
-          isInput: isInput
-        };
-
-        modeling.createColumn(newColumn);
-      }
-    },
-    clauseRemove: function() {
-      var selected = selection._selectedElement;
-
-      if (selected) {
-        modeling.deleteColumn(selected.column);
-      }
-    },
-    toggleEditingMode: function() {
-      if (simpleMode.isActive()) {
-        simpleMode.deactivate();
+  if (!businessObject) {
+    if (!attrs.type) {
+      throw new Error('no type specified');
+    }
+    else if (attrs.type === 'dmn:DecisionRule') {
+      businessObject = tableFactory.createRule(attrs.id);
+    } else if (elementType === 'column') {
+      if (attrs.isInput) {
+        businessObject = tableFactory.createInputClause(attrs.name);
       } else {
-        simpleMode.activate();
+        businessObject = tableFactory.createOutputClause(attrs.name);
       }
+    } else {
+      businessObject = tableFactory.create(attrs.type);
     }
-  };
+  }
 
-  editorActions.register(actions);
-}
+  attrs.businessObject = businessObject;
+  attrs.id = businessObject.id;
 
+  return this.baseCreate(elementType, attrs);
 
-DmnEditorActions.$inject = [ 'modeling', 'elementRegistry', 'selection', 'editorActions', 'simpleMode' ];
-
-module.exports = DmnEditorActions;
-
-},{"99":99}],25:[function(_dereq_,module,exports){
-module.exports = {
-  __init__: [ 'dmnEditorActions' ],
-  dmnEditorActions: [ 'type', _dereq_(24) ]
 };
 
-},{"24":24}],26:[function(_dereq_,module,exports){
+},{"226":226,"81":81}],15:[function(_dereq_,module,exports){
 'use strict';
 
-var ComboBox = _dereq_(280);
-
-var debounce = _dereq_(129);
-var DEBOUNCE_DELAY = 300;
-
-var getDefaultLanguageFor = function(context) {
-  if (context.column.type === 'dmn:OutputClause') {
-    return 'Juel';
-  }
-  if (context.column.type === 'dmn:InputClause') {
-    return 'FEEL';
-  }
-};
-
-function ExpressionLanguage(eventBus, modeling, contextMenu, elementRegistry, selection) {
-  this._eventBus = eventBus;
-  this._elementRegistry = elementRegistry;
-
-  this._eventBus.on('popupmenu.cellActions', function(evt, actions, context) {
-
-    if (!context.content || context.row.isHead) {
-      return;
-    }
-
-    // initializing the comboBox
-    var comboBox = new ComboBox({
-      label: '',
-      classNames: ['dmn-combobox', 'expression-language'],
-      options: ['Juel', 'FEEL'],
-      dropdownClassNames: ['dmn-combobox-suggestions'],
-      disableKeyboard: true
-    });
-    comboBox.setValue(context.content.expressionLanguage || getDefaultLanguageFor(context));
-
-    var content = comboBox.getNode();
-
-    eventBus.once('popupmenu.close', function() {
-      comboBox._closeDropdown();
-    });
-    comboBox.addEventListener('valueChanged', function(evt) {
-      if (evt.newValue !== evt.oldValue) {
-        modeling.editCellExpressionLanguage(context.content, evt.newValue);
-      }
-    });
-
-    content.addEventListener('click', function(evt) {
-      evt.customHandler = true;
-    });
-    content.addEventListener('mousedown', function(evt) {
-      evt.customHandler = true;
-    });
-    content.addEventListener('keydown', function(evt) {
-      if (evt.keyCode === 13) {
-        evt.preventDefault();
-        contextMenu.close();
-        elementRegistry.getGraphics(context.id).firstChild.focus();
-      }
-    });
-    content.addEventListener('input', debounce(function(evt) {
-      modeling.editCellExpressionLanguage(context.content, evt.target.value);
-    }, DEBOUNCE_DELAY));
-
-    actions.push({
-      id: 'expressionLanguage',
-      content: {
-        label: 'Expression Language',
-        linkClass: 'disabled',
-        icon:'language',
-        entries: [
-          { id: 'expressionLanguageEdit', content: content }
-        ]
-      }
-    });
-  });
-}
-
-ExpressionLanguage.$inject = [ 'eventBus', 'modeling', 'contextMenu', 'elementRegistry', 'selection' ];
-
-module.exports = ExpressionLanguage;
-
-},{"129":129,"280":280}],27:[function(_dereq_,module,exports){
-module.exports = {
-  __init__: [ 'expressionLanguage' ],
-  __depends__: [],
-  expressionLanguage: [ 'type', _dereq_(26) ]
-};
-
-
-},{"26":26}],28:[function(_dereq_,module,exports){
-'use strict';
-
-function DmnFactory(moddle) {
+function TableFactory(moddle) {
   this._model = moddle;
 }
 
-DmnFactory.$inject = [ 'moddle' ];
+TableFactory.$inject = [ 'moddle' ];
 
 
-DmnFactory.prototype._needsId = function(element) {
+TableFactory.prototype._needsId = function(element) {
   return element.$instanceOf('dmn:DMNElement');
 };
 
-DmnFactory.prototype._ensureId = function(element) {
+TableFactory.prototype._ensureId = function(element) {
 
   // generate semantic ids for elements
   // bpmn:SequenceFlow -> SequenceFlow_ID
@@ -2237,7 +1217,7 @@ DmnFactory.prototype._ensureId = function(element) {
 };
 
 
-DmnFactory.prototype.create = function(type, attrs) {
+TableFactory.prototype.create = function(type, attrs) {
   var element = this._model.create(type, attrs || {});
 
   this._ensureId(element);
@@ -2245,7 +1225,7 @@ DmnFactory.prototype.create = function(type, attrs) {
   return element;
 };
 
-DmnFactory.prototype.createRule = function(id) {
+TableFactory.prototype.createRule = function(id) {
   var attrs = { id: id };
   attrs.inputEntry = attrs.inputEntry || [];
   attrs.outputEntry = attrs.outputEntry || [];
@@ -2255,7 +1235,7 @@ DmnFactory.prototype.createRule = function(id) {
   return element;
 };
 
-DmnFactory.prototype.createInputEntry = function(text, clause, rule) {
+TableFactory.prototype.createInputEntry = function(text, clause, rule) {
   var element = this.create('dmn:UnaryTests', {
     text: text
   });
@@ -2273,7 +1253,7 @@ DmnFactory.prototype.createInputEntry = function(text, clause, rule) {
   return element;
 };
 
-DmnFactory.prototype.createInputClause = function(name) {
+TableFactory.prototype.createInputClause = function(name) {
   var element = this.create('dmn:InputClause', {
     label: name
   });
@@ -2287,7 +1267,7 @@ DmnFactory.prototype.createInputClause = function(name) {
   return element;
 };
 
-DmnFactory.prototype.createOutputClause = function(name) {
+TableFactory.prototype.createOutputClause = function(name) {
   var element = this.create('dmn:OutputClause', {
     label: name
   });
@@ -2297,7 +1277,7 @@ DmnFactory.prototype.createOutputClause = function(name) {
   return element;
 };
 
-DmnFactory.prototype.createOutputEntry = function(text, clause, rule) {
+TableFactory.prototype.createOutputEntry = function(text, clause, rule) {
   var element = this.create('dmn:LiteralExpression', {
     text: text
   });
@@ -2315,7 +1295,7 @@ DmnFactory.prototype.createOutputEntry = function(text, clause, rule) {
   return element;
 };
 
-DmnFactory.prototype.createInputValues = function(input) {
+TableFactory.prototype.createInputValues = function(input) {
   var element = this.create('dmn:UnaryTests', {
     text: ''
   });
@@ -2326,7 +1306,7 @@ DmnFactory.prototype.createInputValues = function(input) {
   return element;
 };
 
-DmnFactory.prototype.createOutputValues = function(output) {
+TableFactory.prototype.createOutputValues = function(output) {
   var element = this.create('dmn:UnaryTests', {
     text: ''
   });
@@ -2337,84 +1317,21 @@ DmnFactory.prototype.createOutputValues = function(output) {
   return element;
 };
 
-module.exports = DmnFactory;
+module.exports = TableFactory;
 
-},{}],29:[function(_dereq_,module,exports){
-'use strict';
-
-var inherits = _dereq_(114);
-
-var BaseElementFactory = _dereq_(267);
-
-
-/**
- * A dmn-aware factory for table-js elements
- */
-function ElementFactory(moddle, dmnFactory) {
-  BaseElementFactory.call(this);
-
-  this._moddle = moddle;
-  this._dmnFactory = dmnFactory;
-}
-
-inherits(ElementFactory, BaseElementFactory);
-
-
-ElementFactory.$inject = [ 'moddle', 'dmnFactory' ];
-
-module.exports = ElementFactory;
-
-ElementFactory.prototype.baseCreate = BaseElementFactory.prototype.create;
-
-ElementFactory.prototype.create = function(elementType, attrs) {
-  attrs = attrs || {};
-
-  var businessObject = attrs.businessObject;
-  if (elementType === 'row') {
-    attrs.type = 'dmn:DecisionRule';
-  } else if (elementType === 'column' && !attrs.type) {
-    attrs.type = attrs.isInput ? 'dmn:InputClause' : 'dmn:OutputClause';
-  }
-
-  if (!businessObject) {
-    if (!attrs.type) {
-      throw new Error('no type specified');
-    }
-    else if (attrs.type === 'dmn:DecisionRule') {
-      businessObject = this._dmnFactory.createRule(attrs.id);
-    } else if (elementType === 'column') {
-      if (attrs.isInput) {
-        businessObject = this._dmnFactory.createInputClause(attrs.name);
-      } else {
-        businessObject = this._dmnFactory.createOutputClause(attrs.name);
-      }
-    } else {
-      businessObject = this._dmnFactory.create(attrs.type);
-    }
-  }
-
-  attrs.businessObject = businessObject;
-  attrs.id = businessObject.id;
-
-  return this.baseCreate(elementType, attrs);
-
-};
-
-},{"114":114,"267":267}],30:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 module.exports = {
-  __init__: [ ],
-  __depends__: [ ],
-  dmnFactory: [ 'type', _dereq_(28) ],
-  elementFactory: [ 'type', _dereq_(29) ]
+  tableFactory: [ 'type', _dereq_(15) ],
+  elementFactory: [ 'type', _dereq_(14) ]
 };
 
-},{"28":28,"29":29}],31:[function(_dereq_,module,exports){
+},{"14":14,"15":15}],17:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(246),
-    domClasses = _dereq_(244);
+var domify = _dereq_(207),
+    domClasses = _dereq_(205);
 
-var ComboBox = _dereq_(280);
+var ComboBox = _dereq_(234);
 
 var OFFSET_X = 36,
     OFFSET_Y = -16;
@@ -2559,7 +1476,7 @@ HitPolicy.prototype.getAggregation = function() {
 
 module.exports = HitPolicy;
 
-},{"244":244,"246":246,"280":280}],32:[function(_dereq_,module,exports){
+},{"205":205,"207":207,"234":234}],18:[function(_dereq_,module,exports){
 'use strict';
 
 function convertOperators(operator) {
@@ -2594,25 +1511,25 @@ HitPolicyRenderer.$inject = [
 
 module.exports = HitPolicyRenderer;
 
-},{}],33:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'hitPolicy', 'hitPolicyRenderer' ],
   __depends__: [
-    _dereq_(317),
-    _dereq_(37)
+    _dereq_(247),
+    _dereq_(23)
   ],
-  hitPolicy: [ 'type', _dereq_(31) ],
-  hitPolicyRenderer: [ 'type', _dereq_(32) ]
+  hitPolicy: [ 'type', _dereq_(17) ],
+  hitPolicyRenderer: [ 'type', _dereq_(18) ]
 };
 
-},{"31":31,"317":317,"32":32,"37":37}],34:[function(_dereq_,module,exports){
+},{"17":17,"18":18,"23":23,"247":247}],20:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(246),
-    forEach = _dereq_(123);
+var domify = _dereq_(207),
+    forEach = _dereq_(90);
 
 // document wide unique overlay ids
-var ids = new (_dereq_(99))('clause');
+var ids = new (_dereq_(64))('clause');
 
 /**
  * Adds a control to the table to add more columns
@@ -2756,7 +1673,7 @@ IoLabel.prototype.getRow = function() {
   return this.row;
 };
 
-},{"123":123,"246":246,"99":99}],35:[function(_dereq_,module,exports){
+},{"207":207,"64":64,"90":90}],21:[function(_dereq_,module,exports){
 'use strict';
 
 function IoLabelRenderer(
@@ -2780,12 +1697,12 @@ IoLabelRenderer.$inject = [
 
 module.exports = IoLabelRenderer;
 
-},{}],36:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(114);
+var inherits = _dereq_(81);
 
-var RuleProvider = _dereq_(95);
+var RuleProvider = _dereq_(60);
 
 /**
  * LineNumber specific modeling rule
@@ -2812,33 +1729,150 @@ IoLabelRules.prototype.init = function() {
 
 };
 
-},{"114":114,"95":95}],37:[function(_dereq_,module,exports){
+},{"60":60,"81":81}],23:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'ioLabel', 'ioLabelRules', 'ioLabelRenderer' ],
   __depends__: [],
-  ioLabel: [ 'type', _dereq_(34) ],
-  ioLabelRules: [ 'type', _dereq_(36) ],
-  ioLabelRenderer: [ 'type', _dereq_(35) ]
+  ioLabel: [ 'type', _dereq_(20) ],
+  ioLabelRules: [ 'type', _dereq_(22) ],
+  ioLabelRenderer: [ 'type', _dereq_(21) ]
 };
 
-},{"34":34,"35":35,"36":36}],38:[function(_dereq_,module,exports){
-module.exports = "<div>\n  <div class=\"links\">\n    <div class=\"toggle-type\">\n      <label>Use:</label>\n      <a class=\"expression\">Expression</a>\n      /\n      <a class=\"script\">Script</a>\n    </div>\n    <a class=\"dmn-icon-clear\"></a>\n  </div>\n  <div class=\"expression region\">\n    <div class=\"input-expression\">\n      <label>Expression:</label>\n      <input placeholder=\"propertyName\">\n    </div>\n    <div class=\"input-expression\">\n      <label>Variable Name:</label>\n      <input placeholder=\"inputVariable\">\n    </div>\n  </div>\n  <div class=\"script region\">\n    <div class=\"input-expression\">\n      <label>Variable Name:</label>\n      <input placeholder=\"inputVariable\">\n    </div>\n    <textarea placeholder=\"return obj.propertyName;\"></textarea>\n  </div>\n</div>\n";
+},{"20":20,"21":21,"22":22}],24:[function(_dereq_,module,exports){
+module.exports = "<div class=\"literal-expression-editor\">\n  <textarea placeholder=\"return obj.propertyName;\"></textarea>\n\n  <div>\n    <div class=\"literal-expression-field\">\n      <div class=\"dmn-combobox\">\n        <label>Variable Name:</label>\n        <input class=\"variable-name\" placeholder=\"varName\">\n      </div>\n    </div>\n    <div class=\"literal-expression-field variable-type\">\n    </div>\n  </div>\n  <div>\n    <div class=\"literal-expression-field expression-language\">\n    </div>\n  </div>\n</div>\n";
 
-},{}],39:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(246),
-    domClasses = _dereq_(244),
-    assign = _dereq_(234),
-    forEach = _dereq_(123);
+var domify = _dereq_(207);
+var template = _dereq_(24);
 
-var exprTemplate = _dereq_(38);
+var ComboBox = _dereq_(234);
 
-var ComboBox = _dereq_(280);
+function LiteralExpressionEditor(eventBus, sheet, rules) {
+  this._eventBus = eventBus;
+  this._sheet = sheet;
+  this._rules = rules;
+
+  eventBus.on('import.render.start', function() {
+    // show table by default
+    var container = sheet.getContainer();
+    container.querySelector('table').style.display = '';
+
+    // remove literal expression editor if exists
+    var literalExpressionEditor = container.querySelector('.literal-expression-editor');
+    if (literalExpressionEditor) {
+      container.removeChild(literalExpressionEditor);
+    }
+  });
+
+}
+
+LiteralExpressionEditor.$inject = [ 'eventBus', 'sheet', 'rules' ];
+
+module.exports = LiteralExpressionEditor;
+
+LiteralExpressionEditor.prototype.show = function(decision) {
+
+  var eventBus = this._eventBus;
+
+  // get hide the table
+  var container = this._sheet.getContainer();
+  container.querySelector('table').style.display = 'none';
+
+  // create the custom editor
+  var editor = domify(template);
+
+  // set the literal expression to the textarea
+  editor.querySelector('textarea').value = decision.literalExpression.text;
+
+  // add variable with name and type information
+  var typeBox = new ComboBox({
+    label: 'Variable Type',
+    classNames: [ 'dmn-combobox', 'datatype' ],
+    options: [ 'string', 'boolean', 'integer', 'long', 'double', 'date' ],
+    dropdownClassNames: [ 'dmn-combobox-suggestions' ]
+  });
+  editor.querySelector('.variable-type').appendChild(typeBox.getNode());
+
+  if (decision.variable) {
+    editor.querySelector('.variable-name').value = decision.variable.name || '';
+    typeBox.setValue(decision.variable.typeRef || '');
+  }
+
+  //add expression language combobox
+  var languageBox = new ComboBox({
+    label: 'Expression Language',
+    classNames: [ 'dmn-combobox', 'expression-language' ],
+    options: [ 'juel', 'FEEL' ],
+    dropdownClassNames: [ 'dmn-combobox-suggestions' ]
+  });
+  editor.querySelector('.expression-language').appendChild(languageBox.getNode());
+  languageBox.setValue(decision.literalExpression.expressionLanguage || '');
+
+
+  var saveExpression = function(evt) {
+    eventBus.fire('literalExpression.edit', {
+      decision: decision,
+      text: editor.querySelector('textarea').value,
+      variableName: editor.querySelector('.variable-name').value,
+      variableType: typeBox.getValue(),
+      language: editor.querySelector('.expression-language').value
+    });
+  };
+
+
+  // if editing is not allowed, disable all input fields, otherwise, listen for changes
+  var canEdit = this._rules.allowed('literalExpression.edit');
+
+  var inputs = editor.querySelectorAll('input');
+  for (var i = 0; i < inputs.length; i++) {
+    if (canEdit) {
+      inputs[i].addEventListener('input', saveExpression);
+    } else {
+      inputs[i].setAttribute('disabled', 'true');
+    }
+  }
+
+  if (canEdit) {
+    editor.querySelector('textarea').addEventListener('input', saveExpression);
+    typeBox.addEventListener('valueChanged', saveExpression);
+    languageBox.addEventListener('valueChanged', saveExpression);
+  } else {
+    editor.querySelector('textarea').setAttribute('disabled', 'true');
+    typeBox.disable();
+    languageBox.disable();
+  }
+
+  container.appendChild(editor);
+
+};
+
+},{"207":207,"234":234,"24":24}],26:[function(_dereq_,module,exports){
+module.exports = {
+  __init__: [ 'literalExpressionEditor' ],
+  __depends__: [],
+  literalExpressionEditor: [ 'type', _dereq_(25) ]
+};
+
+},{"25":25}],27:[function(_dereq_,module,exports){
+module.exports = "<div>\n  <div class=\"links\">\n    <div class=\"toggle-type\">\n      <label>Use:</label>\n      <a class=\"expression\">Expression</a>\n      /\n      <a class=\"script\">Script</a>\n    </div>\n    <a class=\"dmn-icon-clear\"></a>\n  </div>\n  <div class=\"expression region\">\n    <div class=\"input-expression\">\n      <label>Expression:</label>\n      <input placeholder=\"propertyName\">\n    </div>\n    <div class=\"input-expression\">\n      <label>Input Variable Name:</label>\n      <input placeholder=\"cellInput\">\n    </div>\n  </div>\n  <div class=\"script region\">\n    <textarea placeholder=\"return obj.propertyName;\"></textarea>\n    <div class=\"input-expression\">\n      <label>Input Variable Name:</label>\n      <input placeholder=\"cellInput\">\n    </div>\n  </div>\n</div>\n";
+
+},{}],28:[function(_dereq_,module,exports){
+'use strict';
+
+var domify = _dereq_(207),
+    domClasses = _dereq_(205),
+    assign = _dereq_(196),
+    forEach = _dereq_(90);
+
+var exprTemplate = _dereq_(27);
+
+var ComboBox = _dereq_(234);
 
 var PROP_NAME = '.expression .input-expression input[placeholder="propertyName"]',
-    EXPR_IPT_VAR = '.expression .input-expression input[placeholder="inputVariable"]',
-    SCRPT_IPT_VAR = '.script .input-expression input[placeholder="inputVariable"]',
+    EXPR_IPT_VAR = '.expression .input-expression input[placeholder="cellInput"]',
+    SCRPT_IPT_VAR = '.script .input-expression input[placeholder="cellInput"]',
     SCRPT_TEXT = '.script.region > textarea',
     IPT_VARS = [ EXPR_IPT_VAR, SCRPT_IPT_VAR ];
 
@@ -3148,10 +2182,10 @@ MappingsRow.prototype.getRow = function() {
   return this.row;
 };
 
-},{"123":123,"234":234,"244":244,"246":246,"280":280,"38":38}],40:[function(_dereq_,module,exports){
+},{"196":196,"205":205,"207":207,"234":234,"27":27,"90":90}],29:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(244);
+var domClasses = _dereq_(205);
 
 function MappingsRowRenderer(
     eventBus,
@@ -3188,1856 +2222,21 @@ MappingsRowRenderer.$inject = [
 
 module.exports = MappingsRowRenderer;
 
-},{"244":244}],41:[function(_dereq_,module,exports){
+},{"205":205}],30:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(282)
+    _dereq_(236)
   ],
   __init__: [ 'mappingsRow', 'mappingsRowRenderer' ],
-  mappingsRow: [ 'type', _dereq_(39) ],
-  mappingsRowRenderer: [ 'type', _dereq_(40) ]
+  mappingsRow: [ 'type', _dereq_(28) ],
+  mappingsRowRenderer: [ 'type', _dereq_(29) ]
 };
 
-},{"282":282,"39":39,"40":40}],42:[function(_dereq_,module,exports){
+},{"236":236,"28":28,"29":29}],31:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(114),
-    forEach = _dereq_(124);
-
-var CommandInterceptor = _dereq_(91);
-
-
-/**
- * A handler responsible for updating the underlying DMN
- * once changes on the table happen
- */
-function DmnUpdater(eventBus, moddle, elementRegistry, dmnFactory, tableName, graphicsFactory) {
-
-  CommandInterceptor.call(this, eventBus);
-
-
-  function setParent(event) {
-
-    var businessObject = event.context.row.businessObject;
-    var parent = businessObject.$parent = tableName.semantic.decisionTable;
-
-
-    // create the rules array if it does not exist
-    if (!parent.rule) {
-      parent.rule = [];
-    }
-
-    if (event.context.row.next) {
-      parent.rule.splice(
-        parent.rule.indexOf(event.context.row.next.businessObject), 0,
-        businessObject);
-    } else {
-      parent.rule.push(businessObject);
-    }
-
-    if (!event.context._cells) {
-      // we also have to explicitely create the cells for all clauses
-      // inputs
-      var allInputs = parent.input;
-
-      var filterFunction = function(businessObject) {
-        return function(element) {
-          return element._type === 'cell' &&
-             element.column.businessObject === businessObject &&
-             element.row === event.context.row;
-        };
-      };
-
-      for (var i = 0; i < allInputs.length; i++) {
-        var input = allInputs[i];
-
-        var inputCellBO = dmnFactory.createInputEntry('', input, businessObject);
-
-        var inputCell = elementRegistry.filter(filterFunction(input))[0];
-        inputCell.content = inputCellBO;
-        eventBus.fire('contentNode.created', inputCell);
-      }
-
-      // outputs
-      var allOutputs = parent.output;
-      for (i = 0; i < allOutputs.length; i++) {
-        var output = allOutputs[i];
-
-        var outputCellBO = dmnFactory.createOutputEntry('', output, businessObject);
-
-        var outputCell = elementRegistry.filter(filterFunction(output))[0];
-        outputCell.content = outputCellBO;
-        eventBus.fire('contentNode.created', outputCell);
-      }
-    }
-  }
-
-  function setColumnParent(event) {
-
-    var parent = event.context.column.businessObject.$parent = tableName.semantic.decisionTable;
-
-    var column = event.context.column;
-    var businessObject = column.businessObject;
-    var nextColumn = event.context.column.next;
-
-    var type = businessObject.$type === 'dmn:InputClause' ? 'input' : 'output';
-
-    if (nextColumn && nextColumn.businessObject && nextColumn.businessObject.$type === businessObject.$type) {
-      parent[type].splice(
-        parent[type].indexOf(column.next.businessObject), 0,
-        businessObject);
-    } else {
-      parent[type].push(businessObject);
-    }
-
-    if (event.context._cells) {
-      // if the column has cells, they should be added to the rules
-      forEach(event.context._cells, function(cell) {
-        if (!cell.row.isHead && !cell.row.isFoot && cell.content) {
-          var ruleObj = cell.row.businessObject[type + 'Entry'];
-          ruleObj.splice(parent[type].indexOf(businessObject), 0, cell.content);
-        }
-      });
-    } else {
-      // we also have to explicitely create the cells for all rules
-      var allRules = parent.rule;
-      forEach(allRules, function(rule) {
-        var cellBO;
-        if (type === 'input') {
-          cellBO = dmnFactory.createInputEntry('', businessObject, rule);
-        } else {
-          cellBO = dmnFactory.createOutputEntry('', businessObject, rule);
-        }
-
-        var cell = elementRegistry.filter(function(element) {
-          return element._type === 'cell' &&
-             element.column === column &&
-             element.row.businessObject === rule;
-        })[0];
-
-        cell.content = cellBO;
-
-      });
-    }
-  }
-
-  function unsetParent(event) {
-
-    var businessObject = event.context.column.businessObject;
-    var type = businessObject.$type === 'dmn:InputClause' ? 'input' : 'output';
-
-    var idx = businessObject.$parent[type].indexOf(businessObject);
-
-    businessObject.$parent[type].splice(idx, 1);
-
-    forEach(businessObject.$parent.rule, function(rule) {
-      rule[type + 'Entry'].splice(idx, 1);
-    });
-  }
-
-  function deleteRule(event) {
-    var businessObject = event.context.row.businessObject;
-    businessObject.$parent.rule.splice(
-      businessObject.$parent.rule.indexOf(businessObject), 1);
-  }
-
-  function moveRow(event) {
-    var source = event.context.source.businessObject;
-    var target = event.context.target.businessObject;
-    var rulesArray = source.$parent.rule;
-    var targetIdx;
-
-    // remove source from list
-    var sourceIdx = rulesArray.indexOf(source);
-    rulesArray.splice(sourceIdx, 1);
-
-    if (event.type.indexOf('.executed') !== -1) {
-      // add source at target position
-      targetIdx = rulesArray.indexOf(target);
-      rulesArray.splice(targetIdx + (event.context.above ? 0 : 1), 0, source);
-    } else if (event.type.indexOf('.reverted') !== -1) {
-      // add source at previousBelow
-      var previousBelow = event.context.previousBelow.businessObject;
-      if (previousBelow) {
-        targetIdx = rulesArray.indexOf(previousBelow);
-        rulesArray.splice(targetIdx, 0, source);
-      } else {
-        rulesArray.push(source);
-      }
-    }
-  }
-
-  function moveColumn(event) {
-    var source = event.context.source.businessObject;
-    var target = event.context.target.businessObject;
-    var isInput = source.$type === 'dmn:InputClause';
-    var targetIdx;
-
-    var columns = source.$parent[isInput ? 'input' : 'output'];
-    var rules = source.$parent.rule;
-
-    // remove source from columns
-    var sourceIdx = columns.indexOf(source);
-    columns.splice(sourceIdx, 1);
-
-    if (event.type.indexOf('.executed') !== -1) {
-      // add source at target position
-      targetIdx = columns.indexOf(target);
-      columns.splice(targetIdx + !event.context.left, 0, source);
-
-      // move all entries in the rules array
-      forEach(rules, function(rule) {
-        var array = rule[isInput ? 'inputEntry' : 'outputEntry'];
-
-        var element = array.splice(sourceIdx, 1)[0];
-        array.splice(targetIdx + !event.context.left, 0, element);
-      });
-    } else if (event.type.indexOf('.reverted') !== -1) {
-      // add source at previousRight
-      var previousRight = event.context.previousRight.businessObject;
-      if (previousRight && previousRight.$type === source.$type) {
-        targetIdx = columns.indexOf(previousRight);
-        columns.splice(targetIdx, 0, source);
-        forEach(rules, function(rule) {
-          var array = rule[isInput ? 'inputEntry' : 'outputEntry'];
-
-          var element = array.splice(sourceIdx, 1)[0];
-          array.splice(targetIdx, 0, element);
-        });
-      } else {
-        columns.push(source);
-        forEach(rules, function(rule) {
-          var array = rule[isInput ? 'inputEntry' : 'outputEntry'];
-
-          var element = array.splice(sourceIdx, 1)[0];
-          array.push(element);
-        });
-      }
-    }
-
-    eventBus.fire('column.move.applied');
-
-  }
-
-  this.postExecuted([ 'column.create' ], function() {
-    eventBus.fire('sheet.resized');
-  });
-
-  this.executed([ 'column.create' ], setColumnParent);
-  this.executed([ 'row.create' ], setParent);
-  this.executed([ 'column.delete' ], unsetParent);
-  this.executed([ 'row.delete' ], deleteRule);
-  this.executed([ 'row.move' ], moveRow);
-  this.executed([ 'column.move' ], moveColumn);
-
-  this.reverted([ 'column.create' ], unsetParent);
-  this.reverted([ 'row.create' ], deleteRule);
-  this.reverted([ 'column.delete' ], setColumnParent);
-  this.reverted([ 'row.delete' ], setParent);
-  this.reverted([ 'row.move' ], moveRow);
-  this.reverted([ 'column.move' ], moveColumn);
-
-  this.executed([ 'column.create', 'column.delete' ], function() {
-    eventBus.fire('sheet.resized');
-  });
-
-  this.reverted([ 'column.create', 'column.delete' ], function() {
-    eventBus.fire('sheet.resized');
-  });
-
-  this.executed(['description.edit', 'dataType.edit'], function() {
-    graphicsFactory.redraw();
-  });
-  this.reverted(['description.edit', 'dataType.edit'], function() {
-    graphicsFactory.redraw();
-  });
-}
-
-inherits(DmnUpdater, CommandInterceptor);
-
-module.exports = DmnUpdater;
-
-DmnUpdater.$inject = [ 'eventBus', 'moddle', 'elementRegistry', 'dmnFactory', 'tableName', 'graphicsFactory' ];
-
-},{"114":114,"124":124,"91":91}],43:[function(_dereq_,module,exports){
-'use strict';
-
-var inherits = _dereq_(114);
-
-var BaseModeling = _dereq_(297);
-
-var EditCellHandler = _dereq_(48),
-    ClearRowHandler = _dereq_(45),
-    EditInputMappingHandler = _dereq_(52),
-    EditIdHandler = _dereq_(51),
-    EditTypeHandler = _dereq_(53),
-    EditHitPolicyHandler = _dereq_(50),
-    EditCellExpressionLanguageHandler = _dereq_(47),
-    EditDescriptionHandler = _dereq_(49),
-    CopyRowHandler = _dereq_(46),
-    AddAllowedValueHandler = _dereq_(44),
-    RemoveAllowedValueHandler = _dereq_(54);
-
-
-/**
- * DMN modeling features activator
- *
- * @param {EventBus} eventBus
- * @param {ElementFactory} elementFactory
- * @param {CommandStack} commandStack
- */
-function Modeling(eventBus, elementFactory, commandStack, sheet, elementRegistry) {
-  BaseModeling.call(this, eventBus, elementFactory, commandStack, sheet);
-
-  this._elementRegistry = elementRegistry;
-
-  // TODO: move this to a subclass of editBehavior
-  eventBus.on('tableName.editId', function(event) {
-    this.editId(event.newId);
-  }, this);
-
-  eventBus.on('typeRow.editDataType', function(event) {
-    this.editDataType( event.element, event.dataType, event.allowedValues);
-  }, this);
-
-  eventBus.on('mappingsRow.editInputMapping', function(event) {
-    this.editInputMapping(event.element, event.attrs);
-  }, this);
-
-  eventBus.on('hitPolicy.edit', function(event) {
-    this.editHitPolicy(event.table, event.hitPolicy, event.aggregation, event.cell);
-  }, this);
-
-  eventBus.on('ioLabel.createColumn', function(event) {
-    this.createColumn(event.newColumn);
-  }, this);
-
-  eventBus.on('typeRow.addAllowedValue', function(event) {
-    this.addAllowedValue(
-      event.element,
-      event.value
-    );
-  }, this);
-
-  eventBus.on('typeRow.removeAllowedValue', function(event) {
-    this.removeAllowedValue(
-      event.element,
-      event.value
-    );
-  }, this);
-}
-
-inherits(Modeling, BaseModeling);
-
-Modeling.$inject = [ 'eventBus', 'elementFactory', 'commandStack', 'sheet', 'elementRegistry' ];
-
-module.exports = Modeling;
-
-
-Modeling.prototype.getHandlers = function() {
-  var handlers = BaseModeling.prototype.getHandlers.call(this);
-
-  handlers['cell.edit'] = EditCellHandler;
-
-  handlers['row.clear'] = ClearRowHandler;
-  handlers['row.copy'] = CopyRowHandler;
-
-  handlers['inputMapping.edit'] = EditInputMappingHandler;
-  handlers['id.edit'] = EditIdHandler;
-  handlers['dataType.edit'] = EditTypeHandler;
-  handlers['hitPolicy.edit'] = EditHitPolicyHandler;
-  handlers['cellExpressionLanguage.edit'] = EditCellExpressionLanguageHandler;
-  handlers['typeRow.addAllowedValue'] = AddAllowedValueHandler;
-  handlers['typeRow.removeAllowedValue'] = RemoveAllowedValueHandler;
-
-  handlers['description.edit'] = EditDescriptionHandler;
-
-  return handlers;
-};
-
-Modeling.prototype.removeAllowedValue = function(businessObject, value) {
-  if ((!businessObject.content.inputValues || !businessObject.content.inputValues.text.indexOf('"' + value + '"') === -1) &&
-     (!businessObject.content.outputValues || !businessObject.content.outputValues.text.indexOf('"' + value + '"') === -1)) {
-    return;
-  }
-
-  var context = {
-    businessObject: businessObject.content,
-    value: value,
-    isInput: businessObject.content.inputExpression
-  };
-
-  this._commandStack.execute('typeRow.removeAllowedValue', context);
-
-  return context;
-};
-
-Modeling.prototype.addAllowedValue = function(businessObject, value) {
-  if (businessObject.content.inputValues && businessObject.content.inputValues.text.indexOf('"' + value + '"') !== -1 ||
-     businessObject.content.outputValues && businessObject.content.outputValues.text.indexOf('"' + value + '"') !== -1) {
-    // do not add a value twice
-    return;
-  }
-
-  var context = {
-    businessObject: businessObject.content,
-    value: value,
-    isInput: !!businessObject.content.inputExpression
-  };
-
-  this._commandStack.execute('typeRow.addAllowedValue', context);
-
-  return context;
-};
-
-Modeling.prototype.copyRow = function(row, refRow) {
-  var context = {
-    row: row,
-    refRow: refRow
-  };
-
-  this._commandStack.execute('row.copy', context);
-
-  return context;
-};
-
-Modeling.prototype.editCell = function(row, column, content) {
-
-  var context = {
-    row: row,
-    column: column,
-    content: content
-  };
-
-  var cell = this._elementRegistry.filter(function(element) {
-    return element._type === 'cell' && element.row.id === row && element.column.id === column;
-  })[0];
-
-  if (cell.row.isClauseRow) {
-    // change the clause label
-    if (cell.column.businessObject.label !== content) {
-      this._commandStack.execute('cell.edit', context);
-    }
-  } else if (cell.row.isMappingsRow) {
-    if (cell.content.name !== content.trim()) {
-      this._commandStack.execute('cell.edit', context);
-    }
-  } else if (!cell.row.isHead) {
-
-    var previousContent = cell.content;
-    if ((!cell.column.isAnnotationsColumn && (!previousContent && context.content.trim() !== '') ||
-       (previousContent && context.content.trim() !== previousContent.text)) ||
-       (cell.column.isAnnotationsColumn && cell.row.businessObject.description !== context.content.trim())) {
-      // only execute edit command if content changed
-      this._commandStack.execute('cell.edit', context);
-    }
-  }
-
-  return context;
-};
-
-Modeling.prototype.editHitPolicy = function(table, newPolicy, aggregation, cell) {
-  var context = {
-    table: table,
-    newPolicy: newPolicy,
-    newAggregation: aggregation,
-    cell: cell
-  };
-
-  if (!context.newAggregation || context.newAggregation === 'LIST') {
-    context.newAggregation = undefined;
-  }
-
-  if (table.hitPolicy !== newPolicy ||
-    (!table.aggregation && context.newAggregation) ||
-     table.aggregation !== context.newAggregation) {
-
-    this._commandStack.execute('hitPolicy.edit', context);
-  }
-
-  return context;
-};
-
-
-Modeling.prototype.editInputMapping = function(cell, attrs) {
-  var context = {
-        cell: cell,
-        newMapping: attrs.expression,
-        inputVariable: attrs.inputVariable,
-        language: attrs.language
-      },
-      content = cell.content;
-
-  if (content.text !== context.newMapping ||
-      content.expressionLanguage !== context.language ||
-     (content.$parent && (content.$parent.inputVariable !== context.inputVariable))) {
-    this._commandStack.execute('inputMapping.edit', context);
-  }
-
-  return context;
-};
-
-// allows editing of the table id
-Modeling.prototype.editId = function(newId) {
-  var context = {
-    newId: newId
-  };
-
-  this._commandStack.execute('id.edit', context);
-
-  return context;
-};
-
-Modeling.prototype.editDataType = function(cell, newType) {
-  var context = {
-    cell: cell,
-    newType: newType
-  };
-
-  if (cell.content.typeDefinition !== newType) {
-    this._commandStack.execute('dataType.edit', context);
-  }
-
-  return context;
-};
-
-Modeling.prototype.editCellExpressionLanguage = function(businessObject, expressionLanguage) {
-  var context = {
-    businessObject: businessObject,
-    newExpressionLanguage: expressionLanguage
-  };
-
-  this._commandStack.execute('cellExpressionLanguage.edit', context);
-};
-
-Modeling.prototype.editDescription = function(businessObject, description) {
-  var context = {
-    businessObject: businessObject,
-    newDescription: description
-  };
-
-  this._commandStack.execute('description.edit', context);
-};
-
-},{"114":114,"297":297,"44":44,"45":45,"46":46,"47":47,"48":48,"49":49,"50":50,"51":51,"52":52,"53":53,"54":54}],44:[function(_dereq_,module,exports){
-'use strict';
-
-/**
- * A handler that implements reversible addition of an allowed value for a datatype.
- *
- */
-function AddAllowedValueHandler(dmnFactory) {
-  this._dmnFactory = dmnFactory;
-}
-
-module.exports = AddAllowedValueHandler;
-AddAllowedValueHandler.$inject = [ 'dmnFactory' ];
-
-
-
-////// api /////////////////////////////////////////
-
-
-/**
- * Adds the allowed value
- *
- * @param {Object} context
- */
-AddAllowedValueHandler.prototype.execute = function(context) {
-
-  if (context.isInput) {
-    context.oldValue = context.businessObject.inputValues && context.businessObject.inputValues.text;
-
-    if (!context.businessObject.inputValues) {
-      this._dmnFactory.createInputValues(context.businessObject);
-    }
-
-    if (context.businessObject.inputValues.text) {
-      context.businessObject.inputValues.text += ',"' + context.value + '"';
-    } else {
-      context.businessObject.inputValues.text = '"' + context.value + '"';
-    }
-  } else {
-    context.oldValue = context.businessObject.outputValues && context.businessObject.outputValues.text;
-
-    if (!context.businessObject.outputValues) {
-      this._dmnFactory.createOutputValues(context.businessObject);
-    }
-
-    if (context.businessObject.outputValues.text) {
-      context.businessObject.outputValues.text += ',"' + context.value + '"';
-    } else {
-      context.businessObject.outputValues.text = '"' + context.value + '"';
-    }
-  }
-
-  return context;
-};
-
-
-/**
- * Undo Edit by resetting the content
- */
-AddAllowedValueHandler.prototype.revert = function(context) {
-
-  if (context.isInput) {
-    if (context.oldValue) {
-      context.businessObject.inputValues.text = context.oldValue;
-    } else {
-      context.businessObject.inputValues.text = '';
-    }
-  } else {
-    if (context.oldValue) {
-      context.businessObject.outputValues.text = context.oldValue;
-    } else {
-      context.businessObject.outputValues.text = '';
-    }
-  }
-
-  return context;
-};
-
-},{}],45:[function(_dereq_,module,exports){
-'use strict';
-
-var forEach = _dereq_(123);
-
-/**
- * A handler that implements reversible clear of rows
- *
- * @param {sheet} sheet
- */
-function ClearRowHandler(elementRegistry, utilityColumn, graphicsFactory) {
-  this._elementRegistry = elementRegistry;
-  this._utilityColumn = utilityColumn;
-  this._graphicsFactory = graphicsFactory;
-}
-
-ClearRowHandler.$inject = [ 'elementRegistry', 'utilityColumn', 'graphicsFactory' ];
-
-module.exports = ClearRowHandler;
-
-
-
-////// api /////////////////////////////////////////
-
-
-/**
- * Clear a row
- *
- * @param {Object} context
- */
-ClearRowHandler.prototype.execute = function(context) {
-  var self = this;
-  var utilityColumn = this._utilityColumn && this._utilityColumn.getColumn();
-  var cells = this._elementRegistry.filter(function(element) {
-    if (utilityColumn) {
-      return element._type === 'cell' && element.row === context.row && element.column !== utilityColumn;
-    } else {
-      return element._type === 'cell' && element.row === context.row;
-    }
-  });
-  context._oldContent = [];
-  forEach(cells, function(cell) {
-    if (cell.content) {
-      context._oldContent.push(cell.content.text);
-      cell.content.text = '';
-    }
-    self._graphicsFactory.update('cell', cell, self._elementRegistry.getGraphics(cell.id));
-  });
-};
-
-
-/**
- * Undo clear by resetting the content
- */
-ClearRowHandler.prototype.revert = function(context) {
-  var self = this;
-  var utilityColumn = this._utilityColumn && this._utilityColumn.getColumn();
-  var cells = this._elementRegistry.filter(function(element) {
-    if (utilityColumn) {
-      return element._type === 'cell' && element.row === context.row && element.column !== utilityColumn;
-    } else {
-      return element._type === 'cell' && element.row === context.row;
-    }
-  });
-  var i = 0;
-  forEach(cells, function(cell) {
-    if (cell.content) {
-      cell.content.text = context._oldContent[i++];
-    }
-    self._graphicsFactory.update('cell', cell, self._elementRegistry.getGraphics(cell.id));
-  });
-};
-
-},{"123":123}],46:[function(_dereq_,module,exports){
-'use strict';
-
-var getBusinessObject = _dereq_(81).getBusinessObject;
-
-
-function CopyRowHandler(modeling, dmnFactory) {
-  this._modeling = modeling;
-  this._dmnFactory = dmnFactory;
-}
-
-CopyRowHandler.$inject = [ 'modeling' ];
-
-module.exports = CopyRowHandler;
-
-
-CopyRowHandler.prototype.preExecute = function(context) {
-  var modeling = this._modeling;
-
-  var row = context.row;
-
-  modeling.createRow(row);
-};
-
-CopyRowHandler.prototype.postExecute = function(context) {
-  var row = context.row,
-      refRow = context.refRow;
-
-  var businessObject = getBusinessObject(row),
-      refBusinessObj = getBusinessObject(refRow),
-      idx;
-
-  // update input rules
-  for (idx = 0; idx < businessObject.inputEntry.length; idx++) {
-    businessObject.inputEntry[idx].text = refBusinessObj.inputEntry[idx].text;
-  }
-
-  // update output rules
-  for (idx = 0; idx < businessObject.outputEntry.length; idx++) {
-    businessObject.outputEntry[idx].text = refBusinessObj.outputEntry[idx].text;
-  }
-
-  // update annotation
-  businessObject.description = refBusinessObj.description;
-};
-
-CopyRowHandler.prototype.execute = function(context) {};
-
-CopyRowHandler.prototype.revert = function(context) {};
-
-},{"81":81}],47:[function(_dereq_,module,exports){
-'use strict';
-
-/**
- * A handler that implements reversible editing of the expression language for a cell.
- *
- */
-function EditCellExpressionLanguageHandler() {
-}
-
-module.exports = EditCellExpressionLanguageHandler;
-
-
-
-////// api /////////////////////////////////////////
-
-
-/**
- * Edits the expression language
- *
- * @param {Object} context
- */
-EditCellExpressionLanguageHandler.prototype.execute = function(context) {
-
-  context.oldExpressionLanguage = context.businessObject.expressionLanguage;
-
-  context.businessObject.expressionLanguage = context.newExpressionLanguage;
-
-  return context;
-};
-
-
-/**
- * Undo Edit by resetting the content
- */
-EditCellExpressionLanguageHandler.prototype.revert = function(context) {
-
-  context.businessObject.expressionLanguage = context.oldExpressionLanguage;
-
-  return context;
-};
-
-},{}],48:[function(_dereq_,module,exports){
-'use strict';
-
-var calculateSelectionUpdate = _dereq_(264);
-
-function getSelection(node) {
-
-  var selectObj = document.getSelection();
-  if (selectObj.rangeCount > 0) {
-    var range = selectObj.getRangeAt(0);
-
-    return {
-      start: range.startOffset,
-      end: range.endOffset
-    };
-  }
-  return {
-    start: 0,
-    end: 0
-  };
-}
-
-function updateSelection(newSelection, gfx) {
-  var range = document.createRange();
-  var sel = document.getSelection();
-  if (gfx.childNodes[0].firstChild) {
-    range.setStart(gfx.childNodes[0].firstChild, newSelection.start);
-    range.setEnd(gfx.childNodes[0].firstChild, newSelection.end);
-  } else {
-    range.setStart(gfx.childNodes[0], 0);
-    range.setEnd(gfx.childNodes[0], 0);
-  }
-
-  sel.removeAllRanges();
-  sel.addRange(range);
-}
-
-/**
- * A handler that implements reversible addition of rows.
- *
- * @param {sheet} sheet
- */
-function EditCellHandler(sheet, elementRegistry, graphicsFactory, moddle, dmnFactory) {
-  this._sheet = sheet;
-  this._elementRegistry = elementRegistry;
-  this._graphicsFactory = graphicsFactory;
-  this._dmnFactory = dmnFactory;
-  this._moddle = moddle;
-}
-
-EditCellHandler.$inject = [ 'sheet', 'elementRegistry', 'graphicsFactory', 'moddle', 'dmnFactory' ];
-
-module.exports = EditCellHandler;
-
-
-
-////// api /////////////////////////////////////////
-
-
-/**
- * Edits the content of the cell
- *
- * @param {Object} context
- */
-EditCellHandler.prototype.execute = function(context) {
-  // get the business object
-  var el = this._elementRegistry.get('cell_' + context.column + '_' + context.row);
-  var gfx= this._elementRegistry.getGraphics('cell_' + context.column + '_' + context.row);
-  if (el.row.isHead) {
-    if (el.row.isMappingsRow) {
-      // update the output name of the clause
-      // (input expressions are handled by the popover, not the cell edit)
-      context.oldContent = el.content.name;
-      if (context.oldContent === context.content) {
-        return context;
-      }
-      el.content.name = context.content;
-    } else if (el.row.isClauseRow) {
-      // update the clause names
-      context.oldContent = el.column.businessObject.label;
-      if (context.oldContent === context.content) {
-        return context;
-      }
-      el.column.businessObject.label = context.content;
-    }
-  } else {
-
-    if (el.column.isAnnotationsColumn) {
-      // update the annotations of a rule
-      context.oldContent = el.row.businessObject.description;
-      if (context.oldContent === context.content) {
-        return context;
-      }
-      el.row.businessObject.description = context.content;
-    } else {
-      // update a rule cell
-      if (el.content) {
-        context.oldContent = el.content.text;
-        if (context.oldContent === context.content) {
-          return context;
-        }
-        el.content.text = context.content;
-      } else {
-        // need to create a semantic object
-        var inputOrOutput = el.column.businessObject.inputExpression ? 'createInputEntry' : 'createOutputEntry';
-        el.content = this._dmnFactory[inputOrOutput](context.content, el.column.businessObject, el.row.businessObject);
-      }
-    }
-  }
-
-  var selection = getSelection();
-  var newSelection = calculateSelectionUpdate(selection, gfx.textContent, context.content);
-  this._graphicsFactory.update('cell', el, gfx);
-
-  // we only want to apply the selection, when it is explicitely enforced
-  // otherwise the cursor may jump around while editing the cell
-  if (context.applySelection) {
-    updateSelection(newSelection, gfx);
-  } else {
-    // if the selection is not updated, restore the old selection
-    updateSelection(selection, gfx);
-  }
-
-  // explicitely force selection application for subsequent calls (e.g. using re-/undo)
-  context.applySelection = true;
-
-
-  return context;
-};
-
-
-/**
- * Undo Edit by resetting the content
- */
-EditCellHandler.prototype.revert = function(context) {
-  var el = this._elementRegistry.get('cell_' + context.column + '_' + context.row);
-  var gfx= this._elementRegistry.getGraphics('cell_' + context.column + '_' + context.row);
-
-  if (el.row.isHead) {
-    if (el.row.isMappingsRow) {
-      // revert the output name of the clause
-      el.content.name = context.oldContent;
-    } else if (el.row.isClauseRow) {
-      // revert clause name
-      el.column.businessObject.label = context.oldContent;
-    }
-  } else {
-    if (el.column.isAnnotationsColumn) {
-      // revert the annotations of a rule
-      el.row.businessObject.description = context.oldContent;
-    } else {
-      // revert a rule cell
-      if (!el.content) {
-        var inputOrOutput = el.column.businessObject.inputExpression ? 'createInputEntry' : 'createOutputEntry',
-            oldContent = context.oldContent;
-        // could have been deleted
-        el.content = this._dmnFactory[inputOrOutput](oldContent, el.column.businessObject, el.row.businessObject);
-      } else {
-        el.content.text = context.oldContent;
-      }
-    }
-  }
-
-  var selection = getSelection();
-  var newSelection = calculateSelectionUpdate(selection, gfx.textContent, context.oldContent);
-  this._graphicsFactory.update('cell', el, gfx);
-  updateSelection(newSelection, gfx);
-
-  return context;
-};
-
-},{"264":264}],49:[function(_dereq_,module,exports){
-'use strict';
-
-/**
- * A handler that implements reversible editing of a description for a cell
- *
- */
-function EditDescriptionHandler() {
-}
-
-module.exports = EditDescriptionHandler;
-
-
-
-////// api /////////////////////////////////////////
-
-
-/**
- * Edits the expression language
- *
- * @param {Object} context
- */
-EditDescriptionHandler.prototype.execute = function(context) {
-
-  context.oldDescription = context.businessObject.description;
-
-  context.businessObject.description = context.newDescription;
-
-  return context;
-};
-
-
-/**
- * Undo Edit by resetting the content
- */
-EditDescriptionHandler.prototype.revert = function(context) {
-
-  context.businessObject.description = context.oldDescription;
-
-  return context;
-};
-
-},{}],50:[function(_dereq_,module,exports){
-'use strict';
-
-/**
- * A handler that implements reversible editing of the hit policy.
- */
-function EditHitPolicyHandler(elementRegistry, graphicsFactory) {
-  this._elementRegistry = elementRegistry;
-  this._graphicsFactory = graphicsFactory;
-}
-
-EditHitPolicyHandler.$inject = [ 'elementRegistry', 'graphicsFactory' ];
-
-module.exports = EditHitPolicyHandler;
-
-
-
-////// api /////////////////////////////////////////
-
-
-/**
- * Edits the hit policy
- *
- * @param {Object} context
- */
-EditHitPolicyHandler.prototype.execute = function(context) {
-  context.oldPolicy = context.table.hitPolicy;
-  context.oldAggregation = context.table.aggregation;
-
-  context.table.hitPolicy = context.newPolicy;
-
-  if (context.newAggregation) {
-    context.table.aggregation = context.newAggregation;
-  } else {
-    context.table.aggregation = undefined;
-  }
-
-  this._graphicsFactory.update('cell', context.cell, this._elementRegistry.getGraphics(context.cell.id));
-
-  return context;
-};
-
-
-/**
- * Undo Edit by resetting the content
- */
-EditHitPolicyHandler.prototype.revert = function(context) {
-  context.table.hitPolicy = context.oldPolicy;
-  if (context.oldAggregation) {
-    context.table.aggregation = context.oldAggregation;
-  } else {
-    context.table.aggregation = undefined;
-  }
-
-  this._graphicsFactory.update('cell', context.cell, this._elementRegistry.getGraphics(context.cell.id));
-
-  return context;
-};
-
-},{}],51:[function(_dereq_,module,exports){
-'use strict';
-
-/**
- * A handler that implements reversible editing of the table id.
- *
- * @param {tableName} tableName
- */
-function EditIdHandler(tableName) {
-  this._tableName = tableName;
-}
-
-EditIdHandler.$inject = [ 'tableName' ];
-
-module.exports = EditIdHandler;
-
-
-
-////// api /////////////////////////////////////////
-
-
-/**
- * Edits the table id
- *
- * @param {Object} context
- */
-EditIdHandler.prototype.execute = function(context) {
-  context.oldId = this._tableName.getId();
-  this._tableName.setId(context.newId);
-  return context;
-};
-
-
-/**
- * Undo Edit by resetting the content
- */
-EditIdHandler.prototype.revert = function(context) {
-  this._tableName.setId(context.oldId);
-  return context;
-};
-
-},{}],52:[function(_dereq_,module,exports){
-'use strict';
-
-/**
- * A handler that implements reversible addition of rows.
- *
- * @param {sheet} sheet
- */
-function EditInputMappingHandler(elementRegistry, graphicsFactory) {
-  this._elementRegistry = elementRegistry;
-  this._graphicsFactory = graphicsFactory;
-}
-
-EditInputMappingHandler.$inject = ['elementRegistry', 'graphicsFactory' ];
-
-module.exports = EditInputMappingHandler;
-
-
-
-////// api /////////////////////////////////////////
-
-
-/**
- * Edits the content of the cell
- *
- * @param {Object} context
- */
-EditInputMappingHandler.prototype.execute = function(context) {
-  var cell = context.cell,
-      content = cell.content;
-
-  context.oldMapping = content.text;
-  context.oldInputVariable = content.inputVariable;
-  content.text = context.newMapping;
-
-  if (content.expressionLanguage) {
-    context.oldLanguage = content.expressionLanguage;
-  }
-
-  if (typeof context.inputVariable !== 'undefined') {
-    content.$parent.inputVariable = context.inputVariable;
-  } else {
-    content.$parent.inputVariable = undefined;
-  }
-
-  if (typeof context.language !== 'undefined') {
-    content.expressionLanguage = context.language;
-  } else {
-    content.expressionLanguage = undefined;
-  }
-
-  this._graphicsFactory.update('cell', cell, this._elementRegistry.getGraphics(cell.id));
-
-  return context;
-};
-
-
-/**
- * Undo Edit by resetting the content
- */
-EditInputMappingHandler.prototype.revert = function(context) {
-  var cell = context.cell,
-      content = cell.content;
-
-  content.text = context.oldMapping;
-  context.inputVariable = content.oldInputVariable;
-
-  if (context.oldInputVariable) {
-    content.$parent.inputVariable = context.oldInputVariable;
-  } else {
-    content.$parent.inputVariable = undefined;
-  }
-
-  if (context.oldLanguage) {
-    content.expressionLanguage = context.oldLanguage;
-  } else {
-    content.expressionLanguage = undefined;
-  }
-
-  this._graphicsFactory.update('cell', cell, this._elementRegistry.getGraphics(cell.id));
-
-  return context;
-};
-
-},{}],53:[function(_dereq_,module,exports){
-'use strict';
-
-/**
- * A handler that implements reversible editing of the datatype for a clause.
- *
- */
-function EditTypeHandler(elementRegistry, graphicsFactory, dmnFactory) {
-  this._elementRegistry = elementRegistry;
-  this._graphicsFactory = graphicsFactory;
-  this._dmnFactory = dmnFactory;
-}
-
-EditTypeHandler.$inject = [ 'elementRegistry', 'graphicsFactory', 'dmnFactory' ];
-
-module.exports = EditTypeHandler;
-
-
-
-////// api /////////////////////////////////////////
-
-
-/**
- * Edits the dataType
- *
- * @param {Object} context
- */
-EditTypeHandler.prototype.execute = function(context) {
-
-  var cellContent = context.cell.content;
-
-  if (cellContent.inputExpression) {
-    context.oldType = cellContent.inputExpression.typeRef;
-    cellContent.inputExpression.typeRef = context.newType;
-
-    if (cellContent.inputValues && context.newType !== context.oldType) {
-      context.oldInputValues = cellContent.inputValues;
-      delete cellContent.inputValues;
-    }
-  } else {
-    context.oldType = cellContent.typeRef;
-    cellContent.typeRef = context.newType;
-
-    if (cellContent.outputValues && context.newType !== context.oldType) {
-      context.oldOutputValues = cellContent.outputValues;
-      delete cellContent.outputValues;
-    }
-  }
-
-  this._graphicsFactory.update('cell', context.cell, this._elementRegistry.getGraphics(context.cell.id));
-
-  return context;
-};
-
-
-/**
- * Undo Edit by resetting the content
- */
-EditTypeHandler.prototype.revert = function(context) {
-
-  var cellContent = context.cell.content;
-
-  if (cellContent.inputExpression) {
-    cellContent.inputExpression.typeRef = context.oldType;
-
-    if (context.oldInputValues) {
-      cellContent.inputValues = context.oldInputValues;
-    }
-  } else {
-    cellContent.typeRef = context.oldType;
-
-    if (context.oldOutputValues) {
-      cellContent.outputValues = context.oldOutputValues;
-    }
-  }
-
-  this._graphicsFactory.update('cell', context.cell, this._elementRegistry.getGraphics(context.cell.id));
-
-  return context;
-};
-
-},{}],54:[function(_dereq_,module,exports){
-'use strict';
-
-/**
- * A handler that implements reversible removal of an allowed value of a datatype.
- *
- */
-function RemoveAllowedValueHandler(dmnFactory) {
-}
-
-module.exports = RemoveAllowedValueHandler;
-
-
-////// api /////////////////////////////////////////
-
-
-/**
- * Removes an allowed value
- *
- * @param {Object} context
- */
-RemoveAllowedValueHandler.prototype.execute = function(context) {
-  var text, entries;
-
-  if (context.isInput) {
-    context.oldValue = context.businessObject.inputValues && context.businessObject.inputValues.text;
-
-    text = context.businessObject.inputValues.text;
-
-    entries = text.split(',');
-
-    entries.splice(entries.indexOf(context.value), 1);
-
-    context.businessObject.inputValues.text = entries.join(',');
-  } else {
-    context.oldValue = context.businessObject.outputValues && context.businessObject.outputValues.text;
-
-    text = context.businessObject.outputValues.text;
-
-    entries = text.split(',');
-
-    entries.splice(entries.indexOf(context.value), 1);
-
-    context.businessObject.outputValues.text = entries.join(',');
-  }
-
-  return context;
-};
-
-
-/**
- * Undo Edit by resetting the content
- */
-RemoveAllowedValueHandler.prototype.revert = function(context) {
-
-  if (context.oldValue) {
-    if (context.isInput) {
-      context.businessObject.inputValues.text = context.oldValue;
-    } else {
-      context.businessObject.outputValues.text = context.oldValue;
-    }
-  }
-
-  return context;
-};
-
-},{}],55:[function(_dereq_,module,exports){
-module.exports = {
-  __init__: [ 'modeling', 'dmnUpdater' ],
-  __depends__: [
-    _dereq_(307),
-    _dereq_(276),
-    _dereq_(30)
-  ],
-  modeling: [ 'type', _dereq_(43) ],
-  dmnUpdater: [ 'type', _dereq_(42) ]
-};
-
-},{"276":276,"30":30,"307":307,"42":42,"43":43}],56:[function(_dereq_,module,exports){
-'use strict';
-
-var assign = _dereq_(234),
-    forEach = _dereq_(123);
-
-var domify = _dereq_(246),
-    domQuery = _dereq_(249),
-    domClasses = _dereq_(244);
-
-var isNumberCell = _dereq_(59).isNumberCell;
-
-var htmlTemplate = _dereq_(58);
-
-var OPERATORS = [
-  [ 'equals', '=' ],
-  [ 'less', '<' ],
-  [ 'less-equal', '<=' ],
-  [ 'greater', '>' ],
-  [ 'greater-equal', '>=' ]
-];
-
-var SEL_COMP_DROP = '.comparison-dropdown',
-    SEL_COMP_NUM = '.comparison-number';
-
-var SEL_START = '.include-inputs input[placeholder="start"]',
-    SEL_INC_START = '.include-inputs input[placeholder="include-start"]',
-    SEL_END = '.include-inputs input[placeholder="end"]',
-    SEL_INC_END = '.include-inputs input[placeholder="include-end"]';
-
-function getOperator(text) {
-  var operator, index;
-
-  forEach(OPERATORS, function(option, idx) {
-    index = option.indexOf(text);
-
-    if (index === -1) {
-      return;
-    }
-
-    // we want to get the opposite operator
-    operator = option[ index ? 0 : 1 ];
-
-    index = idx;
-
-    return false;
-  });
-
-  return {
-    operator: operator,
-    index: index
-  };
-}
-
-
-function NumberEdit(eventBus, simpleMode, elementRegistry, graphicsFactory, modeling, complexCell) {
-  this._eventBus = eventBus;
-  this._simpleMode = simpleMode;
-  this._elementRegistry = elementRegistry;
-  this._graphicsFactory = graphicsFactory;
-  this._modeling = modeling;
-  this._complexCell = complexCell;
-
-  eventBus.on('simpleMode.activated', this.setupComplexCells, this);
-  eventBus.on('simpleMode.deactivated', this.teardownComplexCells, this);
-
-  var refreshHandler = function() {
-    if (simpleMode.isActive()) {
-      this.refresh();
-    }
-  };
-  this._eventBus.on('typeRow.editDataType', refreshHandler, this);
-  this._eventBus.on('contentNode.created', refreshHandler, this);
-  this._eventBus.on('element.changed', refreshHandler, this);
-
-  // whenever an type cell is opened, we have to position the template, because the x offset changes
-  // over time, when columns are added and deleted
-  eventBus.on('complexCell.open', function(evt) {
-    var config = evt.config;
-
-    if (config.type === 'numberEdit') {
-      var gfx = elementRegistry.getGraphics(config.element);
-      var template = config.template,
-          content = config.element.content,
-          text = content.text;
-
-      config.editingType = this.getEditingType(text);
-
-      if (config.editingType === null) {
-        return;
-      }
-
-      if (config.editingType === 'range') {
-        this.updateRangeNode(template, text);
-      } else {
-        this.updateComparisonNode(template, text);
-      }
-
-      assign(template.parentNode.style, {
-        left: (gfx.offsetLeft + gfx.offsetWidth - 10) + 'px'
-      });
-    }
-  }, this);
-
-  eventBus.on('cell.render', function(evt) {
-    var gfx = evt.gfx,
-        data = evt.data,
-        content = data.content,
-        editingType,
-        numberGfx;
-
-    if (content && isNumberCell(data)) {
-
-      editingType = this.getEditingType(content.text);
-
-      // add [expression] to input if it's not an editable type
-      if (simpleMode.isActive() && editingType === null) {
-        // // make sure the contendeditable field is hidden
-        gfx.firstChild.style.display = 'none';
-        evt.data.preventAutoUpdate = true;
-
-        // check for the datafield
-        numberGfx = gfx.querySelector('.number-content');
-
-        if (!numberGfx) {
-          numberGfx = domify('<span class="number-content">');
-
-          gfx.appendChild(numberGfx);
-        }
-
-        // when the cell has a value that is not a number
-        if (content.description) {
-          numberGfx.innerHTML = '<span class="expression-hint"><b>[expression]</b> (<i></i>)</span>';
-          numberGfx.querySelector('i').textContent = content.description;
-        } else {
-          numberGfx.innerHTML = '<span class="expression-hint"><b>[expression]</b></span>';
-        }
-      } else {
-        // make sure the contenteditable field is visible
-        gfx.firstChild.style.display = 'inline';
-        evt.data.preventAutoUpdate = false;
-
-        // remove potential datafield
-        numberGfx = gfx.querySelector('.number-content');
-
-        if (numberGfx) {
-          numberGfx.parentNode.removeChild(numberGfx);
-        }
-      }
-    }
-  }, this);
-}
-
-NumberEdit.$inject = [ 'eventBus', 'simpleMode', 'elementRegistry', 'graphicsFactory', 'modeling', 'complexCell' ];
-
-module.exports = NumberEdit;
-
-
-NumberEdit.prototype.refresh = function() {
-  this.teardownComplexCells();
-  this.setupComplexCells();
-};
-
-NumberEdit.prototype.setupComplexCells = function() {
-  var graphicsFactory = this._graphicsFactory,
-      elementRegistry = this._elementRegistry,
-      complexCell = this._complexCell,
-      eventBus = this._eventBus;
-
-  var self = this;
-
-  function closeOnEnter(evt) {
-    if (evt.keyCode === 13) {
-      complexCell.close();
-    }
-  }
-
-  elementRegistry.forEach(function(element) {
-    var editingType, text, node, complexCellConfig;
-
-    if (isNumberCell(element)) {
-      text = element.content && element.content.text;
-
-      editingType = self.getEditingType(text);
-
-      if (editingType === null) {
-        // show nothing instead
-        element.complex = {
-          template: domify('<div>'),
-          element: element,
-          type: 'numberEdit',
-          editingType: 'comparison',
-          offset: {
-            x: 0,
-            y: 0
-          }
-        };
-
-        return graphicsFactory.update('cell', element, elementRegistry.getGraphics(element));
-      }
-
-      node = domify(htmlTemplate);
-
-      // click on Expression link switches to expression mode
-      node.querySelector('.comparison').addEventListener('click', function() {
-        domClasses(node.parentNode).remove('use-range');
-
-        // focus the script expression input field
-        node.querySelector(SEL_COMP_NUM).focus();
-
-        element.complex.editingType = 'comparison';
-      });
-
-      // click on Script link switches to script mode
-      node.querySelector('.range').addEventListener('click', function() {
-
-        domClasses(node.parentNode).add('use-range');
-
-        node.querySelector(SEL_START).focus();
-
-        element.complex.editingType = 'range';
-      });
-
-      // keybindings
-      // close complexCell with Enter on number input
-      node.querySelector(SEL_COMP_NUM).addEventListener('keydown', closeOnEnter);
-
-      // focus End input with Enter on Start input
-      node.querySelector(SEL_START).addEventListener('keydown', function(evt) {
-        if (evt.keyCode === 13) {
-          node.querySelector(SEL_END).focus();
-        }
-      });
-
-      // close complexCell with Enter on End input
-      node.querySelector(SEL_END).addEventListener('keydown', closeOnEnter);
-
-      complexCellConfig = {
-        className: 'dmn-number-editor',
-        template: node,
-        element: element,
-        type: 'numberEdit',
-        editingType: editingType || 'comparison'
-      };
-
-      eventBus.on('complexCell.close', function(complexCell) {
-        if (complexCell.config === complexCellConfig) {
-          self.updateCellContent(element, node);
-        }
-      });
-
-      element.complex = complexCellConfig;
-
-      graphicsFactory.update('cell', element, elementRegistry.getGraphics(element));
-    }
-  });
-};
-
-/**
- * Check if it's a valid editable type, to know whether the dialog should be shown.
- *
- * @param  {String} text
- *
- * @return {String|Null}
- */
-NumberEdit.prototype.getEditingType = function(text) {
-  if (text === '') {
-    return text;
-  }
-
-  if (/^-?([0-9]|[0-9]e[0-9]|\.[0-9]){1,}$|^(<|>|=){0,2}\s-?([0-9]|[0-9]e[0-9]|\.[0-9]){1,}$/.test(text)) {
-    return 'comparison';
-  }
-
-  if (/^(\[|\]){1}-?([0-9]|[0-9]e[0-9]|\.[0-9]){1,}\.\.-?([0-9]|[0-9]e[0-9]|\.[0-9]){1,}(\[|\]){1}$/.test(text)) {
-    return 'range';
-  }
-
-  return null;
-};
-
-NumberEdit.prototype.updateComparisonNode = function(template, text) {
-  var numberNode = template.querySelector(SEL_COMP_NUM);
-
-  var parsedText,
-      dropdownIndex,
-      number;
-
-  if (text) {
-    parsedText = text.split(' ');
-
-    if (parsedText.length === 1) {
-      dropdownIndex = 0;
-
-      number = text;
-    } else {
-      dropdownIndex = getOperator(parsedText[0]).index;
-
-      number = parsedText[1];
-    }
-
-    template.querySelector(SEL_COMP_DROP).selectedIndex = dropdownIndex;
-
-    numberNode.value = number;
-  }
-
-  domClasses(template.parentNode).remove('use-range');
-
-  numberNode.focus();
-};
-
-NumberEdit.prototype.parseRangeString = function(text) {
-  var parsedText = text.match(/([^\[\]]*)(?:\.\.)([^\[\]]*)/);
-
-  if (!parsedText) {
-    return null;
-  }
-  return parsedText.splice(1);
-};
-
-NumberEdit.prototype.updateRangeNode = function(template, text) {
-  var startNode = domQuery(SEL_START, template),
-      isStartIncludedNode = domQuery(SEL_INC_START, template),
-      endNode = domQuery(SEL_END, template),
-      isEndIncludedNode = domQuery(SEL_INC_END, template),
-      brackets,
-      parsedNumbers;
-
-  if (text) {
-    parsedNumbers = this.parseRangeString(text);
-
-    if (parsedNumbers && parsedNumbers.length === 2) {
-      brackets = text.match(/\[|\]/g);
-
-      startNode.value = parsedNumbers[0];
-      isStartIncludedNode.checked = brackets[0] === '[';
-
-      endNode.value = parsedNumbers[1];
-      isEndIncludedNode.checked = brackets[1] === ']';
-    }
-  }
-
-  domClasses(template.parentNode).add('use-range');
-
-  template.querySelector(SEL_START).focus();
-};
-
-NumberEdit.prototype.updateCellContent = function(element, node) {
-  var modeling = this._modeling;
-
-  if (!element.complex) {
-    return;
-  }
-
-  var editingType = element.complex.editingType,
-      content;
-
-  if (editingType === 'range') {
-    content = this.parseRange(node);
-  } else {
-    content = this.parseComparison(node);
-  }
-
-  modeling.editCell(element.row.id, element.column.id, content);
-};
-
-NumberEdit.prototype.parseComparison = function(node) {
-  var dropdown = domQuery(SEL_COMP_DROP, node),
-      numberNode = domQuery(SEL_COMP_NUM, node),
-      numberValue = numberNode.value,
-      operator;
-
-  var dropdownValue = dropdown.children[dropdown.selectedIndex].value;
-
-  if (!numberValue) {
-    return '';
-  }
-
-  operator = getOperator(dropdownValue).operator;
-
-  // don't show the equal operator
-  operator = operator === '=' ? '' : operator + ' ';
-
-  return operator + numberValue;
-};
-
-NumberEdit.prototype.parseRange = function(node) {
-  var start = domQuery(SEL_START, node).value,
-      isStartIncluded = domQuery(SEL_INC_START, node).checked,
-      end = domQuery(SEL_END, node).value,
-      isEndIncluded = domQuery(SEL_INC_END, node).checked;
-
-  var startBracket = isStartIncluded ? '[' : ']',
-      endBracket = isEndIncluded ? ']' : '[';
-
-  if (!start || !end) {
-    return '';
-  }
-
-  return startBracket + start + '..' + end + endBracket;
-};
-
-NumberEdit.prototype.teardownComplexCells = function() {
-  var graphicsFactory = this._graphicsFactory,
-      elementRegistry = this._elementRegistry;
-
-  elementRegistry.forEach(function(element) {
-    if (element.complex && element.complex.type === 'numberEdit') {
-
-      delete element.complex;
-
-      graphicsFactory.update('cell', element, elementRegistry.getGraphics(element));
-    }
-  });
-};
-
-},{"123":123,"234":234,"244":244,"246":246,"249":249,"58":58,"59":59}],57:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = {
-  __init__: [ 'numberEdit' ],
-  numberEdit: [ 'type', _dereq_(56) ]
-};
-
-},{"56":56}],58:[function(_dereq_,module,exports){
-module.exports = "<div>\n  <h4>Edit Number Condition</h4>\n  <div class=\"links\">\n    <div class=\"toggle-type\">\n      <a class=\"comparison\">Comparison</a>\n      /\n      <a class=\"range\">Range</a>\n    </div>\n  </div>\n  <div class=\"comparison region\">\n    <select class=\"comparison-dropdown\">\n      <option value=\"equals\">= (Equals)</option>\n      <option value=\"less\">&lt; (Less than)</option>\n      <option value=\"less-equal\">&lt;= (Less than or equal)</option>\n      <option value=\"greater\">&gt; (Greater than)</option>\n      <option value=\"greater-equal\">&gt;= (Greater than or equal)</option>\n    </select>\n    <input type=\"number\" class=\"comparison-number\" placeholder=\"number\" />\n  </div>\n  <div class=\"range region\">\n    <label>Include</label>\n    <div class=\"include-inputs\">\n      <input type=\"number\" placeholder=\"start\" />\n      <input type=\"checkbox\" placeholder=\"include-start\" />\n    </div>\n    <div class=\"include-inputs\">\n      <input type=\"number\" placeholder=\"end\" />\n      <input type=\"checkbox\" placeholder=\"include-end\" />\n    </div>\n  </div>\n</div>\n";
-
-},{}],59:[function(_dereq_,module,exports){
-var types = [
-  'integer',
-  'long',
-  'double'
-];
-
-function hasType(value) {
-  return types.indexOf(value) !== -1;
-}
-
-function hasNumberType(column) {
-  return column &&
-         (column.inputExpression &&
-         hasType(column.inputExpression.typeRef) ||
-         hasType(column.typeRef));
-}
-
-module.exports.hasNumberType = hasNumberType;
-
-
-function isBodyRow(row) {
-  return !row.isHead && !row.isFoot;
-}
-
-module.exports.isBodyRow = isBodyRow;
-
-
-function isNumberCell(el) {
-  return el._type === 'cell' &&
-    hasNumberType(el.column.businessObject) &&
-    isBodyRow(el.row);
-}
-
-module.exports.isNumberCell = isNumberCell;
-
-},{}],60:[function(_dereq_,module,exports){
-'use strict';
-
-var inherits = _dereq_(114);
-var domClasses = _dereq_(244);
-
-var CommandInterceptor = _dereq_(91);
-
-function SimpleEditing(eventBus, modeling, simpleMode, elementRegistry, graphicsFactory) {
-
-  CommandInterceptor.call(this, eventBus);
-
-  this._eventBus = eventBus;
-  this._modeling = modeling;
-
-  eventBus.on('simpleCheckbox.render', function(evt, checkbox, data) {
-    // make the checkbox editable
-    checkbox.removeAttribute('disabled');
-
-    // link the checkbox to the modeling
-    if (!checkbox.changeListenerRegistered) {
-      checkbox.addEventListener('change', function(evt) {
-        modeling.editCell(data.row.id, data.column.id, evt.target.value);
-      });
-      checkbox.changeListenerRegistered = true;
-    }
-  });
-
-  eventBus.on('element.mousedown', function(event) {
-    if (domClasses(event.originalEvent.target).contains('simple-mode-checkbox')) {
-      // returning a non-undefined variable causes the eventBus to stop the propagation of the event
-      // that leads to the behavior, that other event-handlers don't override the content of
-      // the cell, which would cause the dropdown to close again
-      return true;
-    }
-  });
-
-}
-
-inherits(SimpleEditing, CommandInterceptor);
-
-SimpleEditing.$inject = [ 'eventBus', 'modeling', 'simpleMode', 'elementRegistry', 'graphicsFactory' ];
-
-module.exports = SimpleEditing;
-
-},{"114":114,"244":244,"91":91}],61:[function(_dereq_,module,exports){
-module.exports = {
-  __init__: [ 'simpleEditing' ],
-  __depends__: [],
-  simpleEditing: [ 'type', _dereq_(60) ]
-};
-
-},{"60":60}],62:[function(_dereq_,module,exports){
-'use strict';
-
-var domClasses = _dereq_(244),
-    domify = _dereq_(246);
+var domClasses = _dereq_(205),
+    domify = _dereq_(207);
 
 function isType(bo, type) {
   return bo.inputExpression &&
@@ -5099,12 +2298,12 @@ function SimpleMode(eventBus, sheet, config, graphicsFactory) {
     data.preventAutoUpdate = false;
 
     if (expressionHint) {
-      gfx.childNodes[0].style.display = 'inline';
+      gfx.childNodes[0].style.display = '';
       expressionHint.parentNode.removeChild(expressionHint);
     }
 
     if (!this.simple && checkbox) {
-      gfx.childNodes[0].style.display = 'inline';
+      gfx.childNodes[0].style.display = '';
       checkbox.parentNode.removeChild(checkbox);
       data.preventAutoUpdate = false;
     }
@@ -5176,7 +2375,7 @@ function SimpleMode(eventBus, sheet, config, graphicsFactory) {
         )) {
 
           checkbox.parentNode.removeChild(checkbox);
-          gfx.childNodes[0].style.display = 'inline';
+          gfx.childNodes[0].style.display = '';
 
         }
 
@@ -5292,270 +2491,17 @@ SimpleMode.prototype.isString = function(textContent) {
   return firstCondition && !secondCondition;
 };
 
-},{"244":244,"246":246}],63:[function(_dereq_,module,exports){
+},{"205":205,"207":207}],32:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'simpleMode' ],
-  simpleMode: [ 'type', _dereq_(62) ]
+  simpleMode: [ 'type', _dereq_(31) ]
 };
 
-},{"62":62}],64:[function(_dereq_,module,exports){
+},{"31":31}],33:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(234);
-
-var domify     = _dereq_(246),
-    domClasses = _dereq_(244),
-    utils      = _dereq_(68);
-
-var parseString        = utils.parseString,
-    parseAllowedValues = utils.parseAllowedValues,
-    isStringCell       = utils.isStringCell;
-
-function StringEdit(eventBus, simpleMode, elementRegistry, graphicsFactory, modeling) {
-  this._eventBus = eventBus;
-  this._simpleMode = simpleMode;
-  this._elementRegistry = elementRegistry;
-  this._graphicsFactory = graphicsFactory;
-  this._modeling = modeling;
-
-  var refreshHandler = function() {
-    if (this._simpleMode.isActive()) {
-      this.refresh();
-    }
-  };
-  this._eventBus.on('simpleMode.activated', this.setupComplexCells, this);
-  this._eventBus.on('simpleMode.deactivated', this.teardownComplexCells, this);
-  this._eventBus.on('typeRow.editDataType', refreshHandler, this);
-  this._eventBus.on('typeRow.editAllowedValues', refreshHandler, this);
-  this._eventBus.on('typeRow.editAllowedValues', refreshHandler, this);
-  this._eventBus.on('contentNode.created', refreshHandler, this);
-  this._eventBus.on('element.changed', refreshHandler, this);
-
-  // whenever an type cell is opened, we have to position the template, because the x offset changes
-  // over time, when columns are added and deleted
-  this._eventBus.on('complexCell.open', function(evt) {
-    var config = evt.config;
-
-    if (config.type === 'stringEdit') {
-      var gfx = elementRegistry.getGraphics(config.element);
-      var template = config.template;
-
-      assign(template.parentNode.style, {
-        left: (gfx.offsetLeft + gfx.offsetWidth - 10) + 'px'
-      });
-    }
-  });
-
-}
-
-StringEdit.prototype.refresh = function() {
-  this.teardownComplexCells();
-  this.setupComplexCells();
-};
-
-StringEdit.prototype.setupComplexCells = function() {
-  var graphicsFactory = this._graphicsFactory;
-  var elementRegistry = this._elementRegistry;
-  var eventBus = this._eventBus;
-
-  var self = this;
-  elementRegistry.forEach(function(element) {
-    if (isStringCell(element)) {
-      var parsed = parseString(element.content.text);
-
-      if (element.content.text && !parsed) {
-        // in this case, the date contains an expression, we should not show the date editor here
-
-        // show nothing instead
-        element.complex = {
-          template: domify('<div>'),
-          element: element,
-          type: 'stringEdit',
-          offset: {
-            x: 0,
-            y: 0
-          }
-        };
-
-        graphicsFactory.update('cell', element, elementRegistry.getGraphics(element));
-        return;
-      }
-
-      var node = domify(_dereq_(67));
-
-
-
-      // set the initial state based on the cell content
-      var allowedValues = parseAllowedValues(element);
-      self.updateElementVisibility(parsed.type, allowedValues, node);
-
-      // select the correct dropdown option
-      node.querySelector('.string-type-dropdown').value = parsed.type;
-
-      // add the initial data nodes
-      if (parsed.values && !allowedValues) {
-        self.renderValues(parsed.values, node.querySelector('.free-input ul'));
-      }
-      if (allowedValues) {
-        self.renderValues(allowedValues, node.querySelector('.input-values ul'), parsed.values);
-      }
-
-      // wire the elements
-      node.querySelector('.string-type-dropdown').addEventListener('change', function(evt) {
-        var type = evt.target.value;
-        parsed.type = type;
-        self.updateElementVisibility(type, allowedValues, node);
-      });
-
-      if (!allowedValues) {
-        node.querySelector('.free-input input').addEventListener('keydown', function(keyboardEvt) {
-          if (keyboardEvt.keyCode === 13 && keyboardEvt.target.value.indexOf('"') === -1) {
-            var values = keyboardEvt.target.value.split(',');
-            values.forEach(function(value) {
-              parsed.values.push(value.trim());
-            });
-            self.renderValues(parsed.values, node.querySelector('.free-input ul'));
-            keyboardEvt.target.value = '';
-          }
-        });
-
-        node.querySelector('.free-input input').addEventListener('input', function(keyboardEvt) {
-          // validate input
-          var val = keyboardEvt.target.value;
-
-          if (val.indexOf('"') === -1) {
-            // is valid
-            domClasses(keyboardEvt.target).remove('invalid');
-            node.querySelector('.free-input .helptext').style.display = 'none';
-          } else {
-            // is invalid
-            domClasses(keyboardEvt.target).add('invalid');
-            node.querySelector('.free-input .helptext').style.display = 'block';
-          }
-
-        });
-
-
-      }
-
-      var complexCellConfig = {
-        className: 'dmn-string-editor',
-        template: node,
-        element: element,
-        type: 'stringEdit',
-        offset: {
-          x: 0,
-          y: 0
-        }
-      };
-
-      eventBus.on('complexCell.close', function(complexCell) {
-
-        // if the input field contains content, add this content
-        var inputField = node.querySelector('.free-input input');
-        if (inputField.value && inputField.value.indexOf('"') === -1) {
-          var values = inputField.value.split(',');
-          values.forEach(function(value) {
-            parsed.values.push(value.trim());
-          });
-          self.renderValues(parsed.values, node.querySelector('.free-input ul'));
-        }
-        inputField.value = '';
-
-        if (complexCell.config === complexCellConfig) {
-          self.setCellContent(parsed, element);
-          graphicsFactory.update('cell', element, elementRegistry.getGraphics(element));
-        }
-      });
-
-      element.complex = complexCellConfig;
-
-      graphicsFactory.update('cell', element, elementRegistry.getGraphics(element));
-    }
-  });
-};
-
-StringEdit.prototype.setCellContent = function(data, element) {
-  if (data.type === '' || data.values.length === 0) {
-    return this._modeling.editCell(element.row.id, element.column.id, '');
-  }
-
-  var values = data.values.map(function(value) {
-    return '"' + value + '"';
-  }).join(', ');
-
-  if (data.type === 'negation') {
-    return this._modeling.editCell(element.row.id, element.column.id, 'not(' + values + ')');
-  } else {
-    return this._modeling.editCell(element.row.id, element.column.id, values);
-  }
-};
-
-StringEdit.prototype.renderValues = function(values, container, checkedValues) {
-  var self = this;
-  container.innerHTML = '';
-  values.forEach(function(value) {
-    var valueNode;
-    if (checkedValues) {
-      valueNode = domify('<li><input type="checkbox"><span class="value-text"></span></li>');
-      valueNode.querySelector('.value-text').textContent = value;
-      if (checkedValues.indexOf(value) !== -1) {
-        valueNode.querySelector('input').checked = true;
-      }
-      valueNode.querySelector('input').addEventListener('change', function(evt) {
-        if (evt.target.checked) {
-          // add value
-          checkedValues.push(value);
-        } else {
-          // remove value
-          checkedValues.splice(checkedValues.indexOf(value), 1);
-        }
-      });
-    } else {
-      valueNode = domify('<li><span class="value-text"></span><button class="dmn-icon-clear"></button></li>');
-      valueNode.querySelector('.value-text').textContent = value;
-      valueNode.querySelector('button').addEventListener('click', function(evt) {
-        values.splice(values.indexOf(value), 1);
-        self.renderValues(values, container);
-      });
-    }
-    container.appendChild(valueNode);
-  });
-};
-
-StringEdit.prototype.updateElementVisibility = function(type, allowedValues, node) {
-  if (type) {
-    node.querySelector('.input-values').style.display = allowedValues ? 'block' : 'none';
-    node.querySelector('.free-input').style.display = !allowedValues ? 'block' : 'none';
-  } else {
-    node.querySelector('.input-values').style.display = 'none';
-    node.querySelector('.free-input').style.display = 'none';
-  }
-};
-
-StringEdit.prototype.teardownComplexCells = function() {
-  var graphicsFactory = this._graphicsFactory;
-  var elementRegistry = this._elementRegistry;
-
-  elementRegistry.forEach(function(element) {
-    if (element.complex && element.complex.type === 'stringEdit') {
-
-      delete element.complex;
-
-      graphicsFactory.update('cell', element, elementRegistry.getGraphics(element));
-    }
-  });
-};
-
-StringEdit.$inject = ['eventBus', 'simpleMode', 'elementRegistry', 'graphicsFactory', 'modeling'];
-
-module.exports = StringEdit;
-
-},{"234":234,"244":244,"246":246,"67":67,"68":68}],65:[function(_dereq_,module,exports){
-'use strict';
-
-var domify = _dereq_(246),
-    utils  = _dereq_(68);
+var domify = _dereq_(207),
+    utils  = _dereq_(34);
 
 var isStringCell = utils.isStringCell,
     parseString  = utils.parseString;
@@ -5565,6 +2511,17 @@ function StringView(eventBus, simpleMode) {
   this._simpleMode = simpleMode;
 
   this._eventBus.on('cell.render', function(evt) {
+    // remove potential datafield
+    stringGfx = evt.gfx.querySelector('.string-content');
+    if (stringGfx) {
+      stringGfx.parentNode.removeChild(stringGfx);
+    }
+    if (evt.gfx.childNodes.length === 1) {
+        // make sure the contenteditable field is visible
+      evt.gfx.firstChild.style.display = 'inline';
+      evt.data.preventAutoUpdate = false;
+    }
+
     if (isStringCell(evt.data)) {
       if (this._simpleMode.isActive()) {
         // make sure the contendeditable field is hidden
@@ -5580,7 +2537,7 @@ function StringView(eventBus, simpleMode) {
         this.renderString(evt.data.content, stringGfx);
       } else {
         // make sure the contenteditable field is visible
-        evt.gfx.firstChild.style.display = 'inline';
+        evt.gfx.firstChild.style.display = '';
         evt.data.preventAutoUpdate = false;
 
         // remove potential datafield
@@ -5598,7 +2555,7 @@ function StringView(eventBus, simpleMode) {
 
       // if only the inline edit field is remaining, display it
       if (evt.gfx.childNodes.length === 1) {
-        evt.gfx.firstChild.style.display = 'inline';
+        evt.gfx.firstChild.style.display = '';
       }
     }
   }, this);
@@ -5626,18 +2583,7 @@ StringView.$inject = ['eventBus', 'simpleMode'];
 
 module.exports = StringView;
 
-},{"246":246,"68":68}],66:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = {
-  __init__: [ 'stringEdit' ],
-  stringEdit: [ 'type', _dereq_(64) ]
-};
-
-},{"64":64}],67:[function(_dereq_,module,exports){
-module.exports = "<div>\n  <h3>Edit String Expression</h3>\n  <select class=\"string-type-dropdown\">\n    <option value=\"\">-</option>\n    <option value=\"disjunction\">Match one of</option>\n    <option value=\"negation\">Match anything except</option>\n  </select>\n  <div class=\"free-input\">\n    <ul>\n    </ul>\n    <input type=\"text\" placeholder=\"new Value\"/>\n    <div class=\"helptext\">Enter value without quotes</div>\n  </div>\n  <div class=\"input-values\">\n    <ul>\n    </ul>\n  </div>\n</div>\n";
-
-},{}],68:[function(_dereq_,module,exports){
+},{"207":207,"34":34}],34:[function(_dereq_,module,exports){
 'use strict';
 
 var hasStringType = function(column) {
@@ -5667,7 +2613,7 @@ module.exports = {
     // try empty
     if (string.trim() === '') {
       return {
-        type: '',
+        type: 'disjunction',
         values: []
       };
     }
@@ -5729,22 +2675,22 @@ module.exports = {
   }
 };
 
-},{}],69:[function(_dereq_,module,exports){
+},{}],35:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'stringView' ],
-  stringView: [ 'type', _dereq_(65) ]
+  stringView: [ 'type', _dereq_(33) ]
 };
 
-},{"65":65}],70:[function(_dereq_,module,exports){
+},{"33":33}],36:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(246);
+var domify = _dereq_(207);
 
-var inherits = _dereq_(114);
+var inherits = _dereq_(81);
 
-var BaseModule = _dereq_(313);
+var BaseModule = _dereq_(243);
 /**
  * Adds a header to the table containing the table name
  *
@@ -5809,23 +2755,23 @@ TableName.prototype.getId = function() {
   return this.semantic.id;
 };
 
-},{"114":114,"246":246,"313":313}],71:[function(_dereq_,module,exports){
+},{"207":207,"243":243,"81":81}],37:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'tableName' ],
   __depends__: [],
-  tableName: [ 'type', _dereq_(70) ]
+  tableName: [ 'type', _dereq_(36) ]
 };
 
-},{"70":70}],72:[function(_dereq_,module,exports){
+},{"36":36}],38:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(234);
+var assign = _dereq_(196);
 
-var domify = _dereq_(246),
-    domClasses = _dereq_(244),
-    ComboBox = _dereq_(280);
+var domify = _dereq_(207),
+    domClasses = _dereq_(205),
+    ComboBox = _dereq_(234);
 
-var typeTemplate = _dereq_(74);
+var typeTemplate = _dereq_(40);
 
 var OFFSET_X = -4,
     OFFSET_Y = -17;
@@ -5916,12 +2862,7 @@ function TypeRow(eventBus, sheet, elementRegistry, graphicsFactory, complexCell,
 
       template.querySelector('.allowed-values input').addEventListener('keydown', function(keyboardEvt) {
         if (keyboardEvt.keyCode === 13) {
-          var values = keyboardEvt.target.value.split(',');
-          values.forEach(function(value) {
-            self.addAllowedValue(evt.element, value.trim());
-          });
-          self.updateAllowedValues(template, evt.element);
-          keyboardEvt.target.value = '';
+          self.handleValuesFromInput(evt.element, template);
         }
       });
 
@@ -5941,6 +2882,22 @@ function TypeRow(eventBus, sheet, elementRegistry, graphicsFactory, complexCell,
       };
 
       graphicsFactory.update('cell', evt.element, elementRegistry.getGraphics(evt.element));
+    }
+  });
+
+  eventBus.on('complexCell.close', function(evt) {
+    var config = evt.config,
+        template;
+
+    // only if the closed complexCell is a type cell
+    if (config.type === 'type') {
+      template = config.template;
+
+      // only if it has string type and content in the input field
+      if (config.comboBox.getValue() === 'string' && template.querySelector('.allowed-values input').value.trim() !== '') {
+        self.handleValuesFromInput(config.element, template);
+      }
+
     }
   });
 
@@ -5979,6 +2936,18 @@ function TypeRow(eventBus, sheet, elementRegistry, graphicsFactory, complexCell,
   });
 
 }
+
+TypeRow.prototype.handleValuesFromInput = function(element, template) {
+  var inputNode = template.querySelector('.allowed-values input');
+
+  var values = inputNode.value.split(',');
+  var self = this;
+  values.forEach(function(value) {
+    self.addAllowedValue(element, value.trim());
+  });
+  this.updateAllowedValues(template, element);
+  inputNode.value = '';
+};
 
 TypeRow.prototype.addAllowedValue = function(businessObject, newValue) {
   this._eventBus.fire('typeRow.addAllowedValue', {
@@ -6047,10 +3016,10 @@ TypeRow.prototype.getRow = function() {
   return this.row;
 };
 
-},{"234":234,"244":244,"246":246,"280":280,"74":74}],73:[function(_dereq_,module,exports){
+},{"196":196,"205":205,"207":207,"234":234,"40":40}],39:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(244);
+var domClasses = _dereq_(205);
 
 function TypeRowRenderer(
     eventBus,
@@ -6084,25 +3053,101 @@ TypeRowRenderer.$inject = [
 
 module.exports = TypeRowRenderer;
 
-},{"244":244}],74:[function(_dereq_,module,exports){
+},{"205":205}],40:[function(_dereq_,module,exports){
 module.exports = "<div>\n  <div class=\"allowed-values\">\n    <label>Input Values:</label>\n    <ul></ul>\n    <input type=\"text\" placeholder=\"value1, value2, otherValue\">\n  </div>\n</div>\n";
 
-},{}],75:[function(_dereq_,module,exports){
+},{}],41:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'typeRow', 'typeRowRenderer' ],
-  __depends__: [ _dereq_(282) ],
-  typeRow: [ 'type', _dereq_(72) ],
-  typeRowRenderer: [ 'type', _dereq_(73) ]
+  __depends__: [ _dereq_(236) ],
+  typeRow: [ 'type', _dereq_(38) ],
+  typeRowRenderer: [ 'type', _dereq_(39) ]
 };
 
-},{"282":282,"72":72,"73":73}],76:[function(_dereq_,module,exports){
+},{"236":236,"38":38,"39":39}],42:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(234),
-    filter = _dereq_(121),
-    union  = _dereq_(116);
+var TableTreeWalker = _dereq_(44);
 
-var elementToString = _dereq_(79).elementToString;
+
+/**
+ * Import the definitions into a table.
+ *
+ * Errors and warnings are reported through the specified callback.
+ *
+ * @param  {Sheet} sheet
+ * @param  {ModdleElement} definitions
+ * @param  {Function} done the callback, invoked with (err, [ warning ]) once the import is done
+ */
+function importDmnTable(sheet, definitions, decision, done) {
+
+  var importer = sheet.get('tableImporter'),
+      eventBus = sheet.get('eventBus');
+
+  var hasModeling;
+
+  try {
+    hasModeling = sheet.get('modeling');
+  } catch (e) {
+    hasModeling = false;
+  }
+
+  var error,
+      warnings = [];
+
+  function render(definitions) {
+
+    var visitor = {
+      create: function(type, parent, clause, rule) {
+        return importer.create(type, parent, clause, rule);
+      },
+
+      table: function(element) {
+        return importer.add(element);
+      },
+
+      element: function(element, parentShape, definitions) {
+        return importer.add(element, parentShape, definitions);
+      },
+
+      error: function(message, context) {
+        warnings.push({ message: message, context: context });
+      }
+    };
+
+    var walker = new TableTreeWalker(visitor, { canAddMissingEntries: hasModeling });
+
+    // import
+    walker.handleDefinitions(definitions, decision);
+  }
+
+  eventBus.fire('import.render.start', { definitions: definitions });
+
+  try {
+    render(definitions);
+  } catch (e) {
+    error = e;
+  }
+
+  eventBus.fire('import.render.complete', {
+    error: error,
+    warnings: warnings
+  });
+
+
+  done(error, warnings);
+}
+
+module.exports.importDmnTable = importDmnTable;
+
+},{"44":44}],43:[function(_dereq_,module,exports){
+'use strict';
+
+var assign = _dereq_(196),
+    filter = _dereq_(88),
+    union  = _dereq_(83);
+
+var elementToString = _dereq_(45).elementToString;
 
 
 function elementData(semantic, attrs) {
@@ -6129,30 +3174,33 @@ function equals(type, conditions) {
  * @param {ElementFactory} elementFactory
  * @param {ElementRegistry} elementRegistry
  */
-function DmnImporter(eventBus, sheet, elementRegistry, elementFactory, moddle, tableName, ioLabel, dmnFactory) {
+function TableImporter(eventBus, sheet, elementRegistry, elementFactory, moddle, tableName, ioLabel, tableFactory, literalExpressionEditor) {
   this._eventBus = eventBus;
   this._sheet = sheet;
 
   this._elementRegistry = elementRegistry;
   this._elementFactory = elementFactory;
   this._tableName = tableName;
-  this._dmnFactory = dmnFactory;
+  this._tableFactory = tableFactory;
+
+  this._literalExpressionEditor = literalExpressionEditor;
 
   this._ioLabel = ioLabel;
 
   this._moddle = moddle;
 }
 
-DmnImporter.$inject = [
+TableImporter.$inject = [
   'eventBus', 'sheet', 'elementRegistry',
   'elementFactory', 'moddle', 'tableName',
-  'ioLabel', 'dmnFactory'
+  'ioLabel', 'tableFactory',
+  'literalExpressionEditor'
 ];
 
-module.exports = DmnImporter;
+module.exports = TableImporter;
 
 
-DmnImporter.prototype._makeCopy = function(semantic) {
+TableImporter.prototype._makeCopy = function(semantic) {
   var newSemantic = this._moddle.create(semantic.$type);
 
   for (var prop in semantic) {
@@ -6165,15 +3213,15 @@ DmnImporter.prototype._makeCopy = function(semantic) {
   return newSemantic;
 };
 
-DmnImporter.prototype.create = function(type, parent, clause, rule) {
-  var dmnFactory = this._dmnFactory;
+TableImporter.prototype.create = function(type, parent, clause, rule) {
+  var tableFactory = this._tableFactory;
 
   var parentBO = parent.businessObject,
       isInput= equals(type, [ 'dmn:InputClause', 'dmn:UnaryTests' ]) ? 'Input' : 'Output',
       element;
 
   if (equals(type, [ 'dmn:InputClause', 'dmn:OutputClause' ])) {
-    element = dmnFactory['create' + isInput + 'Clause']('');
+    element = tableFactory['create' + isInput + 'Clause']('');
 
     element.$parent = parentBO;
 
@@ -6185,7 +3233,7 @@ DmnImporter.prototype.create = function(type, parent, clause, rule) {
     clause = parent;
     parent = undefined;
 
-    element = dmnFactory['create' + isInput + 'Entry']('', clause, rule);
+    element = tableFactory['create' + isInput + 'Entry']('', clause, rule);
   }
 
   return element;
@@ -6195,7 +3243,7 @@ DmnImporter.prototype.create = function(type, parent, clause, rule) {
  * Add dmn element (semantic) to the sheet onto the
  * parent element.
  */
-DmnImporter.prototype.add = function(semantic, parentElement, definitions) {
+TableImporter.prototype.add = function(semantic, parentElement, definitions) {
 
   var element;
 
@@ -6209,6 +3257,13 @@ DmnImporter.prototype.add = function(semantic, parentElement, definitions) {
     this._sheet.addRow(element, parentElement);
 
     this._tableName.setSemantic(semantic.$parent);
+  }
+
+  // LITERAL EXPRESSION
+  else if (semantic.$instanceOf('dmn:LiteralExpression') && parentElement.$instanceOf('dmn:Decision')) {
+    this._literalExpressionEditor.show(parentElement);
+
+    this._tableName.setSemantic(parentElement);
   }
 
   // INPUT CLAUSE
@@ -6279,14 +3334,14 @@ DmnImporter.prototype.add = function(semantic, parentElement, definitions) {
   return element;
 };
 
-},{"116":116,"121":121,"234":234,"79":79}],77:[function(_dereq_,module,exports){
+},{"196":196,"45":45,"83":83,"88":88}],44:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(123);
+var forEach = _dereq_(90);
 
-var elementToString = _dereq_(79).elementToString;
+var elementToString = _dereq_(45).elementToString;
 
-function DmnTreeWalker(handler, options) {
+function TableTreeWalker(handler, options) {
 
   var canAddMissingEntries = options && options.canAddMissingEntries;
 
@@ -6309,17 +3364,11 @@ function DmnTreeWalker(handler, options) {
 
   ////// Semantic handling //////////////////////
 
-  function handleDefinitions(definitions) {
+  function handleDefinitions(definitions, decision) {
     // make sure we walk the correct bpmnElement
 
-    var decisions = definitions.decision,
-        missingEntries = null,
-        missingClause,
-        decision;
-
-    if (decisions && decisions.length) {
-      decision = decisions[0];
-    }
+    var missingEntries = null,
+        missingClause;
 
     // no decision -> nothing to import
     if (!decision) {
@@ -6331,41 +3380,47 @@ function DmnTreeWalker(handler, options) {
     }
 
     var table = decision.decisionTable;
+    var literalExpression = decision.literalExpression;
 
 
     // no decision table -> nothing to import
-    if (!table) {
+    if (table) {
+      var ctx = visitTable(table);
+
+
+      if (canAddMissingEntries && !table.input) {
+        table.input = [];
+
+        missingEntries = 'input';
+
+        missingClause = handler.create('dmn:InputClause', ctx, definitions);
+
+      } else if (canAddMissingEntries && !table.output) {
+        table.output = [];
+
+        missingEntries = 'output';
+
+        missingClause = handler.create('dmn:OutputClause', ctx, definitions);
+      }
+
+      handleClauses(table.input, ctx, definitions);
+      handleClauses(table.output, ctx, definitions);
+
+      if (table.rule && missingEntries) {
+        handleMissingEntries(table.rule, missingEntries, missingClause);
+      }
+
+      // if any input or output clauses (columns) were added
+      // make sure that for each rule the according input/output entry is created
+      handleRules(table.rule, ctx, definitions);
+    } else if (literalExpression) {
+
+      visit(literalExpression, decision);
+
+    } else {
       throw new Error('no table for ' + elementToString(decision));
     }
 
-    var ctx = visitTable(table);
-
-
-    if (canAddMissingEntries && !table.input) {
-      table.input = [];
-
-      missingEntries = 'input';
-
-      missingClause = handler.create('dmn:InputClause', ctx, definitions);
-
-    } else if (canAddMissingEntries && !table.output) {
-      table.output = [];
-
-      missingEntries = 'output';
-
-      missingClause = handler.create('dmn:OutputClause', ctx, definitions);
-    }
-
-    handleClauses(table.input, ctx, definitions);
-    handleClauses(table.output, ctx, definitions);
-
-    if (table.rule && missingEntries) {
-      handleMissingEntries(table.rule, missingEntries, missingClause);
-    }
-
-    // if any input or output clauses (columns) were added
-    // make sure that for each rule the according input/output entry is created
-    handleRules(table.rule, ctx, definitions);
   }
 
   function handleMissingEntries(rules, missingEntries, missingClause) {
@@ -6412,85 +3467,9 @@ function DmnTreeWalker(handler, options) {
   };
 }
 
-module.exports = DmnTreeWalker;
+module.exports = TableTreeWalker;
 
-},{"123":123,"79":79}],78:[function(_dereq_,module,exports){
-'use strict';
-
-var DmnTreeWalker = _dereq_(77);
-
-
-/**
- * Import the definitions into a table.
- *
- * Errors and warnings are reported through the specified callback.
- *
- * @param  {Sheet} sheet
- * @param  {ModdleElement} definitions
- * @param  {Function} done the callback, invoked with (err, [ warning ]) once the import is done
- */
-function importDmnTable(sheet, definitions, done) {
-
-  var importer = sheet.get('dmnImporter'),
-      eventBus = sheet.get('eventBus');
-
-  var hasModeling;
-
-  try {
-    hasModeling = sheet.get('modeling');
-  } catch (e) {
-    hasModeling = false;
-  }
-
-  var error,
-      warnings = [];
-
-  function render(definitions) {
-
-    var visitor = {
-      create: function(type, parent, clause, rule) {
-        return importer.create(type, parent, clause, rule);
-      },
-
-      table: function(element) {
-        return importer.add(element);
-      },
-
-      element: function(element, parentShape, definitions) {
-        return importer.add(element, parentShape, definitions);
-      },
-
-      error: function(message, context) {
-        warnings.push({ message: message, context: context });
-      }
-    };
-
-    var walker = new DmnTreeWalker(visitor, { canAddMissingEntries: hasModeling });
-
-    // import
-    walker.handleDefinitions(definitions);
-  }
-
-  eventBus.fire('import.render.start', { definitions: definitions });
-
-  try {
-    render(definitions);
-  } catch (e) {
-    error = e;
-  }
-
-  eventBus.fire('import.render.complete', {
-    error: error,
-    warnings: warnings
-  });
-
-
-  done(error, warnings);
-}
-
-module.exports.importDmnTable = importDmnTable;
-
-},{"77":77}],79:[function(_dereq_,module,exports){
+},{"45":45,"90":90}],45:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports.elementToString = function(e) {
@@ -6500,15 +3479,15 @@ module.exports.elementToString = function(e) {
 
   return '<' + e.$type + (e.id ? ' id="' + e.id : '') + '" />';
 };
-},{}],80:[function(_dereq_,module,exports){
+},{}],46:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(30)
+    _dereq_(16)
   ],
-  dmnImporter: [ 'type', _dereq_(76) ]
+  tableImporter: [ 'type', _dereq_(43) ]
 };
 
-},{"30":30,"76":76}],81:[function(_dereq_,module,exports){
+},{"16":16,"43":43}],47:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -6541,7 +3520,18 @@ function getBusinessObject(element) {
 
 module.exports.getBusinessObject = getBusinessObject;
 
-},{}],82:[function(_dereq_,module,exports){
+
+function getName(element) {
+  element = getBusinessObject(element);
+
+  var name = element.name;
+
+  return name;
+}
+
+module.exports.getName = getName;
+
+},{}],48:[function(_dereq_,module,exports){
 /**
  * This file must not be changed or exchanged.
  *
@@ -6550,9 +3540,9 @@ module.exports.getBusinessObject = getBusinessObject;
 
 'use strict';
 
-var domify = _dereq_(246);
+var domify = _dereq_(207);
 
-var domDelegate = _dereq_(245);
+var domDelegate = _dereq_(206);
 
 /* jshint -W101 */
 
@@ -6626,58 +3616,15 @@ function open() {
 
 module.exports.open = open;
 
-},{"245":245,"246":246}],83:[function(_dereq_,module,exports){
-'use strict';
-
-
-/**
- * Get the correct active entries for the Context Menu
- *
- * @param  {Object} Context - Selected cell
- * @return {Object} {rule, input, output} = Boolean
- */
-function getEntriesType(context) {
-  var entriesType = {
-    rule: false,
-    input: false,
-    output: false
-  };
-
-  if (!context) {
-    return entriesType;
-  }
-
-  entriesType.rule = !!(context.row && context.row.businessObject &&
-         !context.row.businessObject.$instanceOf('dmn:DecisionTable') &&
-          context.column.id !== 'utilityColumn');
-
-  if (context.column &&
-      context.column.id !== 'utilityColumn' &&
-      context.column.id !== 'annotations' &&
-      context.row.id !== 'mappingsRow' &&
-      context.row.id !== 'typeRow' &&
-     !context.row.isLabelRow) {
-    if (context.column.businessObject.inputExpression) {
-      entriesType.input = true;
-    } else {
-      entriesType.output = true;
-    }
-  }
-
-  return entriesType;
-}
-
-module.exports.getEntriesType = getEntriesType;
-
-},{}],84:[function(_dereq_,module,exports){
+},{"206":206,"207":207}],49:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
 try {
-  var index = _dereq_(88);
+  var index = _dereq_(53);
 } catch (err) {
-  var index = _dereq_(88);
+  var index = _dereq_(53);
 }
 
 /**
@@ -6862,8 +3809,8 @@ ClassList.prototype.contains = function(name){
     : !! ~index(this.array(), name);
 };
 
-},{"88":88}],85:[function(_dereq_,module,exports){
-var matches = _dereq_(89)
+},{"53":53}],50:[function(_dereq_,module,exports){
+var matches = _dereq_(54)
 
 module.exports = function (element, selector, checkYoSelf, root) {
   element = checkYoSelf ? {parentNode: element} : element
@@ -6883,21 +3830,21 @@ module.exports = function (element, selector, checkYoSelf, root) {
   }
 }
 
-},{"89":89}],86:[function(_dereq_,module,exports){
+},{"54":54}],51:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
 try {
-  var closest = _dereq_(85);
+  var closest = _dereq_(50);
 } catch(err) {
-  var closest = _dereq_(85);
+  var closest = _dereq_(50);
 }
 
 try {
-  var event = _dereq_(87);
+  var event = _dereq_(52);
 } catch(err) {
-  var event = _dereq_(87);
+  var event = _dereq_(52);
 }
 
 /**
@@ -6936,7 +3883,7 @@ exports.unbind = function(el, type, fn, capture){
   event.unbind(el, type, fn, capture);
 };
 
-},{"85":85,"87":87}],87:[function(_dereq_,module,exports){
+},{"50":50,"52":52}],52:[function(_dereq_,module,exports){
 var bind = window.addEventListener ? 'addEventListener' : 'attachEvent',
     unbind = window.removeEventListener ? 'removeEventListener' : 'detachEvent',
     prefix = bind !== 'addEventListener' ? 'on' : '';
@@ -6972,7 +3919,7 @@ exports.unbind = function(el, type, fn, capture){
   el[unbind](prefix + type, fn, capture || false);
   return fn;
 };
-},{}],88:[function(_dereq_,module,exports){
+},{}],53:[function(_dereq_,module,exports){
 module.exports = function(arr, obj){
   if (arr.indexOf) return arr.indexOf(obj);
   for (var i = 0; i < arr.length; ++i) {
@@ -6980,15 +3927,15 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],89:[function(_dereq_,module,exports){
+},{}],54:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
 try {
-  var query = _dereq_(90);
+  var query = _dereq_(55);
 } catch (err) {
-  var query = _dereq_(90);
+  var query = _dereq_(55);
 }
 
 /**
@@ -7032,7 +3979,7 @@ function match(el, selector) {
   return false;
 }
 
-},{"90":90}],90:[function(_dereq_,module,exports){
+},{"55":55}],55:[function(_dereq_,module,exports){
 function one(selector, el) {
   return el.querySelector(selector);
 }
@@ -7055,13 +4002,13 @@ exports.engine = function(obj){
   return exports;
 };
 
-},{}],91:[function(_dereq_,module,exports){
+},{}],56:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(123),
-    isFunction = _dereq_(228),
-    isArray = _dereq_(227),
-    isNumber = _dereq_(230);
+var forEach = _dereq_(90),
+    isFunction = _dereq_(190),
+    isArray = _dereq_(189),
+    isNumber = _dereq_(192);
 
 
 var DEFAULT_PRIORITY = 1000;
@@ -7206,14 +4153,14 @@ forEach(hooks, function(hook) {
   };
 });
 
-},{"123":123,"227":227,"228":228,"230":230}],92:[function(_dereq_,module,exports){
+},{"189":189,"190":190,"192":192,"90":90}],57:[function(_dereq_,module,exports){
 'use strict';
 
-var unique = _dereq_(118),
-    isArray = _dereq_(227),
-    assign = _dereq_(234);
+var unique = _dereq_(85),
+    isArray = _dereq_(189),
+    assign = _dereq_(196);
 
-var InternalEvent = _dereq_(94).Event;
+var InternalEvent = _dereq_(59).Event;
 
 
 /**
@@ -7706,19 +4653,19 @@ CommandStack.prototype._setHandler = function(command, handler) {
   this._handlerMap[command] = handler;
 };
 
-},{"118":118,"227":227,"234":234,"94":94}],93:[function(_dereq_,module,exports){
+},{"189":189,"196":196,"59":59,"85":85}],58:[function(_dereq_,module,exports){
 module.exports = {
-  commandStack: [ 'type', _dereq_(92) ]
+  commandStack: [ 'type', _dereq_(57) ]
 };
 
-},{"92":92}],94:[function(_dereq_,module,exports){
+},{"57":57}],59:[function(_dereq_,module,exports){
 'use strict';
 
-var isFunction = _dereq_(228),
-    isArray = _dereq_(227),
-    isNumber = _dereq_(230),
-    bind = _dereq_(128),
-    assign = _dereq_(234);
+var isFunction = _dereq_(190),
+    isArray = _dereq_(189),
+    isNumber = _dereq_(192),
+    bind = _dereq_(94),
+    assign = _dereq_(196);
 
 var FN_REF = '__fn';
 
@@ -8169,13 +5116,13 @@ function invokeFunction(fn, args) {
   return fn.apply(null, args);
 }
 
-},{"128":128,"227":227,"228":228,"230":230,"234":234}],95:[function(_dereq_,module,exports){
+},{"189":189,"190":190,"192":192,"196":196,"94":94}],60:[function(_dereq_,module,exports){
 
 'use strict';
 
-var inherits = _dereq_(114);
+var inherits = _dereq_(81);
 
-var CommandInterceptor = _dereq_(91);
+var CommandInterceptor = _dereq_(56);
 
 /**
  * A basic provider that may be extended to implement modeling rules.
@@ -8262,7 +5209,7 @@ RuleProvider.prototype.addRule = function(actions, priority, fn) {
  * Implement this method to add new rules during provider initialization.
  */
 RuleProvider.prototype.init = function() {};
-},{"114":114,"91":91}],96:[function(_dereq_,module,exports){
+},{"56":56,"81":81}],61:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -8313,13 +5260,13 @@ Rules.prototype.allowed = function(action, context) {
   // map undefined to true, i.e. no rules
   return allowed === undefined ? true : allowed;
 };
-},{}],97:[function(_dereq_,module,exports){
+},{}],62:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'rules' ],
-  rules: [ 'type', _dereq_(96) ]
+  rules: [ 'type', _dereq_(61) ]
 };
 
-},{"96":96}],98:[function(_dereq_,module,exports){
+},{"61":61}],63:[function(_dereq_,module,exports){
 'use strict';
 
 function __preventDefault(event) {
@@ -8390,7 +5337,7 @@ function toPoint(event) {
 
 module.exports.toPoint = toPoint;
 
-},{}],99:[function(_dereq_,module,exports){
+},{}],64:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -8423,12 +5370,12 @@ IdGenerator.prototype.next = function() {
   return this._prefix + (++this._counter);
 };
 
-},{}],100:[function(_dereq_,module,exports){
+},{}],65:[function(_dereq_,module,exports){
 'use strict';
 
-var getOriginalEvent = _dereq_(98).getOriginal;
+var getOriginalEvent = _dereq_(63).getOriginal;
 
-var isMac = _dereq_(101).isMac;
+var isMac = _dereq_(66).isMac;
 
 
 function isPrimaryButton(event) {
@@ -8462,13 +5409,13 @@ module.exports.hasSecondaryModifier = function(event) {
   return isPrimaryButton(event) && originalEvent.shiftKey;
 };
 
-},{"101":101,"98":98}],101:[function(_dereq_,module,exports){
+},{"63":63,"66":66}],66:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports.isMac = function isMac() {
   return (/mac/i).test(navigator.platform);
 };
-},{}],102:[function(_dereq_,module,exports){
+},{}],67:[function(_dereq_,module,exports){
 
 var isArray = function(obj) {
   return Object.prototype.toString.call(obj) === '[object Array]';
@@ -8518,18 +5465,18 @@ exports.annotate = annotate;
 exports.parse = parse;
 exports.isArray = isArray;
 
-},{}],103:[function(_dereq_,module,exports){
+},{}],68:[function(_dereq_,module,exports){
 module.exports = {
-  annotate: _dereq_(102).annotate,
-  Module: _dereq_(105),
-  Injector: _dereq_(104)
+  annotate: _dereq_(67).annotate,
+  Module: _dereq_(70),
+  Injector: _dereq_(69)
 };
 
-},{"102":102,"104":104,"105":105}],104:[function(_dereq_,module,exports){
-var Module = _dereq_(105);
-var autoAnnotate = _dereq_(102).parse;
-var annotate = _dereq_(102).annotate;
-var isArray = _dereq_(102).isArray;
+},{"67":67,"69":69,"70":70}],69:[function(_dereq_,module,exports){
+var Module = _dereq_(70);
+var autoAnnotate = _dereq_(67).parse;
+var annotate = _dereq_(67).annotate;
+var isArray = _dereq_(67).isArray;
 
 
 var Injector = function(modules, parent) {
@@ -8755,7 +5702,7 @@ var Injector = function(modules, parent) {
 
 module.exports = Injector;
 
-},{"102":102,"105":105}],105:[function(_dereq_,module,exports){
+},{"67":67,"70":70}],70:[function(_dereq_,module,exports){
 var Module = function() {
   var providers = [];
 
@@ -8781,18 +5728,18 @@ var Module = function() {
 
 module.exports = Module;
 
-},{}],106:[function(_dereq_,module,exports){
-module.exports = _dereq_(108);
-},{"108":108}],107:[function(_dereq_,module,exports){
+},{}],71:[function(_dereq_,module,exports){
+module.exports = _dereq_(73);
+},{"73":73}],72:[function(_dereq_,module,exports){
 'use strict';
 
-var isString = _dereq_(232),
-    isFunction = _dereq_(228),
-    assign = _dereq_(234);
+var isString = _dereq_(194),
+    isFunction = _dereq_(190),
+    assign = _dereq_(196);
 
-var Moddle = _dereq_(254),
-    XmlReader = _dereq_(252),
-    XmlWriter = _dereq_(253);
+var Moddle = _dereq_(214),
+    XmlReader = _dereq_(212),
+    XmlWriter = _dereq_(213);
 
 /**
  * A sub class of {@link Moddle} with support for import and export of DMN xml files.
@@ -8864,23 +5811,168 @@ DmnModdle.prototype.toXML = function(element, options, done) {
   }
 };
 
-},{"228":228,"232":232,"234":234,"252":252,"253":253,"254":254}],108:[function(_dereq_,module,exports){
+},{"190":190,"194":194,"196":196,"212":212,"213":213,"214":214}],73:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(234);
+var assign = _dereq_(196);
 
-var DmnModdle = _dereq_(107);
+var DmnModdle = _dereq_(72);
 
 var packages = {
-  dmn: _dereq_(110),
-  camunda: _dereq_(109)
+  dmn: _dereq_(77),
+  camunda: _dereq_(76),
+  dc: _dereq_(75),
+  biodi: _dereq_(74)
 };
 
 module.exports = function(additionalPackages, options) {
   return new DmnModdle(assign({}, packages, additionalPackages), options);
 };
 
-},{"107":107,"109":109,"110":110,"234":234}],109:[function(_dereq_,module,exports){
+},{"196":196,"72":72,"74":74,"75":75,"76":76,"77":77}],74:[function(_dereq_,module,exports){
+module.exports={
+  "name": "bpmn.io DI for DMN",
+  "uri": "http://bpmn.io/schema/dmn/biodi/1.0",
+  "prefix": "biodi",
+  "xml": {
+    "tagAlias": "lowerCase"
+  },
+  "types": [
+    {
+      "name": "Edge",
+      "superClass": [
+        "Element"
+      ],
+      "properties": [
+        { "name": "source",
+          "type": "String",
+          "isAttr": true
+        },
+        { "name": "waypoints",
+          "type": "Waypoint",
+          "isMany": true,
+          "xml": { "serialize": "property" }
+        }
+      ]
+    },
+    {
+      "name": "Bounds",
+      "superClass": [
+        "dc:Bounds",
+        "Element"
+      ]
+    },
+    {
+      "name": "Waypoint",
+      "superClass": [
+        "dc:Point"
+      ]
+    }
+  ]
+}
+
+},{}],75:[function(_dereq_,module,exports){
+module.exports={
+  "name": "DC",
+  "uri": "http://www.omg.org/spec/DD/20100524/DC",
+  "types": [
+    {
+      "name": "Boolean"
+    },
+    {
+      "name": "Integer"
+    },
+    {
+      "name": "Real"
+    },
+    {
+      "name": "String"
+    },
+    {
+      "name": "Font",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "isAttr": true
+        },
+        {
+          "name": "size",
+          "type": "Real",
+          "isAttr": true
+        },
+        {
+          "name": "isBold",
+          "type": "Boolean",
+          "isAttr": true
+        },
+        {
+          "name": "isItalic",
+          "type": "Boolean",
+          "isAttr": true
+        },
+        {
+          "name": "isUnderline",
+          "type": "Boolean",
+          "isAttr": true
+        },
+        {
+          "name": "isStrikeThrough",
+          "type": "Boolean",
+          "isAttr": true
+        }
+      ]
+    },
+    {
+      "name": "Point",
+      "properties": [
+        {
+          "name": "x",
+          "type": "Real",
+          "default": "0",
+          "isAttr": true
+        },
+        {
+          "name": "y",
+          "type": "Real",
+          "default": "0",
+          "isAttr": true
+        }
+      ]
+    },
+    {
+      "name": "Bounds",
+      "properties": [
+        {
+          "name": "x",
+          "type": "Real",
+          "default": "0",
+          "isAttr": true
+        },
+        {
+          "name": "y",
+          "type": "Real",
+          "default": "0",
+          "isAttr": true
+        },
+        {
+          "name": "width",
+          "type": "Real",
+          "isAttr": true
+        },
+        {
+          "name": "height",
+          "type": "Real",
+          "isAttr": true
+        }
+      ]
+    }
+  ],
+  "prefix": "dc",
+  "associations": []
+}
+
+},{}],76:[function(_dereq_,module,exports){
 module.exports={
   "name": "Camunda",
   "uri": "http://camunda.org/schema/1.0/dmn",
@@ -8905,7 +5997,7 @@ module.exports={
   ]
 }
 
-},{}],110:[function(_dereq_,module,exports){
+},{}],77:[function(_dereq_,module,exports){
 module.exports={
   "name": "DMN",
   "uri": "http://www.omg.org/spec/DMN/20151101/dmn.xsd",
@@ -8916,17 +6008,20 @@ module.exports={
   "types": [
     {
       "name": "DMNElement",
+      "isAbstract": true,
       "properties": [
         { "name": "description", "type": "String" },
         { "name": "id", "type": "String", "isAttr": true, "isId": true },
-        { "name": "label", "type": "String", "isAttr": true }
+        { "name": "label", "type": "String", "isAttr": true },
+        { "name": "extensionElements", "type": "ExtensionElements" }
       ]
     },
     {
       "name": "NamedElement",
+      "isAbstract": true,
       "superClass": [ "DMNElement" ],
       "properties": [
-        { "name": "name", "type": "String", "isAttr": true}
+        { "name": "name", "type": "String", "isAttr": true }
       ]
     },
     {
@@ -8936,14 +6031,110 @@ module.exports={
       ]
     },
     {
+      "name": "ExtensionElements",
+      "properties": [
+        {
+          "name": "values",
+          "type": "Element",
+          "isMany": true
+        }
+      ]
+    },
+    {
       "name": "Definitions",
       "superClass": [ "NamedElement" ],
       "properties": [
         { "name": "namespace", "type": "String", "isAttr": true },
         { "name": "typeLanguage", "type": "String", "isAttr": true, "default": "http://www.omg.org/spec/FEEL/20140401" },
         { "name": "expressionLanguage", "type": "String", "isAttr": true, "default": "http://www.omg.org/spec/FEEL/20140401" },
+        { "name": "exporter", "type": "String", "isAttr": true },
+        { "name": "exporterVersion", "type": "String", "isAttr": true },
         { "name": "itemDefinition", "type": "ItemDefinition", "isMany": true, "xml": { "serialize": "property" } },
-        { "name": "decision", "type": "Decision", "isMany": true, "xml": { "serialize": "property" } }
+        { "name": "drgElements", "type": "DRGElement", "isMany": true },
+        { "name": "artifacts", "type": "Artifact", "isMany": true }
+      ]
+    },
+    {
+      "name": "Import",
+      "properties": [
+        { "name": "namespace", "type": "String", "isAttr": true },
+        { "name": "locationURI", "type": "String", "isAttr": true },
+        { "name": "importType", "type": "String", "isAttr": true }
+      ]
+    },
+    {
+      "name": "DRGElement",
+      "isAbstract": true,
+      "superClass": [ "NamedElement" ]
+    },
+    {
+      "name": "Decision",
+      "superClass": [ "DRGElement" ],
+      "properties": [
+        { "name": "question", "type": "String" },
+        { "name": "allowedAnswers", "type": "String" },
+        { "name": "variable", "type": "InformationItem" },
+        { "name": "informationRequirement", "type": "InformationRequirement", "isMany": true, "xml": { "serialize": "property" } },
+        { "name": "knowledgeRequirement", "type": "KnowledgeRequirement", "isMany": true, "xml": { "serialize": "property" } },
+        { "name": "authorityRequirement", "type": "AuthorityRequirement", "isMany": true, "xml": { "serialize": "property" } },
+        { "name": "decisionTable", "type": "DecisionTable", "xml": { "serialize": "property" } },
+        { "name": "literalExpression", "type": "LiteralExpression", "xml": { "serialize": "property" } }
+      ]
+    },
+    {
+      "name": "BusinessKnowledgeModel",
+      "superClass": [ "DRGElement" ],
+      "properties": [
+        { "name": "encapsulatedLogic", "type": "FunctionDefinition" },
+        { "name": "variable", "type": "InformationItem", "xml": { "serialize": "property" } },
+        { "name": "knowledgeRequirement", "type": "KnowledgeRequirement", "isMany": true, "xml": { "serialize": "property" } },
+        { "name": "authorityRequirement", "type": "AuthorityRequirement", "isMany": true, "xml": { "serialize": "property" } }
+      ]
+    },
+    {
+      "name": "InputData",
+      "superClass": [ "DRGElement" ],
+      "properties": [
+        { "name": "variable", "type": "InformationItem", "xml": { "serialize": "property" } }
+      ]
+    },
+    {
+      "name": "KnowledgeSource",
+      "superClass": [ "DRGElement" ],
+      "properties": [
+        { "name": "authorityRequirement", "type": "AuthorityRequirement", "isMany": true, "xml": { "serialize": "property" } },
+        { "name": "type", "type": "String", "isAttr": true },
+        { "name": "owner", "type": "DMNElementReference", "isAttr": true },
+        { "name": "locationURI", "type": "String", "isAttr": true }
+      ]
+    },
+    {
+      "name": "InformationRequirement",
+      "properties": [
+        { "name": "requiredDecision", "type": "DMNElementReference", "xml": { "serialize": "property" } },
+        { "name": "requiredInput", "type": "DMNElementReference", "xml": { "serialize": "property" } }
+      ]
+    },
+    {
+      "name": "KnowledgeRequirement",
+      "properties": [
+        { "name": "requiredKnowledge", "type": "DMNElementReference", "isUnique": true, "xml": { "serialize": "property" } }
+      ]
+    },
+    {
+      "name": "AuthorityRequirement",
+      "properties": [
+        { "name": "requiredDecision", "type": "DMNElementReference", "xml": { "serialize": "property" } },
+        { "name": "requiredInput", "type": "DMNElementReference", "xml": { "serialize": "property" } },
+        { "name": "requiredAuthority", "type": "DMNElementReference", "xml": { "serialize": "property" } }
+      ]
+    },
+    {
+      "name": "Expression",
+      "isAbstract": true,
+      "superClass": [ "DMNElement" ],
+      "properties": [
+        { "name": "typeRef", "type": "String", "isAttr": true }
       ]
     },
     {
@@ -8957,32 +6148,19 @@ module.exports={
       ]
     },
     {
-      "name": "Expression",
-      "superClass": [ "DMNElement" ],
-      "properties": [
-        { "name": "typeRef", "type": "String", "isAttr": true }
-      ]
-    },
-    {
       "name": "LiteralExpression",
       "superClass": [ "Expression" ],
       "properties": [
         { "name": "expressionLanguage", "type": "String", "isAttr": true },
+        { "name": "importedValues", "type": "ImportedValues" },
         { "name": "text", "type": "String" }
       ]
     },
     {
-      "name": "DRGElement",
+      "name": "InformationItem",
       "superClass": [ "NamedElement" ],
-      "properties": []
-    },
-    {
-      "name": "Decision",
-      "superClass": [ "DRGElement" ],
       "properties": [
-        { "name": "question", "type": "String" },
-        { "name": "allowedAnswers", "type": "String" },
-        { "name": "decisionTable", "type": "DecisionTable", "xml": { "serialize": "property" } }
+        { "name": "typeRef", "type": "String", "isAttr": true }
       ]
     },
     {
@@ -8996,6 +6174,44 @@ module.exports={
         { "name": "aggregation", "type": "BuiltinAggregator", "isAttr": true },
         { "name": "preferredOrientation", "type": "DecisionTableOrientation", "isAttr": true, "default": "Rule-as-Row" },
         { "name": "outputLabel", "type": "String", "isAttr": true }
+      ]
+    },
+    {
+      "name": "DecisionRule",
+      "superClass": [ "DMNElement" ],
+      "properties": [
+        { "name": "inputEntry", "type": "UnaryTests", "isMany": true, "xml": { "serialize": "property" } },
+        { "name": "outputEntry", "type": "LiteralExpression", "isMany": true, "xml": { "serialize": "property" } }
+      ]
+    },
+    {
+      "name": "ImportedValues",
+      "superClass": [ "Import" ],
+      "properties": [
+        { "name": "importedElement", "type": "String", "isMany": true, "xml": { "serialize": "property" } },
+        { "name": "expressionLanguage", "type": "String", "isAttr": true }
+      ]
+    },
+    {
+      "name": "Artifact",
+      "isAbstract": true,
+      "superClass": [ "DMNElement" ]
+    },
+    {
+      "name": "TextAnnotation",
+      "superClass": [ "Artifact" ],
+      "properties": [
+        { "name": "text", "type": "String", "xml": { "serialize": "property" } },
+        { "name": "textFormat", "type": "String", "isAttr": true }
+      ]
+    },
+    {
+      "name": "Association",
+      "superClass": [ "Artifact" ],
+      "properties": [
+        { "name": "sourceRef", "type": "DMNElementReference", "xml": { "serialize": "property" } },
+        { "name": "targetRef", "type": "DMNElementReference" , "xml": { "serialize": "property" } },
+        { "name": "associationDirection", "type": "AssociationDirection", "isAttr": true, "default": "None" }
       ]
     },
     {
@@ -9025,15 +6241,29 @@ module.exports={
       ]
     },
     {
-      "name": "DecisionRule",
-      "superClass": [ "DMNElement" ],
+      "name": "FunctionDefinition",
+      "superClass": [ "Expression" ],
       "properties": [
-        { "name": "inputEntry", "type": "UnaryTests", "isMany": true, "xml": { "serialize": "property" } },
-        { "name": "outputEntry", "type": "LiteralExpression", "isMany": true, "xml": { "serialize": "property" } }
+        { "name": "formalParameter", "type": "InformationItem", "isMany": true, "xml": { "serialize": "property" } },
+        { "name": "expression", "type": "String", "isReference": true, "xml": { "serialize": "property" } }
       ]
     }
   ],
   "emumerations": [
+    {
+      "name": "AssociationDirection",
+      "literalValues": [
+        {
+          "name": "None"
+        },
+        {
+          "name": "One"
+        },
+        {
+          "name": "Both"
+        }
+      ]
+    },
     {
       "name": "HitPolicy",
       "literalValues": [
@@ -9094,7 +6324,7 @@ module.exports={
   ]
 }
 
-},{}],111:[function(_dereq_,module,exports){
+},{}],78:[function(_dereq_,module,exports){
 
 /**
  * Expose `parse`.
@@ -9208,7 +6438,7 @@ function parse(html, doc) {
   return fragment;
 }
 
-},{}],112:[function(_dereq_,module,exports){
+},{}],79:[function(_dereq_,module,exports){
 var hat = module.exports = function (bits, base) {
     if (!base) base = 16;
     if (bits === undefined) bits = 128;
@@ -9272,10 +6502,10 @@ hat.rack = function (bits, base, expandBy) {
     return fn;
 };
 
-},{}],113:[function(_dereq_,module,exports){
+},{}],80:[function(_dereq_,module,exports){
 'use strict';
 
-var hat = _dereq_(112);
+var hat = _dereq_(79);
 
 
 /**
@@ -9371,7 +6601,7 @@ Ids.prototype.clear = function() {
     this.unclaim(id);
   }
 };
-},{"112":112}],114:[function(_dereq_,module,exports){
+},{"79":79}],81:[function(_dereq_,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -9396,7 +6626,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],115:[function(_dereq_,module,exports){
+},{}],82:[function(_dereq_,module,exports){
 /**
  * Gets the last element of `array`.
  *
@@ -9417,10 +6647,10 @@ function last(array) {
 
 module.exports = last;
 
-},{}],116:[function(_dereq_,module,exports){
-var baseFlatten = _dereq_(157),
-    baseUniq = _dereq_(178),
-    restParam = _dereq_(131);
+},{}],83:[function(_dereq_,module,exports){
+var baseFlatten = _dereq_(121),
+    baseUniq = _dereq_(140),
+    restParam = _dereq_(97);
 
 /**
  * Creates an array of unique values, in order, from all of the provided arrays
@@ -9443,11 +6673,11 @@ var union = restParam(function(arrays) {
 
 module.exports = union;
 
-},{"131":131,"157":157,"178":178}],117:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(146),
-    baseUniq = _dereq_(178),
-    isIterateeCall = _dereq_(207),
-    sortedUniq = _dereq_(222);
+},{"121":121,"140":140,"97":97}],84:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(111),
+    baseUniq = _dereq_(140),
+    isIterateeCall = _dereq_(169),
+    sortedUniq = _dereq_(184);
 
 /**
  * Creates a duplicate-free version of an array, using
@@ -9516,16 +6746,16 @@ function uniq(array, isSorted, iteratee, thisArg) {
 
 module.exports = uniq;
 
-},{"146":146,"178":178,"207":207,"222":222}],118:[function(_dereq_,module,exports){
-module.exports = _dereq_(117);
+},{"111":111,"140":140,"169":169,"184":184}],85:[function(_dereq_,module,exports){
+module.exports = _dereq_(84);
 
-},{"117":117}],119:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(132),
-    LodashWrapper = _dereq_(133),
-    baseLodash = _dereq_(168),
-    isArray = _dereq_(227),
-    isObjectLike = _dereq_(211),
-    wrapperClone = _dereq_(225);
+},{"84":84}],86:[function(_dereq_,module,exports){
+var LazyWrapper = _dereq_(98),
+    LodashWrapper = _dereq_(99),
+    baseLodash = _dereq_(130),
+    isArray = _dereq_(189),
+    isObjectLike = _dereq_(173),
+    wrapperClone = _dereq_(187);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -9646,12 +6876,12 @@ lodash.prototype = baseLodash.prototype;
 
 module.exports = lodash;
 
-},{"132":132,"133":133,"168":168,"211":211,"225":225,"227":227}],120:[function(_dereq_,module,exports){
-var arrayEvery = _dereq_(138),
-    baseCallback = _dereq_(146),
-    baseEvery = _dereq_(153),
-    isArray = _dereq_(227),
-    isIterateeCall = _dereq_(207);
+},{"130":130,"173":173,"187":187,"189":189,"98":98,"99":99}],87:[function(_dereq_,module,exports){
+var arrayEvery = _dereq_(103),
+    baseCallback = _dereq_(111),
+    baseEvery = _dereq_(117),
+    isArray = _dereq_(189),
+    isIterateeCall = _dereq_(169);
 
 /**
  * Checks if `predicate` returns truthy for **all** elements of `collection`.
@@ -9714,11 +6944,11 @@ function every(collection, predicate, thisArg) {
 
 module.exports = every;
 
-},{"138":138,"146":146,"153":153,"207":207,"227":227}],121:[function(_dereq_,module,exports){
-var arrayFilter = _dereq_(139),
-    baseCallback = _dereq_(146),
-    baseFilter = _dereq_(154),
-    isArray = _dereq_(227);
+},{"103":103,"111":111,"117":117,"169":169,"189":189}],88:[function(_dereq_,module,exports){
+var arrayFilter = _dereq_(104),
+    baseCallback = _dereq_(111),
+    baseFilter = _dereq_(118),
+    isArray = _dereq_(189);
 
 /**
  * Iterates over elements of `collection`, returning an array of all elements
@@ -9777,9 +7007,9 @@ function filter(collection, predicate, thisArg) {
 
 module.exports = filter;
 
-},{"139":139,"146":146,"154":154,"227":227}],122:[function(_dereq_,module,exports){
-var baseEach = _dereq_(151),
-    createFind = _dereq_(190);
+},{"104":104,"111":111,"118":118,"189":189}],89:[function(_dereq_,module,exports){
+var baseEach = _dereq_(116),
+    createFind = _dereq_(152);
 
 /**
  * Iterates over elements of `collection`, returning the first element
@@ -9835,10 +7065,10 @@ var find = createFind(baseEach);
 
 module.exports = find;
 
-},{"151":151,"190":190}],123:[function(_dereq_,module,exports){
-var arrayEach = _dereq_(136),
-    baseEach = _dereq_(151),
-    createForEach = _dereq_(191);
+},{"116":116,"152":152}],90:[function(_dereq_,module,exports){
+var arrayEach = _dereq_(102),
+    baseEach = _dereq_(116),
+    createForEach = _dereq_(153);
 
 /**
  * Iterates over elements of `collection` invoking `iteratee` for each element.
@@ -9874,39 +7104,11 @@ var forEach = createForEach(arrayEach, baseEach);
 
 module.exports = forEach;
 
-},{"136":136,"151":151,"191":191}],124:[function(_dereq_,module,exports){
-var arrayEachRight = _dereq_(137),
-    baseEachRight = _dereq_(152),
-    createForEach = _dereq_(191);
-
-/**
- * This method is like `_.forEach` except that it iterates over elements of
- * `collection` from right to left.
- *
- * @static
- * @memberOf _
- * @alias eachRight
- * @category Collection
- * @param {Array|Object|string} collection The collection to iterate over.
- * @param {Function} [iteratee=_.identity] The function invoked per iteration.
- * @param {*} [thisArg] The `this` binding of `iteratee`.
- * @returns {Array|Object|string} Returns `collection`.
- * @example
- *
- * _([1, 2]).forEachRight(function(n) {
- *   console.log(n);
- * }).value();
- * // => logs each value from right to left and returns the array
- */
-var forEachRight = createForEach(arrayEachRight, baseEachRight);
-
-module.exports = forEachRight;
-
-},{"137":137,"152":152,"191":191}],125:[function(_dereq_,module,exports){
-var arrayMap = _dereq_(140),
-    baseCallback = _dereq_(146),
-    baseMap = _dereq_(169),
-    isArray = _dereq_(227);
+},{"102":102,"116":116,"153":153}],91:[function(_dereq_,module,exports){
+var arrayMap = _dereq_(105),
+    baseCallback = _dereq_(111),
+    baseMap = _dereq_(131),
+    isArray = _dereq_(189);
 
 /**
  * Creates an array of values by running each element in `collection` through
@@ -9972,10 +7174,10 @@ function map(collection, iteratee, thisArg) {
 
 module.exports = map;
 
-},{"140":140,"146":146,"169":169,"227":227}],126:[function(_dereq_,module,exports){
-var arrayReduce = _dereq_(142),
-    baseEach = _dereq_(151),
-    createReduce = _dereq_(194);
+},{"105":105,"111":111,"131":131,"189":189}],92:[function(_dereq_,module,exports){
+var arrayReduce = _dereq_(107),
+    baseEach = _dereq_(116),
+    createReduce = _dereq_(156);
 
 /**
  * Reduces `collection` to a value which is the accumulated result of running
@@ -10018,8 +7220,8 @@ var reduce = createReduce(arrayReduce, baseEach);
 
 module.exports = reduce;
 
-},{"142":142,"151":151,"194":194}],127:[function(_dereq_,module,exports){
-var getNative = _dereq_(203);
+},{"107":107,"116":116,"156":156}],93:[function(_dereq_,module,exports){
+var getNative = _dereq_(165);
 
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeNow = getNative(Date, 'now');
@@ -10044,10 +7246,10 @@ var now = nativeNow || function() {
 
 module.exports = now;
 
-},{"203":203}],128:[function(_dereq_,module,exports){
-var createWrapper = _dereq_(195),
-    replaceHolders = _dereq_(219),
-    restParam = _dereq_(131);
+},{"165":165}],94:[function(_dereq_,module,exports){
+var createWrapper = _dereq_(157),
+    replaceHolders = _dereq_(181),
+    restParam = _dereq_(97);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1,
@@ -10102,9 +7304,9 @@ bind.placeholder = {};
 
 module.exports = bind;
 
-},{"131":131,"195":195,"219":219}],129:[function(_dereq_,module,exports){
-var isObject = _dereq_(231),
-    now = _dereq_(127);
+},{"157":157,"181":181,"97":97}],95:[function(_dereq_,module,exports){
+var isObject = _dereq_(193),
+    now = _dereq_(93);
 
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
@@ -10285,9 +7487,9 @@ function debounce(func, wait, options) {
 
 module.exports = debounce;
 
-},{"127":127,"231":231}],130:[function(_dereq_,module,exports){
-var baseDelay = _dereq_(149),
-    restParam = _dereq_(131);
+},{"193":193,"93":93}],96:[function(_dereq_,module,exports){
+var baseDelay = _dereq_(114),
+    restParam = _dereq_(97);
 
 /**
  * Defers invoking the `func` until the current call stack has cleared. Any
@@ -10312,7 +7514,7 @@ var defer = restParam(function(func, args) {
 
 module.exports = defer;
 
-},{"131":131,"149":149}],131:[function(_dereq_,module,exports){
+},{"114":114,"97":97}],97:[function(_dereq_,module,exports){
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
 
@@ -10372,9 +7574,9 @@ function restParam(func, start) {
 
 module.exports = restParam;
 
-},{}],132:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(148),
-    baseLodash = _dereq_(168);
+},{}],98:[function(_dereq_,module,exports){
+var baseCreate = _dereq_(113),
+    baseLodash = _dereq_(130);
 
 /** Used as references for `-Infinity` and `Infinity`. */
 var POSITIVE_INFINITY = Number.POSITIVE_INFINITY;
@@ -10400,9 +7602,9 @@ LazyWrapper.prototype.constructor = LazyWrapper;
 
 module.exports = LazyWrapper;
 
-},{"148":148,"168":168}],133:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(148),
-    baseLodash = _dereq_(168);
+},{"113":113,"130":130}],99:[function(_dereq_,module,exports){
+var baseCreate = _dereq_(113),
+    baseLodash = _dereq_(130);
 
 /**
  * The base constructor for creating `lodash` wrapper objects.
@@ -10423,10 +7625,10 @@ LodashWrapper.prototype.constructor = LodashWrapper;
 
 module.exports = LodashWrapper;
 
-},{"148":148,"168":168}],134:[function(_dereq_,module,exports){
+},{"113":113,"130":130}],100:[function(_dereq_,module,exports){
 (function (global){
-var cachePush = _dereq_(181),
-    getNative = _dereq_(203);
+var cachePush = _dereq_(143),
+    getNative = _dereq_(165);
 
 /** Native method references. */
 var Set = getNative(global, 'Set');
@@ -10457,7 +7659,7 @@ module.exports = SetCache;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"181":181,"203":203}],135:[function(_dereq_,module,exports){
+},{"143":143,"165":165}],101:[function(_dereq_,module,exports){
 /**
  * Copies the values of `source` to `array`.
  *
@@ -10479,7 +7681,7 @@ function arrayCopy(source, array) {
 
 module.exports = arrayCopy;
 
-},{}],136:[function(_dereq_,module,exports){
+},{}],102:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.forEach` for arrays without support for callback
  * shorthands and `this` binding.
@@ -10503,30 +7705,7 @@ function arrayEach(array, iteratee) {
 
 module.exports = arrayEach;
 
-},{}],137:[function(_dereq_,module,exports){
-/**
- * A specialized version of `_.forEachRight` for arrays without support for
- * callback shorthands and `this` binding.
- *
- * @private
- * @param {Array} array The array to iterate over.
- * @param {Function} iteratee The function invoked per iteration.
- * @returns {Array} Returns `array`.
- */
-function arrayEachRight(array, iteratee) {
-  var length = array.length;
-
-  while (length--) {
-    if (iteratee(array[length], length, array) === false) {
-      break;
-    }
-  }
-  return array;
-}
-
-module.exports = arrayEachRight;
-
-},{}],138:[function(_dereq_,module,exports){
+},{}],103:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.every` for arrays without support for callback
  * shorthands and `this` binding.
@@ -10551,7 +7730,7 @@ function arrayEvery(array, predicate) {
 
 module.exports = arrayEvery;
 
-},{}],139:[function(_dereq_,module,exports){
+},{}],104:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.filter` for arrays without support for callback
  * shorthands and `this` binding.
@@ -10578,7 +7757,7 @@ function arrayFilter(array, predicate) {
 
 module.exports = arrayFilter;
 
-},{}],140:[function(_dereq_,module,exports){
+},{}],105:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.map` for arrays without support for callback
  * shorthands and `this` binding.
@@ -10601,7 +7780,7 @@ function arrayMap(array, iteratee) {
 
 module.exports = arrayMap;
 
-},{}],141:[function(_dereq_,module,exports){
+},{}],106:[function(_dereq_,module,exports){
 /**
  * Appends the elements of `values` to `array`.
  *
@@ -10623,7 +7802,7 @@ function arrayPush(array, values) {
 
 module.exports = arrayPush;
 
-},{}],142:[function(_dereq_,module,exports){
+},{}],107:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.reduce` for arrays without support for callback
  * shorthands and `this` binding.
@@ -10651,7 +7830,7 @@ function arrayReduce(array, iteratee, accumulator, initFromArray) {
 
 module.exports = arrayReduce;
 
-},{}],143:[function(_dereq_,module,exports){
+},{}],108:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.some` for arrays without support for callback
  * shorthands and `this` binding.
@@ -10676,8 +7855,8 @@ function arraySome(array, predicate) {
 
 module.exports = arraySome;
 
-},{}],144:[function(_dereq_,module,exports){
-var keys = _dereq_(235);
+},{}],109:[function(_dereq_,module,exports){
+var keys = _dereq_(197);
 
 /**
  * A specialized version of `_.assign` for customizing assigned values without
@@ -10710,9 +7889,9 @@ function assignWith(object, source, customizer) {
 
 module.exports = assignWith;
 
-},{"235":235}],145:[function(_dereq_,module,exports){
-var baseCopy = _dereq_(147),
-    keys = _dereq_(235);
+},{"197":197}],110:[function(_dereq_,module,exports){
+var baseCopy = _dereq_(112),
+    keys = _dereq_(197);
 
 /**
  * The base implementation of `_.assign` without support for argument juggling,
@@ -10731,12 +7910,12 @@ function baseAssign(object, source) {
 
 module.exports = baseAssign;
 
-},{"147":147,"235":235}],146:[function(_dereq_,module,exports){
-var baseMatches = _dereq_(170),
-    baseMatchesProperty = _dereq_(171),
-    bindCallback = _dereq_(179),
-    identity = _dereq_(240),
-    property = _dereq_(242);
+},{"112":112,"197":197}],111:[function(_dereq_,module,exports){
+var baseMatches = _dereq_(132),
+    baseMatchesProperty = _dereq_(133),
+    bindCallback = _dereq_(141),
+    identity = _dereq_(202),
+    property = _dereq_(204);
 
 /**
  * The base implementation of `_.callback` which supports specifying the
@@ -10768,7 +7947,7 @@ function baseCallback(func, thisArg, argCount) {
 
 module.exports = baseCallback;
 
-},{"170":170,"171":171,"179":179,"240":240,"242":242}],147:[function(_dereq_,module,exports){
+},{"132":132,"133":133,"141":141,"202":202,"204":204}],112:[function(_dereq_,module,exports){
 /**
  * Copies properties of `source` to `object`.
  *
@@ -10793,8 +7972,8 @@ function baseCopy(source, props, object) {
 
 module.exports = baseCopy;
 
-},{}],148:[function(_dereq_,module,exports){
-var isObject = _dereq_(231);
+},{}],113:[function(_dereq_,module,exports){
+var isObject = _dereq_(193);
 
 /**
  * The base implementation of `_.create` without support for assigning
@@ -10818,7 +7997,7 @@ var baseCreate = (function() {
 
 module.exports = baseCreate;
 
-},{"231":231}],149:[function(_dereq_,module,exports){
+},{"193":193}],114:[function(_dereq_,module,exports){
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
 
@@ -10841,10 +8020,10 @@ function baseDelay(func, wait, args) {
 
 module.exports = baseDelay;
 
-},{}],150:[function(_dereq_,module,exports){
-var baseIndexOf = _dereq_(164),
-    cacheIndexOf = _dereq_(180),
-    createCache = _dereq_(188);
+},{}],115:[function(_dereq_,module,exports){
+var baseIndexOf = _dereq_(126),
+    cacheIndexOf = _dereq_(142),
+    createCache = _dereq_(150);
 
 /** Used as the size to enable large array optimizations. */
 var LARGE_ARRAY_SIZE = 200;
@@ -10898,9 +8077,9 @@ function baseDifference(array, values) {
 
 module.exports = baseDifference;
 
-},{"164":164,"180":180,"188":188}],151:[function(_dereq_,module,exports){
-var baseForOwn = _dereq_(160),
-    createBaseEach = _dereq_(185);
+},{"126":126,"142":142,"150":150}],116:[function(_dereq_,module,exports){
+var baseForOwn = _dereq_(124),
+    createBaseEach = _dereq_(147);
 
 /**
  * The base implementation of `_.forEach` without support for callback
@@ -10915,25 +8094,8 @@ var baseEach = createBaseEach(baseForOwn);
 
 module.exports = baseEach;
 
-},{"160":160,"185":185}],152:[function(_dereq_,module,exports){
-var baseForOwnRight = _dereq_(161),
-    createBaseEach = _dereq_(185);
-
-/**
- * The base implementation of `_.forEachRight` without support for callback
- * shorthands and `this` binding.
- *
- * @private
- * @param {Array|Object|string} collection The collection to iterate over.
- * @param {Function} iteratee The function invoked per iteration.
- * @returns {Array|Object|string} Returns `collection`.
- */
-var baseEachRight = createBaseEach(baseForOwnRight, true);
-
-module.exports = baseEachRight;
-
-},{"161":161,"185":185}],153:[function(_dereq_,module,exports){
-var baseEach = _dereq_(151);
+},{"124":124,"147":147}],117:[function(_dereq_,module,exports){
+var baseEach = _dereq_(116);
 
 /**
  * The base implementation of `_.every` without support for callback
@@ -10956,8 +8118,8 @@ function baseEvery(collection, predicate) {
 
 module.exports = baseEvery;
 
-},{"151":151}],154:[function(_dereq_,module,exports){
-var baseEach = _dereq_(151);
+},{"116":116}],118:[function(_dereq_,module,exports){
+var baseEach = _dereq_(116);
 
 /**
  * The base implementation of `_.filter` without support for callback
@@ -10980,7 +8142,7 @@ function baseFilter(collection, predicate) {
 
 module.exports = baseFilter;
 
-},{"151":151}],155:[function(_dereq_,module,exports){
+},{"116":116}],119:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.find`, `_.findLast`, `_.findKey`, and `_.findLastKey`,
  * without support for callback shorthands and `this` binding, which iterates
@@ -11007,7 +8169,7 @@ function baseFind(collection, predicate, eachFunc, retKey) {
 
 module.exports = baseFind;
 
-},{}],156:[function(_dereq_,module,exports){
+},{}],120:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.findIndex` and `_.findLastIndex` without
  * support for callback shorthands and `this` binding.
@@ -11032,12 +8194,12 @@ function baseFindIndex(array, predicate, fromRight) {
 
 module.exports = baseFindIndex;
 
-},{}],157:[function(_dereq_,module,exports){
-var arrayPush = _dereq_(141),
-    isArguments = _dereq_(226),
-    isArray = _dereq_(227),
-    isArrayLike = _dereq_(205),
-    isObjectLike = _dereq_(211);
+},{}],121:[function(_dereq_,module,exports){
+var arrayPush = _dereq_(106),
+    isArguments = _dereq_(188),
+    isArray = _dereq_(189),
+    isArrayLike = _dereq_(167),
+    isObjectLike = _dereq_(173);
 
 /**
  * The base implementation of `_.flatten` with added support for restricting
@@ -11075,8 +8237,8 @@ function baseFlatten(array, isDeep, isStrict, result) {
 
 module.exports = baseFlatten;
 
-},{"141":141,"205":205,"211":211,"226":226,"227":227}],158:[function(_dereq_,module,exports){
-var createBaseFor = _dereq_(186);
+},{"106":106,"167":167,"173":173,"188":188,"189":189}],122:[function(_dereq_,module,exports){
+var createBaseFor = _dereq_(148);
 
 /**
  * The base implementation of `baseForIn` and `baseForOwn` which iterates
@@ -11094,9 +8256,9 @@ var baseFor = createBaseFor();
 
 module.exports = baseFor;
 
-},{"186":186}],159:[function(_dereq_,module,exports){
-var baseFor = _dereq_(158),
-    keysIn = _dereq_(236);
+},{"148":148}],123:[function(_dereq_,module,exports){
+var baseFor = _dereq_(122),
+    keysIn = _dereq_(198);
 
 /**
  * The base implementation of `_.forIn` without support for callback
@@ -11113,9 +8275,9 @@ function baseForIn(object, iteratee) {
 
 module.exports = baseForIn;
 
-},{"158":158,"236":236}],160:[function(_dereq_,module,exports){
-var baseFor = _dereq_(158),
-    keys = _dereq_(235);
+},{"122":122,"198":198}],124:[function(_dereq_,module,exports){
+var baseFor = _dereq_(122),
+    keys = _dereq_(197);
 
 /**
  * The base implementation of `_.forOwn` without support for callback
@@ -11132,44 +8294,8 @@ function baseForOwn(object, iteratee) {
 
 module.exports = baseForOwn;
 
-},{"158":158,"235":235}],161:[function(_dereq_,module,exports){
-var baseForRight = _dereq_(162),
-    keys = _dereq_(235);
-
-/**
- * The base implementation of `_.forOwnRight` without support for callback
- * shorthands and `this` binding.
- *
- * @private
- * @param {Object} object The object to iterate over.
- * @param {Function} iteratee The function invoked per iteration.
- * @returns {Object} Returns `object`.
- */
-function baseForOwnRight(object, iteratee) {
-  return baseForRight(object, iteratee, keys);
-}
-
-module.exports = baseForOwnRight;
-
-},{"162":162,"235":235}],162:[function(_dereq_,module,exports){
-var createBaseFor = _dereq_(186);
-
-/**
- * This function is like `baseFor` except that it iterates over properties
- * in the opposite order.
- *
- * @private
- * @param {Object} object The object to iterate over.
- * @param {Function} iteratee The function invoked per iteration.
- * @param {Function} keysFunc The function to get the keys of `object`.
- * @returns {Object} Returns `object`.
- */
-var baseForRight = createBaseFor(true);
-
-module.exports = baseForRight;
-
-},{"186":186}],163:[function(_dereq_,module,exports){
-var toObject = _dereq_(223);
+},{"122":122,"197":197}],125:[function(_dereq_,module,exports){
+var toObject = _dereq_(185);
 
 /**
  * The base implementation of `get` without support for string paths
@@ -11199,8 +8325,8 @@ function baseGet(object, path, pathKey) {
 
 module.exports = baseGet;
 
-},{"223":223}],164:[function(_dereq_,module,exports){
-var indexOfNaN = _dereq_(204);
+},{"185":185}],126:[function(_dereq_,module,exports){
+var indexOfNaN = _dereq_(166);
 
 /**
  * The base implementation of `_.indexOf` without support for binary searches.
@@ -11228,10 +8354,10 @@ function baseIndexOf(array, value, fromIndex) {
 
 module.exports = baseIndexOf;
 
-},{"204":204}],165:[function(_dereq_,module,exports){
-var baseIsEqualDeep = _dereq_(166),
-    isObject = _dereq_(231),
-    isObjectLike = _dereq_(211);
+},{"166":166}],127:[function(_dereq_,module,exports){
+var baseIsEqualDeep = _dereq_(128),
+    isObject = _dereq_(193),
+    isObjectLike = _dereq_(173);
 
 /**
  * The base implementation of `_.isEqual` without support for `this` binding
@@ -11258,12 +8384,12 @@ function baseIsEqual(value, other, customizer, isLoose, stackA, stackB) {
 
 module.exports = baseIsEqual;
 
-},{"166":166,"211":211,"231":231}],166:[function(_dereq_,module,exports){
-var equalArrays = _dereq_(196),
-    equalByTag = _dereq_(197),
-    equalObjects = _dereq_(198),
-    isArray = _dereq_(227),
-    isTypedArray = _dereq_(233);
+},{"128":128,"173":173,"193":193}],128:[function(_dereq_,module,exports){
+var equalArrays = _dereq_(158),
+    equalByTag = _dereq_(159),
+    equalObjects = _dereq_(160),
+    isArray = _dereq_(189),
+    isTypedArray = _dereq_(195);
 
 /** `Object#toString` result references. */
 var argsTag = '[object Arguments]',
@@ -11362,9 +8488,9 @@ function baseIsEqualDeep(object, other, equalFunc, customizer, isLoose, stackA, 
 
 module.exports = baseIsEqualDeep;
 
-},{"196":196,"197":197,"198":198,"227":227,"233":233}],167:[function(_dereq_,module,exports){
-var baseIsEqual = _dereq_(165),
-    toObject = _dereq_(223);
+},{"158":158,"159":159,"160":160,"189":189,"195":195}],129:[function(_dereq_,module,exports){
+var baseIsEqual = _dereq_(127),
+    toObject = _dereq_(185);
 
 /**
  * The base implementation of `_.isMatch` without support for callback
@@ -11416,7 +8542,7 @@ function baseIsMatch(object, matchData, customizer) {
 
 module.exports = baseIsMatch;
 
-},{"165":165,"223":223}],168:[function(_dereq_,module,exports){
+},{"127":127,"185":185}],130:[function(_dereq_,module,exports){
 /**
  * The function whose prototype all chaining wrappers inherit from.
  *
@@ -11428,9 +8554,9 @@ function baseLodash() {
 
 module.exports = baseLodash;
 
-},{}],169:[function(_dereq_,module,exports){
-var baseEach = _dereq_(151),
-    isArrayLike = _dereq_(205);
+},{}],131:[function(_dereq_,module,exports){
+var baseEach = _dereq_(116),
+    isArrayLike = _dereq_(167);
 
 /**
  * The base implementation of `_.map` without support for callback shorthands
@@ -11453,10 +8579,10 @@ function baseMap(collection, iteratee) {
 
 module.exports = baseMap;
 
-},{"151":151,"205":205}],170:[function(_dereq_,module,exports){
-var baseIsMatch = _dereq_(167),
-    getMatchData = _dereq_(202),
-    toObject = _dereq_(223);
+},{"116":116,"167":167}],132:[function(_dereq_,module,exports){
+var baseIsMatch = _dereq_(129),
+    getMatchData = _dereq_(164),
+    toObject = _dereq_(185);
 
 /**
  * The base implementation of `_.matches` which does not clone `source`.
@@ -11485,16 +8611,16 @@ function baseMatches(source) {
 
 module.exports = baseMatches;
 
-},{"167":167,"202":202,"223":223}],171:[function(_dereq_,module,exports){
-var baseGet = _dereq_(163),
-    baseIsEqual = _dereq_(165),
-    baseSlice = _dereq_(176),
-    isArray = _dereq_(227),
-    isKey = _dereq_(208),
-    isStrictComparable = _dereq_(212),
-    last = _dereq_(115),
-    toObject = _dereq_(223),
-    toPath = _dereq_(224);
+},{"129":129,"164":164,"185":185}],133:[function(_dereq_,module,exports){
+var baseGet = _dereq_(125),
+    baseIsEqual = _dereq_(127),
+    baseSlice = _dereq_(138),
+    isArray = _dereq_(189),
+    isKey = _dereq_(170),
+    isStrictComparable = _dereq_(174),
+    last = _dereq_(82),
+    toObject = _dereq_(185),
+    toPath = _dereq_(186);
 
 /**
  * The base implementation of `_.matchesProperty` which does not clone `srcValue`.
@@ -11532,7 +8658,7 @@ function baseMatchesProperty(path, srcValue) {
 
 module.exports = baseMatchesProperty;
 
-},{"115":115,"163":163,"165":165,"176":176,"208":208,"212":212,"223":223,"224":224,"227":227}],172:[function(_dereq_,module,exports){
+},{"125":125,"127":127,"138":138,"170":170,"174":174,"185":185,"186":186,"189":189,"82":82}],134:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.property` without support for deep paths.
  *
@@ -11548,9 +8674,9 @@ function baseProperty(key) {
 
 module.exports = baseProperty;
 
-},{}],173:[function(_dereq_,module,exports){
-var baseGet = _dereq_(163),
-    toPath = _dereq_(224);
+},{}],135:[function(_dereq_,module,exports){
+var baseGet = _dereq_(125),
+    toPath = _dereq_(186);
 
 /**
  * A specialized version of `baseProperty` which supports deep paths.
@@ -11569,7 +8695,7 @@ function basePropertyDeep(path) {
 
 module.exports = basePropertyDeep;
 
-},{"163":163,"224":224}],174:[function(_dereq_,module,exports){
+},{"125":125,"186":186}],136:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.reduce` and `_.reduceRight` without support
  * for callback shorthands and `this` binding, which iterates over `collection`
@@ -11595,9 +8721,9 @@ function baseReduce(collection, iteratee, accumulator, initFromCollection, eachF
 
 module.exports = baseReduce;
 
-},{}],175:[function(_dereq_,module,exports){
-var identity = _dereq_(240),
-    metaMap = _dereq_(214);
+},{}],137:[function(_dereq_,module,exports){
+var identity = _dereq_(202),
+    metaMap = _dereq_(176);
 
 /**
  * The base implementation of `setData` without support for hot loop detection.
@@ -11614,7 +8740,7 @@ var baseSetData = !metaMap ? identity : function(func, data) {
 
 module.exports = baseSetData;
 
-},{"214":214,"240":240}],176:[function(_dereq_,module,exports){
+},{"176":176,"202":202}],138:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.slice` without an iteratee call guard.
  *
@@ -11648,7 +8774,7 @@ function baseSlice(array, start, end) {
 
 module.exports = baseSlice;
 
-},{}],177:[function(_dereq_,module,exports){
+},{}],139:[function(_dereq_,module,exports){
 /**
  * Converts `value` to a string if it's not one. An empty string is returned
  * for `null` or `undefined` values.
@@ -11663,10 +8789,10 @@ function baseToString(value) {
 
 module.exports = baseToString;
 
-},{}],178:[function(_dereq_,module,exports){
-var baseIndexOf = _dereq_(164),
-    cacheIndexOf = _dereq_(180),
-    createCache = _dereq_(188);
+},{}],140:[function(_dereq_,module,exports){
+var baseIndexOf = _dereq_(126),
+    cacheIndexOf = _dereq_(142),
+    createCache = _dereq_(150);
 
 /** Used as the size to enable large array optimizations. */
 var LARGE_ARRAY_SIZE = 200;
@@ -11725,8 +8851,8 @@ function baseUniq(array, iteratee) {
 
 module.exports = baseUniq;
 
-},{"164":164,"180":180,"188":188}],179:[function(_dereq_,module,exports){
-var identity = _dereq_(240);
+},{"126":126,"142":142,"150":150}],141:[function(_dereq_,module,exports){
+var identity = _dereq_(202);
 
 /**
  * A specialized version of `baseCallback` which only supports `this` binding
@@ -11766,8 +8892,8 @@ function bindCallback(func, thisArg, argCount) {
 
 module.exports = bindCallback;
 
-},{"240":240}],180:[function(_dereq_,module,exports){
-var isObject = _dereq_(231);
+},{"202":202}],142:[function(_dereq_,module,exports){
+var isObject = _dereq_(193);
 
 /**
  * Checks if `value` is in `cache` mimicking the return signature of
@@ -11787,8 +8913,8 @@ function cacheIndexOf(cache, value) {
 
 module.exports = cacheIndexOf;
 
-},{"231":231}],181:[function(_dereq_,module,exports){
-var isObject = _dereq_(231);
+},{"193":193}],143:[function(_dereq_,module,exports){
+var isObject = _dereq_(193);
 
 /**
  * Adds `value` to the cache.
@@ -11809,7 +8935,7 @@ function cachePush(value) {
 
 module.exports = cachePush;
 
-},{"231":231}],182:[function(_dereq_,module,exports){
+},{"193":193}],144:[function(_dereq_,module,exports){
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeMax = Math.max;
 
@@ -11845,7 +8971,7 @@ function composeArgs(args, partials, holders) {
 
 module.exports = composeArgs;
 
-},{}],183:[function(_dereq_,module,exports){
+},{}],145:[function(_dereq_,module,exports){
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeMax = Math.max;
 
@@ -11883,10 +9009,10 @@ function composeArgsRight(args, partials, holders) {
 
 module.exports = composeArgsRight;
 
-},{}],184:[function(_dereq_,module,exports){
-var bindCallback = _dereq_(179),
-    isIterateeCall = _dereq_(207),
-    restParam = _dereq_(131);
+},{}],146:[function(_dereq_,module,exports){
+var bindCallback = _dereq_(141),
+    isIterateeCall = _dereq_(169),
+    restParam = _dereq_(97);
 
 /**
  * Creates a `_.assign`, `_.defaults`, or `_.merge` function.
@@ -11926,10 +9052,10 @@ function createAssigner(assigner) {
 
 module.exports = createAssigner;
 
-},{"131":131,"179":179,"207":207}],185:[function(_dereq_,module,exports){
-var getLength = _dereq_(201),
-    isLength = _dereq_(210),
-    toObject = _dereq_(223);
+},{"141":141,"169":169,"97":97}],147:[function(_dereq_,module,exports){
+var getLength = _dereq_(163),
+    isLength = _dereq_(172),
+    toObject = _dereq_(185);
 
 /**
  * Creates a `baseEach` or `baseEachRight` function.
@@ -11959,8 +9085,8 @@ function createBaseEach(eachFunc, fromRight) {
 
 module.exports = createBaseEach;
 
-},{"201":201,"210":210,"223":223}],186:[function(_dereq_,module,exports){
-var toObject = _dereq_(223);
+},{"163":163,"172":172,"185":185}],148:[function(_dereq_,module,exports){
+var toObject = _dereq_(185);
 
 /**
  * Creates a base function for `_.forIn` or `_.forInRight`.
@@ -11988,9 +9114,9 @@ function createBaseFor(fromRight) {
 
 module.exports = createBaseFor;
 
-},{"223":223}],187:[function(_dereq_,module,exports){
+},{"185":185}],149:[function(_dereq_,module,exports){
 (function (global){
-var createCtorWrapper = _dereq_(189);
+var createCtorWrapper = _dereq_(151);
 
 /**
  * Creates a function that wraps `func` and invokes it with the `this`
@@ -12015,10 +9141,10 @@ module.exports = createBindWrapper;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"189":189}],188:[function(_dereq_,module,exports){
+},{"151":151}],150:[function(_dereq_,module,exports){
 (function (global){
-var SetCache = _dereq_(134),
-    getNative = _dereq_(203);
+var SetCache = _dereq_(100),
+    getNative = _dereq_(165);
 
 /** Native method references. */
 var Set = getNative(global, 'Set');
@@ -12041,9 +9167,9 @@ module.exports = createCache;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"134":134,"203":203}],189:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(148),
-    isObject = _dereq_(231);
+},{"100":100,"165":165}],151:[function(_dereq_,module,exports){
+var baseCreate = _dereq_(113),
+    isObject = _dereq_(193);
 
 /**
  * Creates a function that produces an instance of `Ctor` regardless of
@@ -12080,11 +9206,11 @@ function createCtorWrapper(Ctor) {
 
 module.exports = createCtorWrapper;
 
-},{"148":148,"231":231}],190:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(146),
-    baseFind = _dereq_(155),
-    baseFindIndex = _dereq_(156),
-    isArray = _dereq_(227);
+},{"113":113,"193":193}],152:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(111),
+    baseFind = _dereq_(119),
+    baseFindIndex = _dereq_(120),
+    isArray = _dereq_(189);
 
 /**
  * Creates a `_.find` or `_.findLast` function.
@@ -12107,9 +9233,9 @@ function createFind(eachFunc, fromRight) {
 
 module.exports = createFind;
 
-},{"146":146,"155":155,"156":156,"227":227}],191:[function(_dereq_,module,exports){
-var bindCallback = _dereq_(179),
-    isArray = _dereq_(227);
+},{"111":111,"119":119,"120":120,"189":189}],153:[function(_dereq_,module,exports){
+var bindCallback = _dereq_(141),
+    isArray = _dereq_(189);
 
 /**
  * Creates a function for `_.forEach` or `_.forEachRight`.
@@ -12129,16 +9255,16 @@ function createForEach(arrayFunc, eachFunc) {
 
 module.exports = createForEach;
 
-},{"179":179,"227":227}],192:[function(_dereq_,module,exports){
+},{"141":141,"189":189}],154:[function(_dereq_,module,exports){
 (function (global){
-var arrayCopy = _dereq_(135),
-    composeArgs = _dereq_(182),
-    composeArgsRight = _dereq_(183),
-    createCtorWrapper = _dereq_(189),
-    isLaziable = _dereq_(209),
-    reorder = _dereq_(218),
-    replaceHolders = _dereq_(219),
-    setData = _dereq_(220);
+var arrayCopy = _dereq_(101),
+    composeArgs = _dereq_(144),
+    composeArgsRight = _dereq_(145),
+    createCtorWrapper = _dereq_(151),
+    isLaziable = _dereq_(171),
+    reorder = _dereq_(180),
+    replaceHolders = _dereq_(181),
+    setData = _dereq_(182);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1,
@@ -12245,9 +9371,9 @@ module.exports = createHybridWrapper;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"135":135,"182":182,"183":183,"189":189,"209":209,"218":218,"219":219,"220":220}],193:[function(_dereq_,module,exports){
+},{"101":101,"144":144,"145":145,"151":151,"171":171,"180":180,"181":181,"182":182}],155:[function(_dereq_,module,exports){
 (function (global){
-var createCtorWrapper = _dereq_(189);
+var createCtorWrapper = _dereq_(151);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1;
@@ -12293,10 +9419,10 @@ module.exports = createPartialWrapper;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"189":189}],194:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(146),
-    baseReduce = _dereq_(174),
-    isArray = _dereq_(227);
+},{"151":151}],156:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(111),
+    baseReduce = _dereq_(136),
+    isArray = _dereq_(189);
 
 /**
  * Creates a function for `_.reduce` or `_.reduceRight`.
@@ -12317,14 +9443,14 @@ function createReduce(arrayFunc, eachFunc) {
 
 module.exports = createReduce;
 
-},{"146":146,"174":174,"227":227}],195:[function(_dereq_,module,exports){
-var baseSetData = _dereq_(175),
-    createBindWrapper = _dereq_(187),
-    createHybridWrapper = _dereq_(192),
-    createPartialWrapper = _dereq_(193),
-    getData = _dereq_(199),
-    mergeData = _dereq_(213),
-    setData = _dereq_(220);
+},{"111":111,"136":136,"189":189}],157:[function(_dereq_,module,exports){
+var baseSetData = _dereq_(137),
+    createBindWrapper = _dereq_(149),
+    createHybridWrapper = _dereq_(154),
+    createPartialWrapper = _dereq_(155),
+    getData = _dereq_(161),
+    mergeData = _dereq_(175),
+    setData = _dereq_(182);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1,
@@ -12405,8 +9531,8 @@ function createWrapper(func, bitmask, thisArg, partials, holders, argPos, ary, a
 
 module.exports = createWrapper;
 
-},{"175":175,"187":187,"192":192,"193":193,"199":199,"213":213,"220":220}],196:[function(_dereq_,module,exports){
-var arraySome = _dereq_(143);
+},{"137":137,"149":149,"154":154,"155":155,"161":161,"175":175,"182":182}],158:[function(_dereq_,module,exports){
+var arraySome = _dereq_(108);
 
 /**
  * A specialized version of `baseIsEqualDeep` for arrays with support for
@@ -12458,7 +9584,7 @@ function equalArrays(array, other, equalFunc, customizer, isLoose, stackA, stack
 
 module.exports = equalArrays;
 
-},{"143":143}],197:[function(_dereq_,module,exports){
+},{"108":108}],159:[function(_dereq_,module,exports){
 /** `Object#toString` result references. */
 var boolTag = '[object Boolean]',
     dateTag = '[object Date]',
@@ -12508,8 +9634,8 @@ function equalByTag(object, other, tag) {
 
 module.exports = equalByTag;
 
-},{}],198:[function(_dereq_,module,exports){
-var keys = _dereq_(235);
+},{}],160:[function(_dereq_,module,exports){
+var keys = _dereq_(197);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -12577,9 +9703,9 @@ function equalObjects(object, other, equalFunc, customizer, isLoose, stackA, sta
 
 module.exports = equalObjects;
 
-},{"235":235}],199:[function(_dereq_,module,exports){
-var metaMap = _dereq_(214),
-    noop = _dereq_(241);
+},{"197":197}],161:[function(_dereq_,module,exports){
+var metaMap = _dereq_(176),
+    noop = _dereq_(203);
 
 /**
  * Gets metadata for `func`.
@@ -12594,8 +9720,8 @@ var getData = !metaMap ? noop : function(func) {
 
 module.exports = getData;
 
-},{"214":214,"241":241}],200:[function(_dereq_,module,exports){
-var realNames = _dereq_(217);
+},{"176":176,"203":203}],162:[function(_dereq_,module,exports){
+var realNames = _dereq_(179);
 
 /**
  * Gets the name of `func`.
@@ -12621,8 +9747,8 @@ function getFuncName(func) {
 
 module.exports = getFuncName;
 
-},{"217":217}],201:[function(_dereq_,module,exports){
-var baseProperty = _dereq_(172);
+},{"179":179}],163:[function(_dereq_,module,exports){
+var baseProperty = _dereq_(134);
 
 /**
  * Gets the "length" property value of `object`.
@@ -12638,9 +9764,9 @@ var getLength = baseProperty('length');
 
 module.exports = getLength;
 
-},{"172":172}],202:[function(_dereq_,module,exports){
-var isStrictComparable = _dereq_(212),
-    pairs = _dereq_(238);
+},{"134":134}],164:[function(_dereq_,module,exports){
+var isStrictComparable = _dereq_(174),
+    pairs = _dereq_(200);
 
 /**
  * Gets the propery names, values, and compare flags of `object`.
@@ -12661,8 +9787,8 @@ function getMatchData(object) {
 
 module.exports = getMatchData;
 
-},{"212":212,"238":238}],203:[function(_dereq_,module,exports){
-var isNative = _dereq_(229);
+},{"174":174,"200":200}],165:[function(_dereq_,module,exports){
+var isNative = _dereq_(191);
 
 /**
  * Gets the native function at `key` of `object`.
@@ -12679,7 +9805,7 @@ function getNative(object, key) {
 
 module.exports = getNative;
 
-},{"229":229}],204:[function(_dereq_,module,exports){
+},{"191":191}],166:[function(_dereq_,module,exports){
 /**
  * Gets the index at which the first occurrence of `NaN` is found in `array`.
  *
@@ -12704,9 +9830,9 @@ function indexOfNaN(array, fromIndex, fromRight) {
 
 module.exports = indexOfNaN;
 
-},{}],205:[function(_dereq_,module,exports){
-var getLength = _dereq_(201),
-    isLength = _dereq_(210);
+},{}],167:[function(_dereq_,module,exports){
+var getLength = _dereq_(163),
+    isLength = _dereq_(172);
 
 /**
  * Checks if `value` is array-like.
@@ -12721,7 +9847,7 @@ function isArrayLike(value) {
 
 module.exports = isArrayLike;
 
-},{"201":201,"210":210}],206:[function(_dereq_,module,exports){
+},{"163":163,"172":172}],168:[function(_dereq_,module,exports){
 /** Used to detect unsigned integer values. */
 var reIsUint = /^\d+$/;
 
@@ -12747,10 +9873,10 @@ function isIndex(value, length) {
 
 module.exports = isIndex;
 
-},{}],207:[function(_dereq_,module,exports){
-var isArrayLike = _dereq_(205),
-    isIndex = _dereq_(206),
-    isObject = _dereq_(231);
+},{}],169:[function(_dereq_,module,exports){
+var isArrayLike = _dereq_(167),
+    isIndex = _dereq_(168),
+    isObject = _dereq_(193);
 
 /**
  * Checks if the provided arguments are from an iteratee call.
@@ -12777,9 +9903,9 @@ function isIterateeCall(value, index, object) {
 
 module.exports = isIterateeCall;
 
-},{"205":205,"206":206,"231":231}],208:[function(_dereq_,module,exports){
-var isArray = _dereq_(227),
-    toObject = _dereq_(223);
+},{"167":167,"168":168,"193":193}],170:[function(_dereq_,module,exports){
+var isArray = _dereq_(189),
+    toObject = _dereq_(185);
 
 /** Used to match property names within property paths. */
 var reIsDeepProp = /\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\n\\]|\\.)*?\1)\]/,
@@ -12807,11 +9933,11 @@ function isKey(value, object) {
 
 module.exports = isKey;
 
-},{"223":223,"227":227}],209:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(132),
-    getData = _dereq_(199),
-    getFuncName = _dereq_(200),
-    lodash = _dereq_(119);
+},{"185":185,"189":189}],171:[function(_dereq_,module,exports){
+var LazyWrapper = _dereq_(98),
+    getData = _dereq_(161),
+    getFuncName = _dereq_(162),
+    lodash = _dereq_(86);
 
 /**
  * Checks if `func` has a lazy counterpart.
@@ -12836,7 +9962,7 @@ function isLaziable(func) {
 
 module.exports = isLaziable;
 
-},{"119":119,"132":132,"199":199,"200":200}],210:[function(_dereq_,module,exports){
+},{"161":161,"162":162,"86":86,"98":98}],172:[function(_dereq_,module,exports){
 /**
  * Used as the [maximum length](http://ecma-international.org/ecma-262/6.0/#sec-number.max_safe_integer)
  * of an array-like value.
@@ -12858,7 +9984,7 @@ function isLength(value) {
 
 module.exports = isLength;
 
-},{}],211:[function(_dereq_,module,exports){
+},{}],173:[function(_dereq_,module,exports){
 /**
  * Checks if `value` is object-like.
  *
@@ -12872,8 +9998,8 @@ function isObjectLike(value) {
 
 module.exports = isObjectLike;
 
-},{}],212:[function(_dereq_,module,exports){
-var isObject = _dereq_(231);
+},{}],174:[function(_dereq_,module,exports){
+var isObject = _dereq_(193);
 
 /**
  * Checks if `value` is suitable for strict equality comparisons, i.e. `===`.
@@ -12889,11 +10015,11 @@ function isStrictComparable(value) {
 
 module.exports = isStrictComparable;
 
-},{"231":231}],213:[function(_dereq_,module,exports){
-var arrayCopy = _dereq_(135),
-    composeArgs = _dereq_(182),
-    composeArgsRight = _dereq_(183),
-    replaceHolders = _dereq_(219);
+},{"193":193}],175:[function(_dereq_,module,exports){
+var arrayCopy = _dereq_(101),
+    composeArgs = _dereq_(144),
+    composeArgsRight = _dereq_(145),
+    replaceHolders = _dereq_(181);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1,
@@ -12980,9 +10106,9 @@ function mergeData(data, source) {
 
 module.exports = mergeData;
 
-},{"135":135,"182":182,"183":183,"219":219}],214:[function(_dereq_,module,exports){
+},{"101":101,"144":144,"145":145,"181":181}],176:[function(_dereq_,module,exports){
 (function (global){
-var getNative = _dereq_(203);
+var getNative = _dereq_(165);
 
 /** Native method references. */
 var WeakMap = getNative(global, 'WeakMap');
@@ -12994,8 +10120,8 @@ module.exports = metaMap;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"203":203}],215:[function(_dereq_,module,exports){
-var toObject = _dereq_(223);
+},{"165":165}],177:[function(_dereq_,module,exports){
+var toObject = _dereq_(185);
 
 /**
  * A specialized version of `_.pick` which picks `object` properties specified
@@ -13024,8 +10150,8 @@ function pickByArray(object, props) {
 
 module.exports = pickByArray;
 
-},{"223":223}],216:[function(_dereq_,module,exports){
-var baseForIn = _dereq_(159);
+},{"185":185}],178:[function(_dereq_,module,exports){
+var baseForIn = _dereq_(123);
 
 /**
  * A specialized version of `_.pick` which picks `object` properties `predicate`
@@ -13048,15 +10174,15 @@ function pickByCallback(object, predicate) {
 
 module.exports = pickByCallback;
 
-},{"159":159}],217:[function(_dereq_,module,exports){
+},{"123":123}],179:[function(_dereq_,module,exports){
 /** Used to lookup unminified function names. */
 var realNames = {};
 
 module.exports = realNames;
 
-},{}],218:[function(_dereq_,module,exports){
-var arrayCopy = _dereq_(135),
-    isIndex = _dereq_(206);
+},{}],180:[function(_dereq_,module,exports){
+var arrayCopy = _dereq_(101),
+    isIndex = _dereq_(168);
 
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeMin = Math.min;
@@ -13085,7 +10211,7 @@ function reorder(array, indexes) {
 
 module.exports = reorder;
 
-},{"135":135,"206":206}],219:[function(_dereq_,module,exports){
+},{"101":101,"168":168}],181:[function(_dereq_,module,exports){
 /** Used as the internal argument placeholder. */
 var PLACEHOLDER = '__lodash_placeholder__';
 
@@ -13115,9 +10241,9 @@ function replaceHolders(array, placeholder) {
 
 module.exports = replaceHolders;
 
-},{}],220:[function(_dereq_,module,exports){
-var baseSetData = _dereq_(175),
-    now = _dereq_(127);
+},{}],182:[function(_dereq_,module,exports){
+var baseSetData = _dereq_(137),
+    now = _dereq_(93);
 
 /** Used to detect when a function becomes hot. */
 var HOT_COUNT = 150,
@@ -13158,12 +10284,12 @@ var setData = (function() {
 
 module.exports = setData;
 
-},{"127":127,"175":175}],221:[function(_dereq_,module,exports){
-var isArguments = _dereq_(226),
-    isArray = _dereq_(227),
-    isIndex = _dereq_(206),
-    isLength = _dereq_(210),
-    keysIn = _dereq_(236);
+},{"137":137,"93":93}],183:[function(_dereq_,module,exports){
+var isArguments = _dereq_(188),
+    isArray = _dereq_(189),
+    isIndex = _dereq_(168),
+    isLength = _dereq_(172),
+    keysIn = _dereq_(198);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -13201,7 +10327,7 @@ function shimKeys(object) {
 
 module.exports = shimKeys;
 
-},{"206":206,"210":210,"226":226,"227":227,"236":236}],222:[function(_dereq_,module,exports){
+},{"168":168,"172":172,"188":188,"189":189,"198":198}],184:[function(_dereq_,module,exports){
 /**
  * An implementation of `_.uniq` optimized for sorted arrays without support
  * for callback shorthands and `this` binding.
@@ -13232,8 +10358,8 @@ function sortedUniq(array, iteratee) {
 
 module.exports = sortedUniq;
 
-},{}],223:[function(_dereq_,module,exports){
-var isObject = _dereq_(231);
+},{}],185:[function(_dereq_,module,exports){
+var isObject = _dereq_(193);
 
 /**
  * Converts `value` to an object if it's not one.
@@ -13248,9 +10374,9 @@ function toObject(value) {
 
 module.exports = toObject;
 
-},{"231":231}],224:[function(_dereq_,module,exports){
-var baseToString = _dereq_(177),
-    isArray = _dereq_(227);
+},{"193":193}],186:[function(_dereq_,module,exports){
+var baseToString = _dereq_(139),
+    isArray = _dereq_(189);
 
 /** Used to match property names within property paths. */
 var rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\n\\]|\\.)*?)\2)\]/g;
@@ -13278,10 +10404,10 @@ function toPath(value) {
 
 module.exports = toPath;
 
-},{"177":177,"227":227}],225:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(132),
-    LodashWrapper = _dereq_(133),
-    arrayCopy = _dereq_(135);
+},{"139":139,"189":189}],187:[function(_dereq_,module,exports){
+var LazyWrapper = _dereq_(98),
+    LodashWrapper = _dereq_(99),
+    arrayCopy = _dereq_(101);
 
 /**
  * Creates a clone of `wrapper`.
@@ -13298,9 +10424,9 @@ function wrapperClone(wrapper) {
 
 module.exports = wrapperClone;
 
-},{"132":132,"133":133,"135":135}],226:[function(_dereq_,module,exports){
-var isArrayLike = _dereq_(205),
-    isObjectLike = _dereq_(211);
+},{"101":101,"98":98,"99":99}],188:[function(_dereq_,module,exports){
+var isArrayLike = _dereq_(167),
+    isObjectLike = _dereq_(173);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -13334,10 +10460,10 @@ function isArguments(value) {
 
 module.exports = isArguments;
 
-},{"205":205,"211":211}],227:[function(_dereq_,module,exports){
-var getNative = _dereq_(203),
-    isLength = _dereq_(210),
-    isObjectLike = _dereq_(211);
+},{"167":167,"173":173}],189:[function(_dereq_,module,exports){
+var getNative = _dereq_(165),
+    isLength = _dereq_(172),
+    isObjectLike = _dereq_(173);
 
 /** `Object#toString` result references. */
 var arrayTag = '[object Array]';
@@ -13376,8 +10502,8 @@ var isArray = nativeIsArray || function(value) {
 
 module.exports = isArray;
 
-},{"203":203,"210":210,"211":211}],228:[function(_dereq_,module,exports){
-var isObject = _dereq_(231);
+},{"165":165,"172":172,"173":173}],190:[function(_dereq_,module,exports){
+var isObject = _dereq_(193);
 
 /** `Object#toString` result references. */
 var funcTag = '[object Function]';
@@ -13416,9 +10542,9 @@ function isFunction(value) {
 
 module.exports = isFunction;
 
-},{"231":231}],229:[function(_dereq_,module,exports){
-var isFunction = _dereq_(228),
-    isObjectLike = _dereq_(211);
+},{"193":193}],191:[function(_dereq_,module,exports){
+var isFunction = _dereq_(190),
+    isObjectLike = _dereq_(173);
 
 /** Used to detect host constructors (Safari > 5). */
 var reIsHostCtor = /^\[object .+?Constructor\]$/;
@@ -13466,8 +10592,8 @@ function isNative(value) {
 
 module.exports = isNative;
 
-},{"211":211,"228":228}],230:[function(_dereq_,module,exports){
-var isObjectLike = _dereq_(211);
+},{"173":173,"190":190}],192:[function(_dereq_,module,exports){
+var isObjectLike = _dereq_(173);
 
 /** `Object#toString` result references. */
 var numberTag = '[object Number]';
@@ -13509,7 +10635,7 @@ function isNumber(value) {
 
 module.exports = isNumber;
 
-},{"211":211}],231:[function(_dereq_,module,exports){
+},{"173":173}],193:[function(_dereq_,module,exports){
 /**
  * Checks if `value` is the [language type](https://es5.github.io/#x8) of `Object`.
  * (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
@@ -13539,8 +10665,8 @@ function isObject(value) {
 
 module.exports = isObject;
 
-},{}],232:[function(_dereq_,module,exports){
-var isObjectLike = _dereq_(211);
+},{}],194:[function(_dereq_,module,exports){
+var isObjectLike = _dereq_(173);
 
 /** `Object#toString` result references. */
 var stringTag = '[object String]';
@@ -13576,9 +10702,9 @@ function isString(value) {
 
 module.exports = isString;
 
-},{"211":211}],233:[function(_dereq_,module,exports){
-var isLength = _dereq_(210),
-    isObjectLike = _dereq_(211);
+},{"173":173}],195:[function(_dereq_,module,exports){
+var isLength = _dereq_(172),
+    isObjectLike = _dereq_(173);
 
 /** `Object#toString` result references. */
 var argsTag = '[object Arguments]',
@@ -13652,10 +10778,10 @@ function isTypedArray(value) {
 
 module.exports = isTypedArray;
 
-},{"210":210,"211":211}],234:[function(_dereq_,module,exports){
-var assignWith = _dereq_(144),
-    baseAssign = _dereq_(145),
-    createAssigner = _dereq_(184);
+},{"172":172,"173":173}],196:[function(_dereq_,module,exports){
+var assignWith = _dereq_(109),
+    baseAssign = _dereq_(110),
+    createAssigner = _dereq_(146);
 
 /**
  * Assigns own enumerable properties of source object(s) to the destination
@@ -13697,11 +10823,11 @@ var assign = createAssigner(function(object, source, customizer) {
 
 module.exports = assign;
 
-},{"144":144,"145":145,"184":184}],235:[function(_dereq_,module,exports){
-var getNative = _dereq_(203),
-    isArrayLike = _dereq_(205),
-    isObject = _dereq_(231),
-    shimKeys = _dereq_(221);
+},{"109":109,"110":110,"146":146}],197:[function(_dereq_,module,exports){
+var getNative = _dereq_(165),
+    isArrayLike = _dereq_(167),
+    isObject = _dereq_(193),
+    shimKeys = _dereq_(183);
 
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeKeys = getNative(Object, 'keys');
@@ -13744,12 +10870,12 @@ var keys = !nativeKeys ? shimKeys : function(object) {
 
 module.exports = keys;
 
-},{"203":203,"205":205,"221":221,"231":231}],236:[function(_dereq_,module,exports){
-var isArguments = _dereq_(226),
-    isArray = _dereq_(227),
-    isIndex = _dereq_(206),
-    isLength = _dereq_(210),
-    isObject = _dereq_(231);
+},{"165":165,"167":167,"183":183,"193":193}],198:[function(_dereq_,module,exports){
+var isArguments = _dereq_(188),
+    isArray = _dereq_(189),
+    isIndex = _dereq_(168),
+    isLength = _dereq_(172),
+    isObject = _dereq_(193);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -13810,15 +10936,15 @@ function keysIn(object) {
 
 module.exports = keysIn;
 
-},{"206":206,"210":210,"226":226,"227":227,"231":231}],237:[function(_dereq_,module,exports){
-var arrayMap = _dereq_(140),
-    baseDifference = _dereq_(150),
-    baseFlatten = _dereq_(157),
-    bindCallback = _dereq_(179),
-    keysIn = _dereq_(236),
-    pickByArray = _dereq_(215),
-    pickByCallback = _dereq_(216),
-    restParam = _dereq_(131);
+},{"168":168,"172":172,"188":188,"189":189,"193":193}],199:[function(_dereq_,module,exports){
+var arrayMap = _dereq_(105),
+    baseDifference = _dereq_(115),
+    baseFlatten = _dereq_(121),
+    bindCallback = _dereq_(141),
+    keysIn = _dereq_(198),
+    pickByArray = _dereq_(177),
+    pickByCallback = _dereq_(178),
+    restParam = _dereq_(97);
 
 /**
  * The opposite of `_.pick`; this method creates an object composed of the
@@ -13859,9 +10985,9 @@ var omit = restParam(function(object, props) {
 
 module.exports = omit;
 
-},{"131":131,"140":140,"150":150,"157":157,"179":179,"215":215,"216":216,"236":236}],238:[function(_dereq_,module,exports){
-var keys = _dereq_(235),
-    toObject = _dereq_(223);
+},{"105":105,"115":115,"121":121,"141":141,"177":177,"178":178,"198":198,"97":97}],200:[function(_dereq_,module,exports){
+var keys = _dereq_(197),
+    toObject = _dereq_(185);
 
 /**
  * Creates a two dimensional array of the key-value pairs for `object`,
@@ -13894,12 +11020,12 @@ function pairs(object) {
 
 module.exports = pairs;
 
-},{"223":223,"235":235}],239:[function(_dereq_,module,exports){
-var baseFlatten = _dereq_(157),
-    bindCallback = _dereq_(179),
-    pickByArray = _dereq_(215),
-    pickByCallback = _dereq_(216),
-    restParam = _dereq_(131);
+},{"185":185,"197":197}],201:[function(_dereq_,module,exports){
+var baseFlatten = _dereq_(121),
+    bindCallback = _dereq_(141),
+    pickByArray = _dereq_(177),
+    pickByCallback = _dereq_(178),
+    restParam = _dereq_(97);
 
 /**
  * Creates an object composed of the picked `object` properties. Property
@@ -13938,7 +11064,7 @@ var pick = restParam(function(object, props) {
 
 module.exports = pick;
 
-},{"131":131,"157":157,"179":179,"215":215,"216":216}],240:[function(_dereq_,module,exports){
+},{"121":121,"141":141,"177":177,"178":178,"97":97}],202:[function(_dereq_,module,exports){
 /**
  * This method returns the first argument provided to it.
  *
@@ -13960,7 +11086,7 @@ function identity(value) {
 
 module.exports = identity;
 
-},{}],241:[function(_dereq_,module,exports){
+},{}],203:[function(_dereq_,module,exports){
 /**
  * A no-operation function that returns `undefined` regardless of the
  * arguments it receives.
@@ -13981,10 +11107,10 @@ function noop() {
 
 module.exports = noop;
 
-},{}],242:[function(_dereq_,module,exports){
-var baseProperty = _dereq_(172),
-    basePropertyDeep = _dereq_(173),
-    isKey = _dereq_(208);
+},{}],204:[function(_dereq_,module,exports){
+var baseProperty = _dereq_(134),
+    basePropertyDeep = _dereq_(135),
+    isKey = _dereq_(170);
 
 /**
  * Creates a function that returns the property value at `path` on a
@@ -14014,49 +11140,21 @@ function property(path) {
 
 module.exports = property;
 
-},{"172":172,"173":173,"208":208}],243:[function(_dereq_,module,exports){
-/**
- * Set attribute `name` to `val`, or get attr `name`.
- *
- * @param {Element} el
- * @param {String} name
- * @param {String} [val]
- * @api public
- */
-
-module.exports = function(el, name, val) {
-  // get
-  if (arguments.length == 2) {
-    return el.getAttribute(name);
-  }
-
-  // remove
-  if (val === null) {
-    return el.removeAttribute(name);
-  }
-
-  // set
-  el.setAttribute(name, val);
-
-  return el;
-};
-},{}],244:[function(_dereq_,module,exports){
-module.exports = _dereq_(84);
-},{"84":84}],245:[function(_dereq_,module,exports){
-module.exports = _dereq_(86);
-},{"86":86}],246:[function(_dereq_,module,exports){
-module.exports = _dereq_(111);
-},{"111":111}],247:[function(_dereq_,module,exports){
-module.exports = _dereq_(87);
-},{"87":87}],248:[function(_dereq_,module,exports){
-module.exports = _dereq_(89);
-},{"89":89}],249:[function(_dereq_,module,exports){
-module.exports = _dereq_(90);
-},{"90":90}],250:[function(_dereq_,module,exports){
+},{"134":134,"135":135,"170":170}],205:[function(_dereq_,module,exports){
+module.exports = _dereq_(49);
+},{"49":49}],206:[function(_dereq_,module,exports){
+module.exports = _dereq_(51);
+},{"51":51}],207:[function(_dereq_,module,exports){
+module.exports = _dereq_(78);
+},{"78":78}],208:[function(_dereq_,module,exports){
+module.exports = _dereq_(52);
+},{"52":52}],209:[function(_dereq_,module,exports){
+module.exports = _dereq_(55);
+},{"55":55}],210:[function(_dereq_,module,exports){
 module.exports = function(el) {
   el.parentNode && el.parentNode.removeChild(el);
 };
-},{}],251:[function(_dereq_,module,exports){
+},{}],211:[function(_dereq_,module,exports){
 'use strict';
 
 function capitalize(string) {
@@ -14105,23 +11203,23 @@ module.exports.serializeAsType = function(element) {
 module.exports.serializeAsProperty = function(element) {
   return serializeFormat(element) === 'property';
 };
-},{}],252:[function(_dereq_,module,exports){
+},{}],212:[function(_dereq_,module,exports){
 'use strict';
 
-var reduce = _dereq_(126),
-    forEach = _dereq_(123),
-    find = _dereq_(122),
-    assign = _dereq_(234),
-    defer = _dereq_(130);
+var reduce = _dereq_(92),
+    forEach = _dereq_(90),
+    find = _dereq_(89),
+    assign = _dereq_(196),
+    defer = _dereq_(96);
 
-var Stack = _dereq_(319),
-    SaxParser = _dereq_(263).parser,
-    Moddle = _dereq_(254),
-    parseNameNs = _dereq_(259).parseName,
-    Types = _dereq_(262),
+var Stack = _dereq_(249),
+    SaxParser = _dereq_(223).parser,
+    Moddle = _dereq_(214),
+    parseNameNs = _dereq_(219).parseName,
+    Types = _dereq_(222),
     coerceType = Types.coerceType,
     isSimpleType = Types.isSimple,
-    common = _dereq_(251),
+    common = _dereq_(211),
     XSI_TYPE = common.XSI_TYPE,
     XSI_URI = common.DEFAULT_NS_MAP.xsi,
     serializeAsType = common.serializeAsType,
@@ -14835,18 +11933,18 @@ XMLReader.prototype.handler = function(name) {
 
 module.exports = XMLReader;
 module.exports.ElementHandler = ElementHandler;
-},{"122":122,"123":123,"126":126,"130":130,"234":234,"251":251,"254":254,"259":259,"262":262,"263":263,"319":319}],253:[function(_dereq_,module,exports){
+},{"196":196,"211":211,"214":214,"219":219,"222":222,"223":223,"249":249,"89":89,"90":90,"92":92,"96":96}],213:[function(_dereq_,module,exports){
 'use strict';
 
-var map = _dereq_(125),
-    forEach = _dereq_(123),
-    isString = _dereq_(232),
-    filter = _dereq_(121),
-    assign = _dereq_(234);
+var map = _dereq_(91),
+    forEach = _dereq_(90),
+    isString = _dereq_(194),
+    filter = _dereq_(88),
+    assign = _dereq_(196);
 
-var Types = _dereq_(262),
-    parseNameNs = _dereq_(259).parseName,
-    common = _dereq_(251),
+var Types = _dereq_(222),
+    parseNameNs = _dereq_(219).parseName,
+    common = _dereq_(211),
     nameToAlias = common.nameToAlias,
     serializeAsType = common.serializeAsType,
     serializeAsProperty = common.serializeAsProperty;
@@ -15519,9 +12617,9 @@ function XMLWriter(options) {
 
 module.exports = XMLWriter;
 
-},{"121":121,"123":123,"125":125,"232":232,"234":234,"251":251,"259":259,"262":262}],254:[function(_dereq_,module,exports){
-module.exports = _dereq_(258);
-},{"258":258}],255:[function(_dereq_,module,exports){
+},{"194":194,"196":196,"211":211,"219":219,"222":222,"88":88,"90":90,"91":91}],214:[function(_dereq_,module,exports){
+module.exports = _dereq_(218);
+},{"218":218}],215:[function(_dereq_,module,exports){
 'use strict';
 
 function Base() { }
@@ -15536,14 +12634,14 @@ Base.prototype.set = function(name, value) {
 
 
 module.exports = Base;
-},{}],256:[function(_dereq_,module,exports){
+},{}],216:[function(_dereq_,module,exports){
 'use strict';
 
-var pick = _dereq_(239),
-    assign = _dereq_(234),
-    forEach = _dereq_(123);
+var pick = _dereq_(201),
+    assign = _dereq_(196),
+    forEach = _dereq_(90);
 
-var parseNameNs = _dereq_(259).parseName;
+var parseNameNs = _dereq_(219).parseName;
 
 
 function DescriptorBuilder(nameNs) {
@@ -15761,12 +12859,12 @@ DescriptorBuilder.prototype.addTrait = function(t, inherited) {
   allTypes.push(t);
 };
 
-},{"123":123,"234":234,"239":239,"259":259}],257:[function(_dereq_,module,exports){
+},{"196":196,"201":201,"219":219,"90":90}],217:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(123);
+var forEach = _dereq_(90);
 
-var Base = _dereq_(255);
+var Base = _dereq_(215);
 
 
 function Factory(model, properties) {
@@ -15819,20 +12917,20 @@ Factory.prototype.createType = function(descriptor) {
 
   return ModdleElement;
 };
-},{"123":123,"255":255}],258:[function(_dereq_,module,exports){
+},{"215":215,"90":90}],218:[function(_dereq_,module,exports){
 'use strict';
 
-var isString = _dereq_(232),
-    isObject = _dereq_(231),
-    forEach = _dereq_(123),
-    find = _dereq_(122);
+var isString = _dereq_(194),
+    isObject = _dereq_(193),
+    forEach = _dereq_(90),
+    find = _dereq_(89);
 
 
-var Factory = _dereq_(257),
-    Registry = _dereq_(261),
-    Properties = _dereq_(260);
+var Factory = _dereq_(217),
+    Registry = _dereq_(221),
+    Properties = _dereq_(220);
 
-var parseNameNs = _dereq_(259).parseName;
+var parseNameNs = _dereq_(219).parseName;
 
 
 //// Moddle implementation /////////////////////////////////////////////////
@@ -16038,7 +13136,7 @@ Moddle.prototype.getPropertyDescriptor = function(element, property) {
   return this.getElementDescriptor(element).propertiesByName[property];
 };
 
-},{"122":122,"123":123,"231":231,"232":232,"257":257,"259":259,"260":260,"261":261}],259:[function(_dereq_,module,exports){
+},{"193":193,"194":194,"217":217,"219":219,"220":220,"221":221,"89":89,"90":90}],219:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -16075,7 +13173,7 @@ module.exports.parseName = function(name, defaultPrefix) {
     localName: localName
   };
 };
-},{}],260:[function(_dereq_,module,exports){
+},{}],220:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -16194,16 +13292,16 @@ function defineProperty(target, property, value) {
     configurable: true
   });
 }
-},{}],261:[function(_dereq_,module,exports){
+},{}],221:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(234),
-    forEach = _dereq_(123);
+var assign = _dereq_(196),
+    forEach = _dereq_(90);
 
-var Types = _dereq_(262),
-    DescriptorBuilder = _dereq_(256);
+var Types = _dereq_(222),
+    DescriptorBuilder = _dereq_(216);
 
-var parseNameNs = _dereq_(259).parseName,
+var parseNameNs = _dereq_(219).parseName,
     isBuiltInType = Types.isBuiltIn;
 
 
@@ -16379,7 +13477,7 @@ Registry.prototype.getEffectiveDescriptor = function(name) {
 Registry.prototype.definePackage = function(target, pkg) {
   this.properties.define(target, '$pkg', { value: pkg });
 };
-},{"123":123,"234":234,"256":256,"259":259,"262":262}],262:[function(_dereq_,module,exports){
+},{"196":196,"216":216,"219":219,"222":222,"90":90}],222:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -16430,7 +13528,7 @@ module.exports.isBuiltIn = function(type) {
 module.exports.isSimple = function(type) {
   return !!TYPE_CONVERTERS[type];
 };
-},{}],263:[function(_dereq_,module,exports){
+},{}],223:[function(_dereq_,module,exports){
 (function (Buffer){
 // wrapper for non-node envs
 ;(function (sax) {
@@ -17845,165 +14943,13 @@ if (!String.fromCodePoint) {
 
 }).call(this,undefined)
 
-},{"undefined":undefined}],264:[function(_dereq_,module,exports){
+},{"undefined":undefined}],224:[function(_dereq_,module,exports){
+module.exports = _dereq_(225);
+
+},{"225":225}],225:[function(_dereq_,module,exports){
 'use strict';
 
-/**
- * Calculate the selection update for the given
- * current and new input values.
- *
- * @param {Object} currentSelection as {start, end}
- * @param {String} currentValue
- * @param {String} newValue
- *
- * @return {Object} newSelection as {start, end}
- */
-function calculateUpdate(currentSelection, currentValue, newValue) {
-
-  var currentCursor = currentSelection.start,
-      newCursor = currentCursor,
-      diff = newValue.length - currentValue.length,
-      idx;
-
-  var lengthDelta = newValue.length - currentValue.length;
-
-  var currentTail = currentValue.substring(currentCursor);
-
-  // check if we can remove common ending from the equation
-  // to be able to properly detect a selection change for
-  // the following scenarios:
-  //
-  //  * (AAATTT|TF) => (AAAT|TF)
-  //  * (AAAT|TF) =>  (AAATTT|TF)
-  //
-  if (newValue.lastIndexOf(currentTail) === newValue.length - currentTail.length) {
-    currentValue = currentValue.substring(0, currentValue.length - currentTail.length);
-    newValue = newValue.substring(0, newValue.length - currentTail.length);
-  }
-
-  // diff
-  var diff = createDiff(currentValue, newValue);
-
-  if (diff) {
-    if (diff.type === 'remove') {
-      newCursor = diff.newStart;
-    } else {
-      newCursor = diff.newEnd;
-    }
-  }
-
-  return range(newCursor);
-}
-
-module.exports = calculateUpdate;
-
-
-function createDiff(currentValue, newValue) {
-
-  var insert;
-
-  var l_str, l_char, l_idx = 0,
-      s_str, s_char, s_idx = 0;
-
-  if (newValue.length > currentValue.length) {
-    l_str = newValue;
-    s_str = currentValue;
-  } else {
-    l_str = currentValue;
-    s_str = newValue;
-  }
-
-  // assume there will be only one insert / remove and
-  // detect that _first_ edit operation only
-  while (l_idx < l_str.length) {
-
-    l_char = l_str.charAt(l_idx);
-    s_char = s_str.charAt(s_idx);
-
-    // chars no not equal
-    if (l_char !== s_char) {
-
-      if (!insert) {
-        insert = {
-          l_start: l_idx,
-          s_start: s_idx
-        };
-      }
-
-      l_idx++;
-    }
-
-    // chars equal (again?)
-    else {
-
-      if (insert && !insert.complete) {
-        insert.l_end = l_idx;
-        insert.s_end = s_idx;
-        insert.complete = true;
-      }
-
-      s_idx++;
-      l_idx++;
-    }
-  }
-
-  if (insert && !insert.complete) {
-    insert.complete = true;
-    insert.s_end = s_str.length;
-    insert.l_end = l_str.length;
-  }
-
-  // no diff
-  if (!insert) {
-    return;
-  }
-
-  if (newValue.length > currentValue.length) {
-    return {
-      newStart: insert.l_start,
-      newEnd: insert.l_end,
-      type: 'add'
-    };
-  } else {
-    return {
-      newStart: insert.s_start,
-      newEnd: insert.s_end,
-      type: newValue.length < currentValue.length ? 'remove' : 'replace'
-    };
-  }
-}
-
-/**
- * Utility method for creating a new selection range {start, end} object.
- *
- * @param {Number} start
- * @param {Number} [end]
- *
- * @return {Object} selection range as {start, end}
- */
-function range(start, end) {
-  return {
-    start: start,
-    end: end === undefined ? start : end
-  };
-}
-
-module.exports.range = range;
-
-
-function splitStr(str, position) {
-  return {
-    before: str.substring(0, position),
-    after: str.substring(position)
-  };
-}
-},{}],265:[function(_dereq_,module,exports){
-module.exports = _dereq_(266);
-
-},{"266":266}],266:[function(_dereq_,module,exports){
-'use strict';
-
-var di = _dereq_(103);
+var di = _dereq_(68);
 
 
 /**
@@ -18079,7 +15025,7 @@ function createInjector(options) {
     'config': ['value', options]
   };
 
-  var coreModule = _dereq_(271);
+  var coreModule = _dereq_(230);
 
   var modules = [ configModule, coreModule ].concat(options.modules || []);
 
@@ -18180,10 +15126,10 @@ Table.prototype.clear = function() {
   this.get('eventBus').fire('diagram.clear');
 };
 
-},{"103":103,"271":271}],267:[function(_dereq_,module,exports){
+},{"230":230,"68":68}],226:[function(_dereq_,module,exports){
 'use strict';
 
-var Model = _dereq_(318);
+var Model = _dereq_(248);
 
 
 /**
@@ -18228,7 +15174,7 @@ ElementFactory.prototype.create = function(type, attrs) {
   return Model.create(type, attrs);
 };
 
-},{"318":318}],268:[function(_dereq_,module,exports){
+},{"248":248}],227:[function(_dereq_,module,exports){
 'use strict';
 
 var ELEMENT_ID = 'data-element-id';
@@ -18429,10 +15375,10 @@ ElementRegistry.prototype._validateId = function(id) {
   }
 };
 
-},{}],269:[function(_dereq_,module,exports){
+},{}],228:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(123);
+var forEach = _dereq_(90);
 
 /**
  * A factory that creates graphical elements
@@ -18572,13 +15518,13 @@ GraphicsFactory.prototype.remove = function(element) {
   gfx.parentNode && gfx.parentNode.removeChild(gfx);
 };
 
-},{"123":123}],270:[function(_dereq_,module,exports){
+},{"90":90}],229:[function(_dereq_,module,exports){
 'use strict';
 
-var isNumber = _dereq_(230),
-    assign = _dereq_(234),
-    forEach = _dereq_(123),
-    every = _dereq_(120);
+var isNumber = _dereq_(192),
+    assign = _dereq_(196),
+    forEach = _dereq_(90),
+    every = _dereq_(87);
 
 function ensurePx(number) {
   return isNumber(number) ? number + 'px' : number;
@@ -19350,21 +16296,21 @@ Sheet.prototype.resized = function() {
   eventBus.fire('sheet.resized');
 };
 
-},{"120":120,"123":123,"230":230,"234":234}],271:[function(_dereq_,module,exports){
+},{"192":192,"196":196,"87":87,"90":90}],230:[function(_dereq_,module,exports){
 module.exports = {
-  __depends__: [ _dereq_(273) ],
+  __depends__: [ _dereq_(232) ],
   __init__: [ 'sheet' ],
-  sheet: [ 'type', _dereq_(270) ],
-  elementRegistry: [ 'type', _dereq_(268) ],
-  elementFactory: ['type', _dereq_(267)],
-  graphicsFactory: [ 'type', _dereq_(269) ],
-  eventBus: [ 'type', _dereq_(94) ]
+  sheet: [ 'type', _dereq_(229) ],
+  elementRegistry: [ 'type', _dereq_(227) ],
+  elementFactory: ['type', _dereq_(226)],
+  graphicsFactory: [ 'type', _dereq_(228) ],
+  eventBus: [ 'type', _dereq_(59) ]
 };
 
-},{"267":267,"268":268,"269":269,"270":270,"273":273,"94":94}],272:[function(_dereq_,module,exports){
+},{"226":226,"227":227,"228":228,"229":229,"232":232,"59":59}],231:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(123),
+var forEach = _dereq_(90),
     colDistance = function colDistance(from, to) {
       var i = 0,
           current = from.column;
@@ -19465,185 +16411,23 @@ Renderer.prototype.drawCell = function drawCell(gfx, data) {
   return gfx;
 };
 
-},{"123":123}],273:[function(_dereq_,module,exports){
+},{"90":90}],232:[function(_dereq_,module,exports){
 module.exports = {
-  renderer: [ 'type', _dereq_(272) ]
+  renderer: [ 'type', _dereq_(231) ]
 };
 
-},{"272":272}],274:[function(_dereq_,module,exports){
-'use strict';
-
-var domify = _dereq_(246);
-
-// document wide unique overlay ids
-var ids = new (_dereq_(99))('row');
-
-/**
- * Adds a control to the table to add more rows
- *
- * @param {EventBus} eventBus
- */
-function AddRow(eventBus, sheet, elementRegistry, modeling) {
-
-  this.row = null;
-
-  var self = this;
-  // add the row control row
-  eventBus.on('utilityColumn.added', function(event) {
-    var column = event.column;
-    self.row = sheet.addRow({
-      id: 'tjs-controls',
-      isFoot: true
-    });
-
-    var node = domify('<a title="Add row" class="table-js-add-row"><span>+</span></a>');
-
-    node.addEventListener('mouseup', function() {
-      modeling.createRow({ id: ids.next() });
-    });
-
-    sheet.setCellContent({
-      row: self.row,
-      column: column,
-      content: node
-    });
-
-  });
-}
-
-AddRow.$inject = [ 'eventBus', 'sheet', 'elementRegistry', 'modeling' ];
-
-module.exports = AddRow;
-
-AddRow.prototype.getRow = function() {
-  return this.row;
-};
-
-},{"246":246,"99":99}],275:[function(_dereq_,module,exports){
-'use strict';
-
-var domClasses = _dereq_(244);
-
-function AddRowRenderer(
-    eventBus,
-    addRow) {
-
-  eventBus.on('cell.render', function(event) {
-    if (event.data.row === addRow.getRow() && event.data.content) {
-      domClasses(event.gfx).add('add-rule');
-      event.gfx.childNodes[0].appendChild(event.data.content);
-    }
-  });
-
-  eventBus.on('row.render', function(event) {
-    if (event.data === addRow.getRow()) {
-      domClasses(event.gfx).add('rules-controls');
-    }
-  });
-
-}
-
-AddRowRenderer.$inject = [
-  'eventBus',
-  'addRow'
-];
-
-module.exports = AddRowRenderer;
-
-},{"244":244}],276:[function(_dereq_,module,exports){
-module.exports = {
-  __init__: [ 'addRow', 'addRowRenderer'],
-  __depends__: [
-    _dereq_(307),
-    _dereq_(317)
-  ],
-  addRow: [ 'type', _dereq_(274) ],
-  addRowRenderer: [ 'type', _dereq_(275) ]
-};
-
-},{"274":274,"275":275,"307":307,"317":317}],277:[function(_dereq_,module,exports){
-'use strict';
-
-/**
- * Adds change support to the sheet, including
- *
- * <ul>
- *   <li>redrawing rows and cells on change</li>
- * </ul>
- *
- * @param {EventBus} eventBus
- * @param {ElementRegistry} elementRegistry
- * @param {GraphicsFactory} graphicsFactory
- */
-function ChangeSupport(eventBus, elementRegistry, graphicsFactory) {
-
-  // redraw row / cells on change
-
-  eventBus.on('element.changed', function(event) {
-
-    var element = event.element;
-
-    if (!event.gfx) {
-      event.gfx = elementRegistry.getGraphics(element);
-    }
-
-    // shape + gfx may have been deleted
-    if (!event.gfx) {
-      return;
-    }
-
-    if (element.column) {
-      eventBus.fire('cell.changed', event);
-    } else {
-      eventBus.fire('row.changed', event);
-    }
-  });
-
-  eventBus.on('elements.changed', function(event) {
-    for (var i = 0; i < event.elements.length; i++) {
-      eventBus.fire('element.changed', { element: event.elements[i] });
-    }
-  });
-
-  eventBus.on('cell.changed', function(event) {
-    graphicsFactory.update('cell', event.element, event.gfx);
-  });
-
-  eventBus.on('row.changed', function(event) {
-    graphicsFactory.update('row', event.element, event.gfx);
-
-    // also update all cells of the row
-    var cells = elementRegistry.filter(function(ea) {
-      return ea.row === event.element;
-    });
-    for (var i = 0; i < cells.length; i++) {
-      graphicsFactory.update('cell', cells[i], elementRegistry.getGraphics(cells[i]));
-    }
-  });
-}
-
-ChangeSupport.$inject = [ 'eventBus', 'elementRegistry', 'graphicsFactory' ];
-
-module.exports = ChangeSupport;
-
-},{}],278:[function(_dereq_,module,exports){
-module.exports = {
-  __init__: [ 'changeSupport'],
-  changeSupport: [ 'type', _dereq_(277) ]
-};
-
-},{"277":277}],279:[function(_dereq_,module,exports){
+},{"231":231}],233:[function(_dereq_,module,exports){
 module.exports = "<div>\n  <label></label>\n  <input tabindex=\"0\" />\n  <span class=\"cb-caret\"></span>\n</div>\n";
 
-},{}],280:[function(_dereq_,module,exports){
+},{}],234:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(246),
-    domClasses = _dereq_(244),
-    assign = _dereq_(234),
-    forEach = _dereq_(123);
+var domify = _dereq_(207),
+    domClasses = _dereq_(205),
+    assign = _dereq_(196),
+    forEach = _dereq_(90);
 
-var comboBoxTemplate = _dereq_(279);
+var comboBoxTemplate = _dereq_(233);
 
 /**
  * Offers the ability to create a combobox which is a combination of an
@@ -19937,12 +16721,12 @@ ComboBox.prototype.enable = function() {
 
 module.exports = ComboBox;
 
-},{"123":123,"234":234,"244":244,"246":246,"279":279}],281:[function(_dereq_,module,exports){
+},{"196":196,"205":205,"207":207,"233":233,"90":90}],235:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(234),
-    domClasses = _dereq_(244),
-    domRemove = _dereq_(250);
+var assign = _dereq_(196),
+    domClasses = _dereq_(205),
+    domRemove = _dereq_(210);
 
 
 /**
@@ -19989,6 +16773,12 @@ ComplexCell.prototype.setupListeners = function() {
   // click on body closes open complex cells
   document.body.addEventListener('click', function(event) {
     if (!event.preventDialogClose) {
+      self.close();
+    }
+  });
+
+  document.body.addEventListener('keydown', function(event) {
+    if (!event.preventDialogClose && event.keyCode === 27) {
       self.close();
     }
   });
@@ -20141,18 +16931,18 @@ ComplexCell.$inject = [ 'eventBus', 'elementRegistry', 'sheet' ];
 
 module.exports = ComplexCell;
 
-},{"234":234,"244":244,"250":250}],282:[function(_dereq_,module,exports){
+},{"196":196,"205":205,"210":210}],236:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'complexCell' ],
-  complexCell: [ 'type', _dereq_(281) ]
+  complexCell: [ 'type', _dereq_(235) ]
 };
 
-},{"281":281}],283:[function(_dereq_,module,exports){
+},{"235":235}],237:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(244);
+var domClasses = _dereq_(205);
 /**
  *  The controls module adds a container to the top-right corner of the table which holds
  *  some control elements
@@ -20166,11 +16956,19 @@ function Controls(eventBus) {
 
   eventBus.on([ 'sheet.init', 'sheet.cleared' ], function(evt) {
 
+    // remove existing control
+    var container = evt.sheet.parentNode;
+
+    var existingControl = container.querySelector('.tjs-controls');
+    if (existingControl) {
+      container.removeChild(existingControl);
+    }
+
     var domNode = document.createElement('div');
     domClasses(domNode).add('tjs-controls');
 
     self.controlsContainer = domNode;
-    evt.sheet.parentNode.appendChild(domNode);
+    container.appendChild(domNode);
 
     eventBus.fire('controls.init', {
       node: domNode,
@@ -20206,571 +17004,22 @@ Controls.$inject = [ 'eventBus' ];
 
 module.exports = Controls;
 
-},{"244":244}],284:[function(_dereq_,module,exports){
+},{"205":205}],238:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'controls' ],
-  controls: [ 'type', _dereq_(283) ]
+  controls: [ 'type', _dereq_(237) ]
 };
 
-},{"283":283}],285:[function(_dereq_,module,exports){
+},{"237":237}],239:[function(_dereq_,module,exports){
 'use strict';
 
-var debounce = _dereq_(129);
-var DEBOUNCE_DELAY = 300;
+var forEach = _dereq_(90),
+    domDelegate = _dereq_(206);
 
-function EditBehavior(
-    eventBus,
-    selection,
-    sheet,
-    elementRegistry,
-    modeling,
-    rules,
-    graphicsFactory,
-    commandStack,
-    tableName,
-    editorActions) {
 
-  var replaceFct = function(text) {
-    return text
-      .replace(/<div><br><\/div>/ig, '\n')  // replace div with a br with single linebreak
-      .replace(/<br(\s*)\/*>/ig, '\n')      // replace single line-breaks
-      .replace(/<(div|p)(\s*)\/*>/ig, '\n') // add a line break before all div and p tags
-      .replace(/&nbsp;/ig, ' ')             // replace non breaking spaces with normal spaces
-      .replace(/(<([^>]+)>)/ig, '');        // remove any remaining tags
-  };
-
-  var sanitizeInput = function(text) {
-    var encodedString = replaceFct(text).trim();
-
-    // create an temporary textarea to translate html entities to normal chars
-    var textArea = document.createElement('textarea');
-    textArea.innerHTML = encodedString;
-    return textArea.value;
-  };
-
-  var sanitizeInputWithoutTrim = function(text) {
-    var encodedString = replaceFct(text);
-
-    // create an temporary textarea to translate html entities to normal chars
-    var textArea = document.createElement('textarea');
-    textArea.innerHTML = encodedString;
-    return textArea.value;
-  };
-
-  eventBus.on('element.focus', function(event) {
-    if (rules.allowed('cell.edit', {
-      row: event.element.row,
-      column: event.element.column,
-      content: event.element.content
-    }) && !event.element.row.isFoot &&
-          !event.element.complex) {
-
-      event.gfx.childNodes[0].focus();
-
-      var element = event.element;
-
-      selection.select(element);
-
-      // select the content of the focused cell
-      var sel = window.getSelection();
-      sel.selectAllChildren(event.gfx.childNodes[0]);
-
-      // IE has execCommand, but throws an Exception when trying to use it with
-      // enableInlineTableEditing
-      // We need this line so that FF does not screw us with its build in
-      // table editing features
-      try {
-        document.execCommand('enableInlineTableEditing', false, 'false');
-      } catch (e) {
-        // only catch the IE error
-        if (e.description !== 'Invalid argument.') {
-          // rethrow all other errors
-          throw e;
-        }
-      }
-    }
-  });
-
-  eventBus.on('element.mousedown', function(event) {
-    if (rules.allowed('cell.edit', {
-      row: event.element.row,
-      column: event.element.column,
-      content: event.element.content
-    }) && !event.element.row.isFoot &&
-          selection.get() !== event.element &&
-          !event.element.complex) {
-
-      selection.select(event.element);
-
-      // ensure that we get a focus event afterwards
-      // prevent chrome from firing a buildin focus event
-      event.preventDefault();
-      // cause all browsers to focus the child node
-      event.gfx.childNodes[0].focus();
-    }
-  });
-
-  eventBus.on('element.blur', function(event) {
-    var element = event.element;
-
-    if (selection.isSelected(element)) {
-      selection.deselect();
-    }
-  });
-
-  eventBus.on('element.input', debounce(function(event) {
-    var element = event.element;
-    var gfx = elementRegistry.getGraphics(event.element);
-    if (selection.isSelected(element) && !element.preventAutoUpdate) {
-
-      modeling.editCell(element.row.id, element.column.id, sanitizeInputWithoutTrim(gfx.innerHTML));
-
-    }
-  }, DEBOUNCE_DELAY));
-
-  eventBus.on('selection.changed', function(event) {
-    if (event.oldSelection) {
-      // apply changes of the diagram to the model
-      var gfxOld = elementRegistry.getGraphics(event.oldSelection);
-      if (gfxOld) {
-        if (!event.oldSelection.preventAutoUpdate) {
-          modeling.editCell(event.oldSelection.row.id, event.oldSelection.column.id, sanitizeInput(gfxOld.innerHTML));
-        }
-        graphicsFactory.update('row', event.oldSelection.row, elementRegistry.getGraphics(event.oldSelection.row));
-        graphicsFactory.update('column', event.oldSelection.column,
-                elementRegistry.getGraphics(event.oldSelection.column));
-      }
-    }
-    if (event.newSelection) {
-      graphicsFactory.update('cell', event.newSelection, elementRegistry.getGraphics(event.newSelection));
-      graphicsFactory.update('row', event.newSelection.row, elementRegistry.getGraphics(event.newSelection.row));
-      graphicsFactory.update('column', event.newSelection.column,
-              elementRegistry.getGraphics(event.newSelection.column));
-    }
-  });
-
-  eventBus.on('tableName.init', function(event) {
-    if (rules.allowed('name.edit')) {
-
-      eventBus.fire('tableName.allowEdit', {
-        editAllowed: true
-      });
-
-      event.node.setAttribute('contenteditable', true);
-
-      event.node.addEventListener('blur', function(evt) {
-        var newName = sanitizeInput(evt.target.innerHTML);
-        if (newName !== tableName.getName()) {
-          modeling.editName(newName);
-        }
-      }, true);
-    }
-  });
-
-  editorActions.register({
-    insertNewLine: function() {
-      // standard behavior (linebreak) on ctrl+enter
-      // http://stackoverflow.com/a/12957539/4582955
-      var selectObj = document.getSelection();
-      var range = selectObj.getRangeAt(0);
-
-      var br = document.createElement('br'),
-          textNode = document.createTextNode('\u00a0');
-                //Passing ' ' directly will not end up being shown correctly
-
-      range.deleteContents();             // delete the selection
-      range.insertNode(br);               // add a linebreak
-      range.collapse(false);              // go after the linebreak
-      range.insertNode(textNode);         // add a whitespace (so the linebreak gets displayed)
-      range.collapse(true);               // place cursor before whitespace
-
-        // update the selection with the new range
-      selectObj.removeAllRanges();
-      selectObj.addRange(range);
-    },
-    selectNextRow: function() {
-      selection.selectBelow();
-    },
-    selectPreviousRow: function() {
-      selection.selectAbove();
-    }
-  });
-}
-
-EditBehavior.$inject = [
-  'eventBus',
-  'selection',
-  'sheet',
-  'elementRegistry',
-  'modeling',
-  'rules',
-  'graphicsFactory',
-  'commandStack',
-  'tableName',
-  'editorActions'
-];
-
-module.exports = EditBehavior;
-
-},{"129":129}],286:[function(_dereq_,module,exports){
-'use strict';
-
-var domClasses = _dereq_(244);
-
-function EditRenderer(
-    eventBus,
-    rules) {
-
-  eventBus.on('cell.render', function(event) {
-    if (rules.allowed('cell.edit', {
-      row: event.data.row,
-      column: event.data.column,
-      content: event.data.content
-    }) && !event.data.row.isFoot  &&
-          !event.data.complex) {
-      event.gfx.childNodes[0].setAttribute('contenteditable', true);
-    } else {
-      event.gfx.childNodes[0].setAttribute('contenteditable', false);
-    }
-
-    event.gfx.childNodes[0].setAttribute('spellcheck', 'false');
-
-    if (event.data.selected) {
-      domClasses(event.gfx).add('focused');
-    } else {
-      domClasses(event.gfx).remove('focused');
-    }
-
-    if (!event.data.row.isFoot) {
-
-      if (event.data.row.selected && !event.data.isHead) {
-        domClasses(event.gfx).add('row-focused');
-      } else {
-        domClasses(event.gfx).remove('row-focused');
-      }
-      if (event.data.column.selected && !event.data.row.useTH) {
-        domClasses(event.gfx).add('col-focused');
-      } else {
-        domClasses(event.gfx).remove('col-focused');
-      }
-    }
-
-  });
-
-  eventBus.on('row.render', function(event) {
-    if (event.data.selected && !event.data.isHead) {
-      domClasses(event.gfx).add('row-focused');
-    } else {
-      domClasses(event.gfx).remove('row-focused');
-    }
-
-  });
-}
-
-EditRenderer.$inject = [
-  'eventBus',
-  'rules'
-];
-
-module.exports = EditRenderer;
-
-},{"244":244}],287:[function(_dereq_,module,exports){
-'use strict';
-
-/**
- * A service that offers the current selection in a table.
- * Offers the api to control the selection, too.
- *
- * @class
- *
- * @param {EventBus} eventBus the event bus
- */
-function Selection(eventBus, elementRegistry) {
-
-  this._eventBus = eventBus;
-  this._elementRegistry = elementRegistry;
-
-  this._selectedElement = null;
-
-  this.frozen = false;
-}
-
-Selection.$inject = [ 'eventBus', 'elementRegistry' ];
-
-module.exports = Selection;
-
-
-Selection.prototype.freeze = function() {
-  this.frozen = true;
-  this.pendingSelection = this._selectedElement;
-};
-
-Selection.prototype.unfreeze = function() {
-  this.frozen = false;
-  if (this.pendingSelection) {
-    this.select(this.pendingSelection);
-  } else {
-    this.deselect();
-  }
-};
-
-Selection.prototype.deselect = function(skipEvent) {
-  if (this.frozen) {
-    this.pendingSelection = null;
-    return;
-  }
-  if (this._selectedElement) {
-    var oldSelection = this._selectedElement;
-
-    this._selectedElement.row.selected = false;
-    this._selectedElement.column.selected = false;
-    this._selectedElement.selected = false;
-    this._selectedElement = null;
-    if (!skipEvent) {
-      this._eventBus.fire('selection.changed', { oldSelection: oldSelection, newSelection: this._selectedElement });
-    }
-    return oldSelection;
-  }
-};
-
-
-Selection.prototype.get = function() {
-  return this._selectedElement;
-};
-
-Selection.prototype.isSelected = function(element) {
-  return this._selectedElement === element;
-};
-
-
-/**
- * This method selects a cell in the table.
- *
- * @method Selection#select
- *
- * @param  {Object} element element to be selected
- */
-Selection.prototype.select = function(element) {
-  if (this.frozen) {
-    this.pendingSelection = element;
-    return;
-  }
-  if (!element || this.isSelected(element)) {
-    return;
-  }
-
-  var oldSelection = this._selectedElement;
-
-  if (oldSelection) {
-    this.deselect(true);
-  }
-
-  this._selectedElement = element;
-  element.selected = true;
-  element.row.selected = true;
-  element.column.selected = true;
-
-  this._eventBus.fire('selection.changed', { oldSelection: oldSelection, newSelection: this._selectedElement });
-};
-
-/**
- * This method selects the cell above the currently selected cell
- *
- * @method Selection#selectAbove
- */
-Selection.prototype.selectAbove = function() {
-  var node = this.get();
-  if (node && node.row && node.row.previous) {
-    var cell = this._elementRegistry.filter(function(element) {
-      return element.row && element.row === node.row.previous &&
-         element.column && element.column === node.column;
-    })[0];
-    this.select(cell);
-    this._elementRegistry.getGraphics(cell.id).firstChild.focus();
-  }
-};
-
-/**
- * This method selects the cell below the currently selected cell
- *
- * @method Selection#selectBelow
- */
-Selection.prototype.selectBelow = function() {
-  var node = this.get();
-  if (node && node.row && node.row.next) {
-    var cell = this._elementRegistry.filter(function(element) {
-      return element.row && element.row === node.row.next &&
-         element.column && element.column === node.column;
-    })[0];
-    this.select(cell);
-    this._elementRegistry.getGraphics(cell.id).firstChild.focus();
-  }
-};
-
-},{}],288:[function(_dereq_,module,exports){
-module.exports = {
-  __init__: [ 'editBehavior', 'editRenderer' ],
-  __depends__: [
-    _dereq_(292),
-    _dereq_(307),
-    _dereq_(294),
-    _dereq_(97)
-  ],
-  selection: [ 'type', _dereq_(287) ],
-  editBehavior: [ 'type', _dereq_(285) ],
-  editRenderer: [ 'type', _dereq_(286) ]
-};
-
-},{"285":285,"286":286,"287":287,"292":292,"294":294,"307":307,"97":97}],289:[function(_dereq_,module,exports){
-'use strict';
-
-var forEach = _dereq_(123);
-
-var NOT_REGISTERED_ERROR = 'is not a registered action',
-    IS_REGISTERED_ERROR = 'is already registered';
-
-/**
- * An interface that provides access to modeling actions by decoupling
- * the one who requests the action to be triggered and the trigger itself.
- *
- * It's possible to add new actions by registering them with ´registerAction´ and likewise
- * unregister existing ones with ´unregisterAction´.
- *
- */
-function EditorActions(commandStack) {
-
-  this._actions = {
-    undo: function() {
-      commandStack.undo();
-    },
-    redo: function() {
-      commandStack.redo();
-    }
-  };
-}
-
-EditorActions.$inject = [ 'commandStack' ];
-
-module.exports = EditorActions;
-
-
-/**
- * Triggers a registered action
- *
- * @param  {String} action
- * @param  {Object} opts
- *
- * @return {Unknown} Returns what the registered listener returns
- */
-EditorActions.prototype.trigger = function(action, opts) {
-  if (!this._actions[action]) {
-    throw error(action, NOT_REGISTERED_ERROR);
-  }
-
-  return this._actions[action](opts);
-};
-
-
-/**
- * Registers a collections of actions.
- * The key of the object will be the name of the action.
- *
- * @example
- * ´´´
- * var actions = {
-  *    redo: function() {
-  *      commandStack.redo();
-  *    },
-  *    ruleAdd: function() {
-  *      var newRow = {id: Id.next()};
-  *      modeling.createRow(newRow);
-  *    }
-  * ];
- * editorActions.register(actions);
- *
- * editorActions.isRegistered('spaceTool'); // true
- * ´´´
- *
- * @param  {Object} actions
- */
-EditorActions.prototype.register = function(actions, listener) {
-  if (typeof actions === 'string') {
-    return this._registerAction(actions, listener);
-  }
-
-  forEach(actions, function(listener, action) {
-    this._registerAction(action, listener);
-  }, this);
-};
-
-/**
- * Registers a listener to an action key
- *
- * @param  {String} action
- * @param  {Function} listener
- */
-EditorActions.prototype._registerAction = function(action, listener) {
-  if (this.isRegistered(action)) {
-    throw error(action, IS_REGISTERED_ERROR);
-  }
-
-  this._actions[action] = listener;
-};
-
-/**
- * Unregister an existing action
- *
- * @param {String} action
- */
-EditorActions.prototype.unregister = function(action) {
-  if (!this.isRegistered(action)) {
-    throw error(action, NOT_REGISTERED_ERROR);
-  }
-
-  this._actions[action] = undefined;
-};
-
-/**
- * Returns the number of actions that are currently registered
- *
- * @return {Number}
- */
-EditorActions.prototype.length = function() {
-  return Object.keys(this._actions).length;
-};
-
-/**
- * Checks wether the given action is registered
- *
- * @param {String} action
- *
- * @return {Boolean}
- */
-EditorActions.prototype.isRegistered = function(action) {
-  return !!this._actions[action];
-};
-
-
-function error(action, message) {
-  return new Error(action + ' ' + message);
-}
-
-},{"123":123}],290:[function(_dereq_,module,exports){
-module.exports = {
-  __init__: [ 'editorActions' ],
-  editorActions: [ 'type', _dereq_(289) ]
-};
-
-},{"289":289}],291:[function(_dereq_,module,exports){
-'use strict';
-
-var forEach = _dereq_(123),
-    domDelegate = _dereq_(245);
-
-
-var isPrimaryButton = _dereq_(100).isPrimaryButton;
+var isPrimaryButton = _dereq_(65).isPrimaryButton;
 
 /**
  * A plugin that provides interaction events for table elements.
@@ -21010,233 +17259,16 @@ module.exports = InteractionEvents;
  * @property {Event} originalEvent
  */
 
-},{"100":100,"123":123,"245":245}],292:[function(_dereq_,module,exports){
+},{"206":206,"65":65,"90":90}],240:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'interactionEvents' ],
-  interactionEvents: [ 'type', _dereq_(291) ]
+  interactionEvents: [ 'type', _dereq_(239) ]
 };
 
-},{"291":291}],293:[function(_dereq_,module,exports){
+},{"239":239}],241:[function(_dereq_,module,exports){
 'use strict';
 
-var domEvent = _dereq_(247),
-    domMatches = _dereq_(248);
-
-/**
- * A keyboard abstraction that may be activated and
- * deactivated by users at will, consuming key events
- * and triggering table actions.
- *
- * The implementation fires the following key events that allow
- * other components to hook into key handling:
- *
- *  - keyboard.bind
- *  - keyboard.unbind
- *  - keyboard.init
- *  - keyboard.destroy
- *
- * All events contain the fields (node, listeners).
- *
- * A default binding for the keyboard may be specified via the
- * `keyboard.bindTo` configuration option.
- *
- * @param {EventBus} eventBus
- * @param {CommandStack} commandStack
- */
-function Keyboard(config, eventBus, editorActions) {
-  var self = this;
-
-  this._eventBus = eventBus;
-  this._editorActions = editorActions;
-
-  this._listeners = [];
-
-  // our key handler is a singleton that passes
-  // (keycode, modifiers) to each listener.
-  //
-  // listeners must indicate that they handled a key event
-  // by returning true. This stops the event propagation.
-  //
-  this._keyHandler = function(event) {
-
-    var i, l,
-        target = event.target,
-        listeners = self._listeners,
-        code = event.keyCode || event.charCode || -1;
-
-    if (domMatches(target, 'input, textarea')) {
-      return;
-    }
-
-    for (i = 0; (l = listeners[i]); i++) {
-      if (l(code, event)) {
-        event.stopPropagation();
-        event.preventDefault();
-      }
-    }
-  };
-
-  // properly clean dom registrations
-  eventBus.on('table.destroy', function() {
-    self._fire('destroy');
-
-    self.unbind();
-    self._listeners = null;
-  });
-
-  eventBus.on('table.init', function() {
-    self._fire('init');
-
-    if (config && config.bindTo) {
-      self.bind(config.bindTo);
-    }
-  });
-
-  this._init();
-}
-
-Keyboard.$inject = [ 'config.keyboard', 'eventBus', 'editorActions' ];
-
-module.exports = Keyboard;
-
-
-Keyboard.prototype.bind = function(node) {
-  this._node = node;
-
-  // bind key events
-  domEvent.bind(node, 'keydown', this._keyHandler, true);
-
-  this._fire('bind');
-};
-
-Keyboard.prototype.getBinding = function() {
-  return this._node;
-};
-
-Keyboard.prototype.unbind = function() {
-  var node = this._node;
-
-  if (node) {
-    this._fire('unbind');
-
-    // unbind key events
-    domEvent.unbind(node, 'keydown', this._keyHandler, true);
-  }
-
-  this._node = null;
-};
-
-
-Keyboard.prototype._fire = function(event) {
-  this._eventBus.fire('keyboard.' + event, { node: this._node, listeners: this._listeners });
-};
-
-Keyboard.prototype._init = function() {
-  var listeners = this._listeners,
-      editorActions = this._editorActions;
-
-
-  // init default listeners
-
-  // undo
-  // (CTRL|CMD) + Z
-  function undo(key, modifiers) {
-
-    if (isCmd(modifiers) && !isShift(modifiers) && key === 90) {
-      editorActions.trigger('undo');
-
-      return true;
-    }
-  }
-
-  // redo
-  // CTRL + Y
-  // CMD + SHIFT + Z
-  function redo(key, modifiers) {
-
-    if (isCmd(modifiers) && (key === 89 || (key === 90 && isShift(modifiers)))) {
-      editorActions.trigger('redo');
-
-      return true;
-    }
-  }
-
-  function insertNewLine(key, modifiers) {
-
-    if (isCmd(modifiers) && key === 13) {
-      editorActions.trigger('insertNewLine');
-
-      return true;
-    }
-  }
-
-  function selectNextRow(key, modifiers) {
-
-    if (!isShift(modifiers) && !isCmd(modifiers) && key === 13) {
-      editorActions.trigger('selectNextRow');
-
-      return true;
-    }
-  }
-
-  function selectPreviousRow(key, modifiers) {
-
-    if (isShift(modifiers) && !isCmd(modifiers) && key === 13) {
-      editorActions.trigger('selectPreviousRow');
-
-      return true;
-    }
-  }
-
-  listeners.push(undo);
-  listeners.push(redo);
-
-  listeners.push(insertNewLine);
-  listeners.push(selectNextRow);
-  listeners.push(selectPreviousRow);
-};
-
-
-/**
- * Add a listener function that is notified with (key, modifiers) whenever
- * the keyboard is bound and the user presses a key.
- *
- * @param {Function} listenerFn
- */
-Keyboard.prototype.addListener = function(listenerFn) {
-  this._listeners.push(listenerFn);
-};
-
-Keyboard.prototype.hasModifier = hasModifier;
-Keyboard.prototype.isCmd = isCmd;
-Keyboard.prototype.isShift = isShift;
-
-
-function hasModifier(modifiers) {
-  return (modifiers.ctrlKey || modifiers.metaKey || modifiers.shiftKey || modifiers.altKey);
-}
-
-function isCmd(modifiers) {
-  return modifiers.ctrlKey || modifiers.metaKey;
-}
-
-function isShift(modifiers) {
-  return modifiers.shiftKey;
-}
-
-},{"247":247,"248":248}],294:[function(_dereq_,module,exports){
-module.exports = {
-  __depends__: [
-    _dereq_(290)
-  ],
-  __init__: [ 'keyboard' ],
-  keyboard: [ 'type', _dereq_(293) ]
-};
-
-},{"290":290,"293":293}],295:[function(_dereq_,module,exports){
-'use strict';
-
-var debounce = _dereq_(129);
+var debounce = _dereq_(95);
 
 var VERY_LOW_PRIORITY = 150;
 
@@ -21296,1303 +17328,19 @@ LineNumbers.prototype.updateLineNumbers = function() {
   }
 };
 
-},{"129":129}],296:[function(_dereq_,module,exports){
+},{"95":95}],242:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'lineNumbers' ],
   __depends__: [
-    _dereq_(317)
+    _dereq_(247)
   ],
-  lineNumbers: [ 'type', _dereq_(295) ]
+  lineNumbers: [ 'type', _dereq_(241) ]
 };
 
-},{"295":295,"317":317}],297:[function(_dereq_,module,exports){
+},{"241":241,"247":247}],243:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(123);
-
-
-/**
- * The basic modeling entry point.
- *
- * @param {EventBus} eventBus
- * @param {ElementFactory} elementFactory
- * @param {CommandStack} commandStack
- */
-function Modeling(eventBus, elementFactory, commandStack, sheet) {
-  this._eventBus = eventBus;
-  this._elementFactory = elementFactory;
-  this._commandStack = commandStack;
-  this._sheet = sheet;
-
-  var self = this;
-
-  // high priority listener to make sure listeners are initialized when
-  // subsequent setup steps ask whether operations are possible
-  eventBus.on('table.init', 1500, function() {
-    // register modeling handlers
-    self._registerHandlers(commandStack);
-  });
-}
-
-Modeling.$inject = [ 'eventBus', 'elementFactory', 'commandStack', 'sheet' ];
-
-module.exports = Modeling;
-
-
-Modeling.prototype.getHandlers = function() {
-  return {
-    'row.create': _dereq_(300),
-    'row.delete': _dereq_(302),
-    'row.clear': _dereq_(298),
-    'row.move': _dereq_(306),
-
-    'column.create': _dereq_(299),
-    'column.delete': _dereq_(301),
-    'column.move': _dereq_(305),
-
-    'cell.edit': _dereq_(303),
-
-    'name.edit': _dereq_(304)
-  };
-};
-
-/**
- * Register handlers with the command stack
- *
- * @param {CommandStack} commandStack
- */
-Modeling.prototype._registerHandlers = function(commandStack) {
-  forEach(this.getHandlers(), function(handler, id) {
-    commandStack.registerHandler(id, handler);
-  });
-};
-
-
-///// modeling helpers /////////////////////////////////////////
-
-Modeling.prototype.createRow = function(row) {
-
-  row = this._elementFactory.create('row', row);
-
-  var context = {
-    row: row
-  };
-  this._commandStack.execute('row.create', context);
-
-  return context.row;
-};
-
-Modeling.prototype.moveRow = function(source, target, above) {
-  var context = {
-    source: source,
-    target: target,
-    above: above
-  };
-
-  this._commandStack.execute('row.move', context);
-
-  return context;
-};
-
-Modeling.prototype.createColumn = function(column) {
-
-  column = this._elementFactory.create('column', column);
-
-  var context = {
-    column: column
-  };
-
-  this._commandStack.execute('column.create', context);
-
-  return context.column;
-};
-
-Modeling.prototype.deleteRow = function(row) {
-
-  var context = {
-    row: row
-  };
-
-  this._commandStack.execute('row.delete', context);
-
-  return context.row;
-};
-
-Modeling.prototype.clearRow = function(row) {
-
-  var context = {
-    row: row
-  };
-
-  this._commandStack.execute('row.clear', context);
-
-  return context.row;
-};
-
-Modeling.prototype.deleteColumn = function(column) {
-
-  var context = {
-    column: column
-  };
-
-  this._commandStack.execute('column.delete', context);
-
-  return context.column;
-};
-
-Modeling.prototype.moveColumn = function(source, target, left) {
-  var context = {
-    source: source,
-    target: target,
-    left: left
-  };
-
-  this._commandStack.execute('column.move', context);
-
-  return context;
-};
-
-Modeling.prototype.editCell = function(row, column, content) {
-
-  var context = {
-    row: row,
-    column: column,
-    content: content
-  };
-
-  if (content.trim() !== this._sheet.getCellContent(context)) {
-    // only execute edit command if content changed
-    this._commandStack.execute('cell.edit', context);
-  }
-
-  return context;
-};
-
-Modeling.prototype.editName = function(newName) {
-  var context = {
-    newName : newName
-  };
-
-  this._commandStack.execute('name.edit', context);
-
-  return context;
-};
-
-},{"123":123,"298":298,"299":299,"300":300,"301":301,"302":302,"303":303,"304":304,"305":305,"306":306}],298:[function(_dereq_,module,exports){
-'use strict';
-
-var forEach = _dereq_(123);
-
-/**
- * A handler that implements reversible clear of rows
- *
- * @param {sheet} sheet
- */
-function DeleteRowHandler(sheet, elementRegistry, utilityColumn) {
-  this._sheet = sheet;
-  this._elementRegistry = elementRegistry;
-  this._utilityColumn = utilityColumn;
-}
-
-DeleteRowHandler.$inject = [ 'sheet', 'elementRegistry', 'utilityColumn' ];
-
-module.exports = DeleteRowHandler;
-
-
-
-////// api /////////////////////////////////////////
-
-
-/**
- * Clear a row
- *
- * @param {Object} context
- */
-DeleteRowHandler.prototype.execute = function(context) {
-  var self = this;
-  var utilityColumn = this._utilityColumn && this._utilityColumn.getColumn();
-  var cells = this._elementRegistry.filter(function(element) {
-    if (utilityColumn) {
-      return element._type === 'cell' && element.row === context.row && element.column !== utilityColumn;
-    } else {
-      return element._type === 'cell' && element.row === context.row;
-    }
-  });
-  context._oldContent = [];
-  forEach(cells, function(cell) {
-    context._oldContent.push(cell.content);
-    self._sheet.setCellContent({ row: context.row, column: cell.column, content: null });
-  });
-};
-
-
-/**
- * Undo clear by resetting the content
- */
-DeleteRowHandler.prototype.revert = function(context) {
-  var self = this;
-  var utilityColumn = this._utilityColumn && this._utilityColumn.getColumn();
-  var cells = this._elementRegistry.filter(function(element) {
-    if (utilityColumn) {
-      return element._type === 'cell' && element.row === context.row && element.column !== utilityColumn;
-    } else {
-      return element._type === 'cell' && element.row === context.row;
-    }
-  });
-  var i = 0;
-  forEach(cells, function(cell) {
-    self._sheet.setCellContent({ row: context.row, column: cell.column, content: context._oldContent[i++] });
-  });
-};
-
-},{"123":123}],299:[function(_dereq_,module,exports){
-'use strict';
-
-/**
- * A handler that implements reversible addition of columns.
- *
- * @param {sheet} sheet
- */
-function CreateColumnHandler(sheet) {
-  this._sheet = sheet;
-}
-
-CreateColumnHandler.$inject = [ 'sheet' ];
-
-module.exports = CreateColumnHandler;
-
-
-
-////// api /////////////////////////////////////////
-
-
-/**
- * Appends a column to the sheet
- *
- * @param {Object} context
- */
-CreateColumnHandler.prototype.execute = function(context) {
-  if (context._previousColumn) {
-    context.column.previous = context._previousColumn;
-  }
-  if (context._nextColumn) {
-    context.column.next = context._nextColumn;
-  }
-
-  this._sheet.addColumn(context.column);
-
-  context._previousColumn = context.column.previous;
-  context._nextColumn = context.column.next;
-
-  return context.column;
-};
-
-
-/**
- * Undo create by removing the column
- */
-CreateColumnHandler.prototype.revert = function(context) {
-  this._sheet.removeColumn(context.column);
-};
-
-},{}],300:[function(_dereq_,module,exports){
-'use strict';
-
-/**
- * A handler that implements reversible addition of rows.
- *
- * @param {sheet} sheet
- */
-function CreateRowHandler(sheet) {
-  this._sheet = sheet;
-}
-
-CreateRowHandler.$inject = [ 'sheet' ];
-
-module.exports = CreateRowHandler;
-
-
-
-////// api /////////////////////////////////////////
-
-
-/**
- * Appends a row to the sheet
- *
- * @param {Object} context
- */
-CreateRowHandler.prototype.execute = function(context) {
-  if (context._previousRow) {
-    context.row.previous = context._previousRow;
-  }
-  if (context._nextRow) {
-    context.row.next = context._nextRow;
-  }
-
-  this._sheet.addRow(context.row);
-
-  context._previousRow = context.row.previous;
-  context._nextRow = context.row.next;
-
-  return context.row;
-};
-
-
-/**
- * Undo create by removing the row
- */
-CreateRowHandler.prototype.revert = function(context) {
-  this._sheet.removeRow(context.row);
-};
-
-},{}],301:[function(_dereq_,module,exports){
-'use strict';
-
-var forEach = _dereq_(123);
-
-/**
- * A handler that implements reversible addition of columns.
- *
- * @param {sheet} sheet
- */
-function DeleteColumnHandler(sheet, elementRegistry) {
-  this._sheet = sheet;
-  this._elementRegistry = elementRegistry;
-}
-
-DeleteColumnHandler.$inject = [ 'sheet', 'elementRegistry' ];
-
-module.exports = DeleteColumnHandler;
-
-
-
-////// api /////////////////////////////////////////
-
-
-/**
- * Appends a column to the sheet
- *
- * @param {Object} context
- */
-DeleteColumnHandler.prototype.execute = function(context) {
-
-  // save the neighbors
-  context._next = context.column.next;
-  context._previous = context.column.previous;
-
-  // save the cells
-  context._cells = this._elementRegistry.filter(function(element) {
-    return element._type === 'cell' && element.column === context.column;
-  });
-
-  this._sheet.removeColumn(context.column);
-  return context.column;
-};
-
-
-/**
- * Undo create by removing the column
- */
-DeleteColumnHandler.prototype.revert = function(context) {
-  context.column.next = context._next;
-  context.column.previous = context._previous;
-
-  this._sheet.addColumn(context.column);
-
-  var self = this;
-
-  // relive the cells
-  forEach(context._cells, function(cell) {
-    self._sheet.setCellContent({ row: cell.row, column: context.column, content: cell.content });
-  });
-};
-
-},{"123":123}],302:[function(_dereq_,module,exports){
-'use strict';
-
-var forEach = _dereq_(123);
-
-/**
- * A handler that implements reversible addition of rows.
- *
- * @param {sheet} sheet
- */
-function DeleteRowHandler(sheet, elementRegistry) {
-  this._sheet = sheet;
-  this._elementRegistry = elementRegistry;
-}
-
-DeleteRowHandler.$inject = [ 'sheet', 'elementRegistry' ];
-
-module.exports = DeleteRowHandler;
-
-
-
-////// api /////////////////////////////////////////
-
-
-/**
- * Appends a row to the sheet
- *
- * @param {Object} context
- */
-DeleteRowHandler.prototype.execute = function(context) {
-
-  // save the neighbors
-  context._next = context.row.next;
-  context._previous = context.row.previous;
-
-  // save the cells
-  context._cells = this._elementRegistry.filter(function(element) {
-    return element._type === 'cell' && element.row === context.row;
-  });
-
-  this._sheet.removeRow(context.row);
-  return context.row;
-};
-
-
-/**
- * Undo create by removing the row
- */
-DeleteRowHandler.prototype.revert = function(context) {
-  context.row.next = context._next;
-  context.row.previous = context._previous;
-
-  this._sheet.addRow(context.row);
-
-  var self = this;
-
-  // relive the cells
-  forEach(context._cells, function(cell) {
-    self._sheet.setCellContent({ column: cell.column, row: context.row, content: cell.content });
-  });
-};
-
-},{"123":123}],303:[function(_dereq_,module,exports){
-'use strict';
-
-/**
- * A handler that implements reversible addition of rows.
- *
- * @param {sheet} sheet
- */
-function EditCellHandler(sheet) {
-  this._sheet = sheet;
-}
-
-EditCellHandler.$inject = [ 'sheet' ];
-
-module.exports = EditCellHandler;
-
-
-
-////// api /////////////////////////////////////////
-
-
-/**
- * Edits the content of the cell
- *
- * @param {Object} context
- */
-EditCellHandler.prototype.execute = function(context) {
-  context.oldContent = this._sheet.getCellContent(context);
-  this._sheet.setCellContent(context);
-  return context;
-};
-
-
-/**
- * Undo Edit by resetting the content
- */
-EditCellHandler.prototype.revert = function(context) {
-  this._sheet.setCellContent({ row: context.row, column: context.column, content: context.oldContent });
-  return context;
-};
-
-},{}],304:[function(_dereq_,module,exports){
-'use strict';
-
-/**
- * A handler that implements reversible editing of the table name.
- *
- * @param {tableName} tableName
- */
-function EditNameHandler(tableName) {
-  this._tableName = tableName;
-}
-
-EditNameHandler.$inject = [ 'tableName' ];
-
-module.exports = EditNameHandler;
-
-
-
-////// api /////////////////////////////////////////
-
-
-/**
- * Edits the table name
- *
- * @param {Object} context
- */
-EditNameHandler.prototype.execute = function(context) {
-  context.oldName = this._tableName.getName();
-  this._tableName.setName(context.newName);
-  return context;
-};
-
-
-/**
- * Undo Edit by resetting the content
- */
-EditNameHandler.prototype.revert = function(context) {
-  this._tableName.setName(context.oldName);
-  return context;
-};
-
-},{}],305:[function(_dereq_,module,exports){
-'use strict';
-
-/**
- * A handler that implements reversible move of columns
- *
- * @param {sheet} sheet
- */
-function MoveColumnHandler(sheet) {
-  this._sheet = sheet;
-}
-
-MoveColumnHandler.$inject = [ 'sheet' ];
-
-module.exports = MoveColumnHandler;
-
-
-
-////// api /////////////////////////////////////////
-
-
-/**
- * Move a column
- *
- * @param {Object} context
- */
-MoveColumnHandler.prototype.execute = function(context) {
-
-  context.previousRight = context.source.next;
-  this._sheet.moveColumn(context.source, context.target, context.left);
-
-};
-
-
-/**
- * Undo move
- *
- * @param {Object} context
- */
-MoveColumnHandler.prototype.revert = function(context) {
-  if (context.previousRight) {
-    // if it had a column below previously, we can move it back there again
-    this._sheet.moveColumn(context.source, context.previousRight, true);
-  } else {
-    // if it was the last column before moving it, move it back there again
-    this._sheet.moveColumn(context.source, this._sheet.getLastColumn(), false);
-  }
-};
-
-},{}],306:[function(_dereq_,module,exports){
-'use strict';
-
-/**
- * A handler that implements reversible move of rows
- *
- * @param {sheet} sheet
- */
-function MoveRowHandler(sheet) {
-  this._sheet = sheet;
-}
-
-MoveRowHandler.$inject = [ 'sheet' ];
-
-module.exports = MoveRowHandler;
-
-
-
-////// api /////////////////////////////////////////
-
-
-/**
- * Move a row
- *
- * @param {Object} context
- */
-MoveRowHandler.prototype.execute = function(context) {
-
-  context.previousBelow = context.source.next;
-  this._sheet.moveRow(context.source, context.target, context.above);
-
-};
-
-
-/**
- * Undo move
- *
- * @param {Object} context
- */
-MoveRowHandler.prototype.revert = function(context) {
-  if (context.previousBelow) {
-    // if it had a row below previously, we can move it back there again
-    this._sheet.moveRow(context.source, context.previousBelow, true);
-  } else {
-    // if it was the last row before moving it, move it back there again
-    this._sheet.moveRow(context.source, this._sheet.getLastRow('body'), false);
-  }
-};
-
-},{}],307:[function(_dereq_,module,exports){
-module.exports = {
-  __depends__: [
-    _dereq_(93),
-    _dereq_(278),
-    _dereq_(97),
-    _dereq_(317)
-  ],
-  __init__: [ 'modeling' ],
-  modeling: [ 'type', _dereq_(297) ]
-};
-
-},{"278":278,"297":297,"317":317,"93":93,"97":97}],308:[function(_dereq_,module,exports){
-'use strict';
-
-var forEach = _dereq_(123),
-    assign = _dereq_(234),
-    domDelegate = _dereq_(245),
-    domify = _dereq_(246),
-    domClasses = _dereq_(244),
-    domAttr = _dereq_(243),
-    domRemove = _dereq_(250);
-
-
-var DATA_REF = 'data-id';
-
-/**
- * A popup menu that can be used to display a list of actions.
- *
- * {@link PopupMenu#open} is used to create and open the popup menu.
- * With {@link PopupMenu#update} it is possible to update certain entries in the popup menu
- * (see examples below).
- *
- * @example
- *
- * // create a basic popup menu
- * popupMenu.open(
- *   {
- *     position: { x: 100, y: 100 },
- *     entries: [
- *       {
- *         id: 'entry-1',
- *         label: 'Entry 1',
- *         action: function(event, entry) {
- *           // do some stuff
- *         }
- *       },
- *       {
- *         id: 'entry-2',
- *         label: 'Entry 2'
- *       }
- *     ]
- *   }
- * );
- *
- * // create a more complex popup menu
- * popupMenu.open({
- *   position: { x: 100, y: 100 },
- *   entries: [
- *     {
- *       id: 'entry-1',
- *       label: 'Entry 1',
- *       action: function(event, entry) {
- *         if (entry.active) {
- *           // Removes the HTML class 'active' from the entry div, if it is clicked.
- *           popupMenu.update(entry, { active: false });
- *         } else {
-*           // Adds the HTML class 'active' from the entry div, if it is clicked.
- *           popupMenu.update(entry, { active: true });
- *         }
- *       }
- *     }
- *   ]
- * });
- *
- * // With popupMenu.update() it is possbile to update a certain entry by id.
- * // This functionality can be used to add the HTML classes 'active' or
- * // 'disabled' to a certain entry div element. This can be useful in action
- * // handler functions (see complex example above).
- * popupMenu.update('header-entry-a', { active: true });
- * popupMenu.update('header-entry-a', { disabled: true });
- *
- * // It is also possible to remove these classes:
- * popupMenu.update('header-entry-a', { active: false });
- * popupMenu.update('header-entry-a', { disabled: false });
- *
- *
- * @param {EventBus} eventBus
- * @param {Sheet} sheet
- *
- * @class
- * @constructor
- */
-function PopupMenu(eventBus, sheet) {
-
-  this._eventBus = eventBus;
-  this._sheet  = sheet;
-
-  var self = this;
-  this._eventBus.on('table.scroll', function(event) {
-    self.close();
-  });
-}
-
-PopupMenu.$inject = [ 'eventBus', 'sheet' ];
-
-
-/**
- * Creates the popup menu, adds entries and attaches it to the DOM.
- *
- * @param {Object} menu
- * @param {Object} menu.position
- * @param {String} [menu.className] a custom HTML class name for the popup menu
- *
- * @param {Array.<Object>} menu.entries
- * @param {String} menu.entries[].id
- * @param {String} menu.entries[].content Either an embedded entries array or an object describing the entry
- * @param {String} menu.entries[].content.label
- * @param {String} [menu.entries[].content.className] a custom HTML class name for the entry div element
- * @param {Object} [menu.entries[].content.action] a handler function that will be called on a click on the entry
- *
- * @return {PopupMenu}
- */
-PopupMenu.prototype.open = function(menu) {
-  var sheet = this._sheet;
-
-  var className = menu.className || 'tjs-menu',
-      position = menu.position,
-      entries = menu.entries;
-
-  if (!position) {
-    throw new Error('the position argument is missing');
-  }
-
-  if (!entries) {
-    throw new Error('the entries argument is missing');
-  }
-
-  // make sure, only one popup menu is open at a time
-  if (this.isOpen()) {
-    this.close();
-  }
-
-  var parent = sheet.getContainer(),
-      container = this._createContainer(className, position);
-
-  this._createEntries(entries, container);
-
-  this._attachContainer(container, parent);
-
-  this._current = {
-    container: container,
-    menu: menu
-  };
-
-  this._eventBus.fire('popupmenu.open', this._current);
-
-  return this;
-};
-
-
-/**
- * Removes the popup menu and unbinds the event handlers.
- */
-PopupMenu.prototype.close = function() {
-
-  if (!this.isOpen()) {
-    return;
-  }
-
-  this._eventBus.fire('popupmenu.close', this._current);
-
-  domRemove(this._current.container);
-  this._current = null;
-};
-
-
-/**
- * Determines, if an open popup menu exist.
- * @return {Boolean}
- */
-PopupMenu.prototype.isOpen = function() {
-  return !!this._current;
-};
-
-
-/**
- * Trigger an action associated with an entry.
- *
- * @param {Object} event
- */
-PopupMenu.prototype.trigger = function(event) {
-  var element = event.delegateTarget || event.target,
-      entryId = domAttr(element, DATA_REF);
-
-  var entry = this._getEntry(entryId);
-
-  if (entry.action) {
-    return entry.action.call(null, event, entry);
-  }
-};
-
-
-/**
- * Updates the attributes of an entry instance.
- *
- * The properties `active` and `disabled` will be added to entries as class names.
- * This allows for state specific styling.
- *
- * @example
- *
- * popupMenu.update('header-entry-a', { active: true });
- * popupMenu.update('header-entry-a', { disabled: true });
- *
- * @param  {String|Object} entry the id of an entry or the entry instance itself
- * @param  {Object} updatedAttrs an object with the attributes that will be updated
- */
-PopupMenu.prototype.update = function(entry, updatedAttrs) {
-
-  if (typeof entry === 'string') {
-    entry = this._getEntry(entry);
-  }
-
-  assign(entry, updatedAttrs);
-
-  // redraw the menu by reopening it
-  this.open(this._current.menu);
-};
-
-
-/**
- * Gets an entry instance (either entry or headerEntry) by id.
- *
- * @param  {String} entryId
- *
- * @return {Object} entry instance
- */
-PopupMenu.prototype._getEntry = function(entryId) {
-
-  var menu = this._current.menu;
-
-  var searchFct = function(haystack, needle) {
-    for (var i = 0; i < haystack.length; i++) {
-      if (haystack[i].id === needle) {
-        return haystack[i];
-      }
-      if (haystack[i].content.entries) {
-        var found = searchFct(haystack[i].content.entries, needle);
-        if (found) {
-          return found;
-        }
-      }
-    }
-  };
-  var entry = searchFct(menu.entries, entryId);
-
-  if (!entry) {
-    throw new Error('entry not found');
-  }
-
-  return entry;
-};
-
-
-/**
- * Creates the popup menu container.
- *
- * @param {String} event
- * @param {Object} position
- */
-PopupMenu.prototype._createContainer = function(className, position) {
-  var container = domify('<nav class="tjs-context-menu">');
-
-  assign(container.style, {
-    position: 'fixed',
-    left: position.x + 'px',
-    top: position.y  + 'px'
-  });
-
-  domClasses(container).add(className);
-
-  return container;
-};
-
-
-/**
- * Attaches the container to the DOM and binds the event handlers.
- *
- * @param {Object} container
- * @param {Object} parent
- */
-PopupMenu.prototype._attachContainer = function(container, parent) {
-  var self = this;
-
-   // Event handler
-  domDelegate.bind(container, '.tjs-entry' ,'click', function(event) {
-    self.trigger(event);
-  });
-
-  // Prevent default for mousedown events (so that selection does not get lost)
-  domDelegate.bind(container, '.tjs-entry' ,'mousedown', function(event) {
-    if (!event.customHandler) {
-      event.preventDefault();
-    }
-  });
-  // Attach to DOM
-  parent.appendChild(container);
-};
-
-
-/**
- * Creates and attaches entries to the popup menu.
- *
- * @param {Array<Object>} entries an array of entry objects
- * @param {Object} container the parent DOM container
- * @param {String} className the class name of the entry container
- */
-PopupMenu.prototype._createEntries = function(entries, container) {
-
-  var entriesContainer = domify('<ul class="tjs-dropdown-menu">'),
-      self = this;
-
-  forEach(entries, function(entry) {
-    self._createEntry(entry, entriesContainer);
-  });
-
-  // domClasses(entriesContainer).add('tjs-dropdown-menu');
-
-  container.appendChild(entriesContainer);
-};
-
-
-/**
- * Creates a single entry and attaches it to the specified DOM container.
- *
- * @param  {Object} entry
- * @param  {Object} container
- */
-PopupMenu.prototype._createEntry = function(entry, container) {
-
-  if (!entry.id) {
-    throw new Error ('every entry must have the id property set');
-  }
-
-  var entryContainer,
-      entryClasses;
-
-  if (entry.content instanceof HTMLElement) {
-    entryContainer = domify('<li class="tjs-entry">');
-    entryClasses = domClasses(entryContainer);
-
-    domAttr(entryContainer, DATA_REF, entry.id);
-
-    entryContainer.appendChild(entry.content);
-
-    container.appendChild(entryContainer);
-  } else {
-    var link = domify('<a>'),
-        linkClasses = domClasses(link);
-
-    entryContainer = domify('<li class="tjs-entry">');
-    entryClasses = domClasses(entryContainer);
-
-
-    entryContainer.appendChild(link);
-
-    if (entry.content.className) {
-      entryClasses.add(entry.content.className);
-    }
-    if (entry.content.linkClass) {
-      linkClasses.add(entry.content.linkClass);
-    }
-
-    domAttr(entryContainer, DATA_REF, entry.id);
-
-    // icon
-    var icon = domify('<span class="tjs-icon">'),
-        iconClasses = domClasses(icon);
-
-    if (entry.content.icon) {
-      iconClasses.add(entry.content.icon);
-    }
-    link.appendChild(icon);
-
-    // label
-    var label = domify('<span class="tjs-label">');
-    link.appendChild(label);
-
-
-    if (entry.content.entries) {
-      // create a nested menu
-      label.textContent = entry.content.label;
-      entryClasses.add('tjs-dropdown');
-      this._createEntries(entry.content.entries, entryContainer);
-    } else {
-      // create a normal entry
-      if (entry.content.label) {
-        label.textContent = entry.content.label;
-      }
-
-      if (entry.content.imageUrl) {
-        entryContainer.appendChild(domify('<img src="' + entry.content.imageUrl + '" />'));
-      }
-
-      if (entry.content.active === true) {
-        entryClasses.add('active');
-      }
-
-      if (entry.content.disabled === true) {
-        entryClasses.add('disabled');
-      }
-
-    }
-
-    container.appendChild(entryContainer);
-  }
-
-};
-
-
-module.exports = PopupMenu;
-
-},{"123":123,"234":234,"243":243,"244":244,"245":245,"246":246,"250":250}],309:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = {
-  __init__: [ 'popupMenu' ],
-  popupMenu: [ 'type', _dereq_(308) ]
-};
-
-},{"308":308}],310:[function(_dereq_,module,exports){
-'use strict';
-
-var domClasses = _dereq_(244);
-
-function DragRenderer(
-    eventBus,
-    utilityColumn) {
-
-  eventBus.on('cell.render', function(event) {
-    if (event.data.column === utilityColumn.getColumn() && !event.data.row.isFoot && !event.data.row.isHead) {
-      domClasses(event.gfx).add('draggable');
-    }
-  });
-}
-
-DragRenderer.$inject = [
-  'eventBus',
-  'utilityColumn'
-];
-
-module.exports = DragRenderer;
-
-},{"244":244}],311:[function(_dereq_,module,exports){
-'use strict';
-
-var domify = _dereq_(246);
-var domClasses = _dereq_(244);
-
-var DRAG_THRESHOLD = 10;
-
-function RowDrag(eventBus, sheet, elementRegistry, modeling) {
-
-  this._sheet = sheet;
-  this._elementRegistry = elementRegistry;
-  this._utilityColumn = null;
-  this._modeling = modeling;
-
-  var self = this;
-
-  eventBus.on('utilityColumn.added', function(event) {
-    var column = event.column;
-    self._utilityColumn = column;
-  });
-
-  this.dragDistance = 0;
-  this.draggedElement = null;
-  this.previousCoordinates = {
-    x: 0,
-    y: 0
-  };
-  this.highlightedBorder = null;
-  this.moveAbove = false;
-
-  eventBus.on('element.mousedown', function(event) {
-    if (event.element.column === self._utilityColumn) {
-      event.preventDefault();
-      self.startDragging(event.element.row);
-      self.setLastDragPoint(event.originalEvent);
-    }
-  });
-  document.body.addEventListener('mouseup', function(event) {
-    if (self.isDragging()) {
-      self.stopDragging();
-    }
-  });
-  document.body.addEventListener('mousemove', function(event) {
-    if (self.isDragging()) {
-      event.preventDefault();
-      self.updateDragDistance(event);
-      if (self.dragDistance > DRAG_THRESHOLD) {
-        self.updateVisuals(event);
-      }
-    }
-  });
-}
-
-RowDrag.$inject = [ 'eventBus', 'sheet', 'elementRegistry', 'modeling' ];
-
-module.exports = RowDrag;
-
-RowDrag.prototype.setLastDragPoint = function(event) {
-  this.previousCoordinates.x = event.clientX;
-  this.previousCoordinates.y = event.clientY;
-};
-
-RowDrag.prototype.updateVisuals = function(event) {
-
-  if (!this.dragVisual) {
-    this.dragVisual = this.createDragVisual(this.draggedElement);
-  }
-
-  var container = this._sheet.getContainer();
-  container.appendChild(this.dragVisual);
-
-  this.dragVisual.style.position = 'fixed';
-  this.dragVisual.style.left = (this.previousCoordinates.x + 5) + 'px';
-  this.dragVisual.style.top = (this.previousCoordinates.y + 5) + 'px';
-
-  // clear the indicator for the previous run
-  if (this.highlightedBorder) {
-    domClasses(this.highlightedBorder).remove('drop');
-    domClasses(this.highlightedBorder).remove('above');
-    domClasses(this.highlightedBorder).remove('below');
-    this.highlightedBorder = null;
-  }
-
-  // get the element we are hovering over
-  var tr = event.target;
-  while (tr && (tr.tagName || '').toLowerCase() !== 'tr') {
-    tr = tr.parentNode;
-  }
-  if (tr) {
-    // tr must be child of tbody
-    if (this._sheet.getBody().contains(tr)) {
-      // check if we hover over the top or the bottom half of the row
-      var e = tr;
-      var offset = { x:0,y:0 };
-      while (e)
-      {
-        offset.x += e.offsetLeft;
-        offset.y += e.offsetTop;
-        e = e.offsetParent;
-      }
-      if (event.clientY < offset.y + tr.clientHeight / 2) {
-        domClasses(tr).add('drop');
-        domClasses(tr).add('above');
-        this.moveAbove = true;
-      } else {
-        domClasses(tr).add('drop');
-        domClasses(tr).add('below');
-        this.moveAbove = false;
-      }
-      this.highlightedBorder = tr;
-    }
-  }
-};
-
-RowDrag.prototype.updateDragDistance = function(event) {
-  this.dragDistance +=
-      Math.abs(event.clientX - this.previousCoordinates.x) +
-      Math.abs(event.clientY - this.previousCoordinates.y);
-
-  this.setLastDragPoint(event);
-};
-
-RowDrag.prototype.startDragging = function(element) {
-  this.draggedElement = element;
-  this.dragDistance = 0;
-
-  this.dragVisual = null;
-};
-
-RowDrag.prototype.createDragVisual = function(element) {
-  // get the html representation of the row
-  var gfx = this._elementRegistry.getGraphics(element);
-
-  // create a clone
-  var clone = gfx.cloneNode(true);
-
-  // fix the line number field width
-  clone.firstChild.setAttribute('class', 'hit number');
-
-  // put it in a table tbody
-  var table = domify('<table><tbody></tbody></table>');
-  table.setAttribute('class','dragTable');
-  table.firstChild.appendChild(clone);
-
-  // fade the original element
-  domClasses(gfx).add('dragged');
-
-  return table;
-};
-
-RowDrag.prototype.stopDragging = function() {
-  if (this.highlightedBorder) {
-    // make sure we drop it to the element we have previously highlighted
-    var targetElement = this._elementRegistry.get(this.highlightedBorder.getAttribute('data-element-id'));
-    this._modeling.moveRow(this.draggedElement, targetElement, this.moveAbove);
-  }
-  if (this.dragVisual) {
-    this.dragVisual.parentNode.removeChild(this.dragVisual);
-    // restore opacity of the element
-    domClasses(this._elementRegistry.getGraphics(this.draggedElement)).remove('dragged');
-    this._elementRegistry.getGraphics(this.draggedElement).style.opacity = '';
-  }
-  if (this.highlightedBorder) {
-    domClasses(this.highlightedBorder).remove('drop');
-    domClasses(this.highlightedBorder).remove('above');
-    domClasses(this.highlightedBorder).remove('below');
-    this.highlightedBorder = null;
-  }
-
-  this.draggedElement = null;
-};
-
-RowDrag.prototype.isDragging = function() {
-  return !!this.draggedElement;
-};
-
-},{"244":244,"246":246}],312:[function(_dereq_,module,exports){
-module.exports = {
-  __init__: [ 'rowDrag', 'dragRenderer' ],
-  __depends__: [
-    _dereq_(317)
-  ],
-  rowDrag: [ 'type', _dereq_(311) ],
-  dragRenderer: [ 'type', _dereq_(310) ]
-};
-
-},{"310":310,"311":311,"317":317}],313:[function(_dereq_,module,exports){
-'use strict';
-
-var domify = _dereq_(246);
+var domify = _dereq_(207);
 
 /**
  * Adds a header to the table containing the table name
@@ -22635,7 +17383,7 @@ TableName.prototype.getNode = function() {
   return this.node.querySelector('h3');
 };
 
-},{"246":246}],314:[function(_dereq_,module,exports){
+},{"207":207}],244:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -22682,10 +17430,10 @@ UtilityColumn.prototype.getColumn = function() {
   return this.column;
 };
 
-},{}],315:[function(_dereq_,module,exports){
+},{}],245:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(244);
+var domClasses = _dereq_(205);
 
 function UtilityColumnRenderer(eventBus, utilityColumn) {
 
@@ -22706,12 +17454,12 @@ UtilityColumnRenderer.$inject = [
 
 module.exports = UtilityColumnRenderer;
 
-},{"244":244}],316:[function(_dereq_,module,exports){
+},{"205":205}],246:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(114);
+var inherits = _dereq_(81);
 
-var RuleProvider = _dereq_(95);
+var RuleProvider = _dereq_(60);
 
 /**
  * LineNumber specific modeling rule
@@ -22738,23 +17486,23 @@ UtilityColumnRules.prototype.init = function() {
 
 };
 
-},{"114":114,"95":95}],317:[function(_dereq_,module,exports){
+},{"60":60,"81":81}],247:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'utilityColumn', 'utilityColumnRules', 'utilityColumnRenderer' ],
   __depends__: [
-    _dereq_(93),
-    _dereq_(97)
+    _dereq_(58),
+    _dereq_(62)
   ],
-  utilityColumn: [ 'type', _dereq_(314) ],
-  utilityColumnRules: [ 'type', _dereq_(316) ],
-  utilityColumnRenderer: [ 'type', _dereq_(315) ]
+  utilityColumn: [ 'type', _dereq_(244) ],
+  utilityColumnRules: [ 'type', _dereq_(246) ],
+  utilityColumnRenderer: [ 'type', _dereq_(245) ]
 };
 
-},{"314":314,"315":315,"316":316,"93":93,"97":97}],318:[function(_dereq_,module,exports){
+},{"244":244,"245":245,"246":246,"58":58,"62":62}],248:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(234),
-    inherits = _dereq_(114);
+var assign = _dereq_(196),
+    inherits = _dereq_(81);
 
 function Base() {
   Object.defineProperty(this, 'businessObject', {
@@ -22817,7 +17565,7 @@ module.exports.Table = Table;
 module.exports.Row = Row;
 module.exports.Column = Column;
 
-},{"114":114,"234":234}],319:[function(_dereq_,module,exports){
+},{"196":196,"81":81}],249:[function(_dereq_,module,exports){
 /**
  * Tiny stack for browser or server
  *

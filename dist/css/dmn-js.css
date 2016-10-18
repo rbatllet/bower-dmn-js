@@ -337,6 +337,7 @@
 .dmn-table td,
 .dmn-table th {
   border: 1px solid #555555;
+  background-clip: padding-box;
   -webkit-transition: color 0.218s ease;
   -o-transition: color 0.218s ease;
   transition: color 0.218s ease;
@@ -366,6 +367,7 @@
 .dmn-table th {
   overflow: hidden;
   position: relative;
+  white-space: pre-wrap;
   text-overflow: ellipsis;
 }
 .dmn-table td [contenteditable],
@@ -635,6 +637,58 @@
   background: none;
   width: 100%;
   border: none;
+}
+.dmn-drd {
+  width: 100%;
+  height: 100%;
+}
+.djs-overlay .literal-expression-overlay {
+  font-family: Arial;
+  font-size: 12px;
+  min-height: 16px;
+  white-space: nowrap;
+  border: 1px solid black;
+}
+.djs-overlay .literal-expression-overlay > div {
+  color: Black;
+  padding: 5px;
+}
+.djs-overlay .literal-expression-overlay .variable-name {
+  padding-bottom: 0;
+}
+.djs-overlay .literal-expression-overlay .literal-text {
+  width: 100%;
+}
+.literal-expression-editor {
+  border: 2px solid #555555;
+}
+.literal-expression-editor textarea {
+  width: 100%;
+  padding: 10px;
+  font-family: monospace;
+  min-height: 220px;
+  border: none;
+  border-bottom: 1px solid #555555;
+}
+.literal-expression-editor .literal-expression-field {
+  width: 450px;
+  display: inline-block;
+  margin: 5px;
+}
+.literal-expression-editor .literal-expression-field .dmn-combobox {
+  display: inline;
+}
+.literal-expression-editor .literal-expression-field .dmn-combobox input {
+  width: auto;
+}
+.literal-expression-editor .literal-expression-field label {
+  width: 190px;
+  display: inline-block;
+  text-align: right;
+  color: #555555;
+  font-weight: 700;
+  background-color: transparent;
+  padding-right: 6px;
 }
 .dmn-table-clause-controls {
   /*! normalize.css v3.0.2 | MIT License | git.io/normalize */
@@ -2164,8 +2218,9 @@
   border-bottom: 8px solid transparent;
   border-right: 8px solid #000;
 }
-.dmn-date-editor h3 {
+.dmn-date-editor h4 {
   margin-top: 0;
+  margin-bottom: 10px;
 }
 .dmn-date-editor .dateEdit-type-dropdown {
   background: none;
@@ -2179,7 +2234,7 @@
 .dmn-date-editor .helptext {
   margin-top: -10px;
   font-size: 11px;
-  text-align: right;
+  text-align: left;
   color: #9c9c9c;
 }
 .dmn-number-editor {
@@ -2199,7 +2254,7 @@
   -moz-box-sizing: border-box;
   box-sizing: border-box;
   min-width: 180px;
-  max-width: 370px;
+  max-width: 400px;
   padding: 10px;
 }
 .dmn-number-editor a {
@@ -2409,17 +2464,16 @@
 .dmn-number-editor .comparison-dropdown {
   padding: 2px 6px;
   background: none;
-  width: 45%;
+  width: auto;
   float: left;
   clear: both;
   overflow: hidden;
   white-space: pre;
   text-overflow: ellipsis;
-  -webkit-appearance: none;
 }
 .dmn-number-editor .comparison-number {
   background: none;
-  width: 50%;
+  width: 128px;
   float: right;
 }
 .dmn-number-editor .comparison-dropdown .comparison-number {
@@ -2573,8 +2627,9 @@
   border-bottom: 8px solid transparent;
   border-right: 8px solid #000;
 }
-.dmn-string-editor h3 {
+.dmn-string-editor h4 {
   margin-top: 0;
+  margin-bottom: 10px;
 }
 .dmn-string-editor .helptext {
   font-size: 11px;
@@ -2585,6 +2640,10 @@
 .dmn-string-editor ul {
   list-style: none;
   padding: 0;
+}
+.dmn-string-editor .free-input textarea {
+  width: 300px;
+  height: 80px;
 }
 .dmn-string-editor .free-input li:before {
   float: left;
