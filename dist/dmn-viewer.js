@@ -1,5 +1,5 @@
 /*!
- * dmn-js - dmn-viewer v0.6.2
+ * dmn-js - dmn-viewer v0.8.0
 
  * Copyright 2015 camunda Services GmbH and other contributors
  *
@@ -8,7 +8,7 @@
  *
  * Source Code: https://github.com/dmn-io/dmn-js
  *
- * Date: 2016-10-18
+ * Date: 2016-11-11
  */
 
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.DmnJS = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
@@ -20,28 +20,34 @@
  */
 'use strict';
 
-var assign = _dereq_(239),
-    omit = _dereq_(243),
-    isString = _dereq_(236),
-    isNumber = _dereq_(233);
+var assign = _dereq_(246),
+    filter = _dereq_(130),
+    omit = _dereq_(250),
+    isString = _dereq_(243),
+    isNumber = _dereq_(240);
 
-var domify = _dereq_(253),
-    domQuery = _dereq_(255),
-    domRemove = _dereq_(256);
+var domify = _dereq_(260),
+    domQuery = _dereq_(262),
+    domRemove = _dereq_(263);
 
-var Diagram = _dereq_(64),
-    BpmnModdle = _dereq_(109);
+var Diagram = _dereq_(71),
+    DmnModdle = _dereq_(114);
 
-var TableViewer = _dereq_(10);
+var TableViewer = _dereq_(17);
 
-var inherits = _dereq_(118);
+var inherits = _dereq_(122);
 
-var Importer = _dereq_(8);
+var Importer = _dereq_(15);
 
+var is = _dereq_(62).is;
+
+function lengthOne(arr) {
+  return arr && arr.length === 1;
+}
 
 function checkValidationError(err) {
 
-  // check if we can help the user by indicating wrong BPMN 2.0 xml
+  // check if we can help the user by indicating wrong DMN 1.1 xml
   // (in case he or the exporting tool did not get that right)
 
   var pattern = /unparsable content <([^>]+)> detected([\s\S]*)$/,
@@ -50,7 +56,7 @@ function checkValidationError(err) {
   if (match) {
     err.message =
       'unparsable content <' + match[1] + '> detected; ' +
-      'this may indicate an invalid BPMN 2.0 diagram file' + match[2];
+      'this may indicate an invalid DMN 1.1 diagram file' + match[2];
   }
 
   return err;
@@ -60,7 +66,9 @@ var DEFAULT_OPTIONS = {
   width: '100%',
   height: '100%',
   position: 'relative',
-  container: 'body'
+  container: 'body',
+  loadDiagram: false,
+  disableDrdInteraction: false
 };
 
 
@@ -72,7 +80,7 @@ function ensureUnit(val) {
 }
 
 /**
- * A viewer for BPMN 2.0 diagrams.
+ * A viewer for DMN 1.1 diagrams.
  *
  * Have a look at {@link NavigatedViewer} or {@link Modeler} for bundles that include
  * additional features.
@@ -106,11 +114,12 @@ function ensureUnit(val) {
  * };
  *
  * // extend the viewer
- * var bpmnViewer = new Viewer({ additionalModules: [ extensionModule ] });
- * bpmnViewer.importXML(...);
+ * var drdViewer = new Viewer({ additionalModules: [ extensionModule ] });
+ * drdViewer.importXML(...);
  * ```
  *
  * @param {Object} [options] configuration options to pass to the viewer
+ * @param {Object} [options.table] configuration options to pass to the table viewer
  * @param {DOMElement} [options.container] the container to render the viewer in, defaults to body.
  * @param {String|Number} [options.width] the width of the viewer
  * @param {String|Number} [options.height] the height of the viewer
@@ -119,12 +128,22 @@ function ensureUnit(val) {
  * @param {Array<didi.Module>} [options.additionalModules] a list of modules to use with the default modules
  */
 function Viewer(options) {
+  var TableEditor = TableViewer;
 
-  this.tableViewer = new TableViewer(assign({}, options, { isDetached: true }));
-
-  options = assign({}, DEFAULT_OPTIONS, options);
+  options = assign({}, DEFAULT_OPTIONS ,options);
 
   this.moddle = this._createModdle(options);
+
+  if (options.editor) {
+    TableEditor = options.editor;
+  }
+
+  this.table = new TableEditor(assign({}, {
+    container: options.container,
+    moddle: this.moddle,
+    loadDiagram: options.loadDiagram, // load the DRD diagram even if there's only one decision
+    isDetached: true // we instanciate the table with a detached container
+  }, options.table));
 
   this.container = this._createContainer(options);
 
@@ -135,15 +154,21 @@ function Viewer(options) {
   /* </project-logo> */
 
   this._init(this.container, this.moddle, options);
+
+  // setup decision drill down listener
+  this.on('decision.open', function(context) {
+    var decision = context.decision;
+
+    this.showDecision(decision);
+  }, this);
 }
 
 inherits(Viewer, Diagram);
 
 module.exports = Viewer;
 
-
 /**
- * Parse and render a BPMN 2.0 diagram.
+ * Parse and render a DMN 1.1 diagram.
  *
  * Once finished the viewer reports back the result to the
  * provided callback function with (err, warnings).
@@ -160,7 +185,7 @@ module.exports = Viewer;
  *
  * You can use these events to hook into the life-cycle.
  *
- * @param {String} xml the BPMN 2.0 xml
+ * @param {String} xml the DMN 1.1 xml
  * @param {Function} [done] invoked with (err, warnings=[])
  */
 Viewer.prototype.importXML = function(xml, done) {
@@ -170,6 +195,13 @@ Viewer.prototype.importXML = function(xml, done) {
   done = done || function() {};
 
   var self = this;
+
+  var oldNm = 'xmlns="http://www.omg.org/spec/DMN/20151101/dmn11.xsd"';
+
+  // LEGACY YEAH! - convert to correct namespace
+  if (xml.indexOf(oldNm)) {
+    xml = xml.replace(new RegExp(oldNm), 'xmlns="http://www.omg.org/spec/DMN/20151101/dmn.xsd"');
+  }
 
   // hook in pre-parse listeners +
   // allow xml manipulation
@@ -204,7 +236,9 @@ Viewer.prototype.importXML = function(xml, done) {
       // if there is only one decision, switch to table view
       decisions = self.getDecisions();
 
-      if (decisions && decisions.length === 1 && !loadDiagram) {
+      if (lengthOne(definitions.drgElements) &&
+          lengthOne(decisions) &&
+          loadDiagram === false) {
         self.showDecision(decisions[0]);
       }
 
@@ -214,8 +248,8 @@ Viewer.prototype.importXML = function(xml, done) {
 };
 
 /**
- * Export the currently displayed BPMN 2.0 diagram as
- * a BPMN 2.0 XML document.
+ * Export the currently displayed DMN 1.1 diagram as
+ * a DMN 1.1 XML document.
  *
  * @param {Object} [options] export options
  * @param {Boolean} [options.format=false] output formated XML
@@ -240,7 +274,7 @@ Viewer.prototype.saveXML = function(options, done) {
 };
 
 /**
- * Export the currently displayed BPMN 2.0 diagram as
+ * Export the currently displayed DMN 1.1 diagram as
  * an SVG image.
  *
  * @param {Object} [options]
@@ -265,7 +299,7 @@ Viewer.prototype.saveSVG = function(options, done) {
 
   var svg =
     '<?xml version="1.0" encoding="utf-8"?>\n' +
-    '<!-- created with bpmn-js / http://bpmn.io -->\n' +
+    '<!-- created with dmn-js / http://bpmn.io -->\n' +
     '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n' +
     '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ' +
          'width="' + bbox.width + '" height="' + bbox.height + '" ' +
@@ -277,10 +311,6 @@ Viewer.prototype.saveSVG = function(options, done) {
 };
 
 Viewer.prototype.importDefinitions = function(definitions, done) {
-  if (this.tableViewer) {
-    this.tableViewer.importDefinitions(definitions, function() {});
-  }
-
   // use try/catch to not swallow synchronous exceptions
   // that may be raised during model parsing
   try {
@@ -293,6 +323,10 @@ Viewer.prototype.importDefinitions = function(definitions, done) {
     // update definitions
     this.definitions = definitions;
 
+    if (this.table) {
+      this.table.definitions = definitions;
+    }
+
     // perform graphical import
     Importer.importDRD(this, definitions, done);
   } catch (e) {
@@ -301,8 +335,16 @@ Viewer.prototype.importDefinitions = function(definitions, done) {
   }
 };
 
-Viewer.prototype.getDecisions = function() {
-  return this.tableViewer.getDecisions();
+Viewer.prototype.getDecisions = function(definitions) {
+  var defs = definitions || this.definitions;
+
+  if (!defs) {
+    return;
+  }
+
+  return filter(defs.drgElements, function(element) {
+    return is(element, 'dmn:Decision');
+  });
 };
 
 Viewer.prototype.attach = function(container, oldContainer) {
@@ -315,17 +357,36 @@ Viewer.prototype.attach = function(container, oldContainer) {
   parent.appendChild(container);
 };
 
-Viewer.prototype.showDecision = function(decision, done) {
-  var tableViewer = this.tableViewer;
+Viewer.prototype.showDecision = function(decision, attrs, done) {
+  var table = this.table,
+      self = this;
 
-  this.attach(tableViewer.container, this.container);
+  if (typeof attrs === 'function') {
+    done = attrs;
+    attrs = {};
+  }
 
-  return tableViewer.showDecision(decision, done);
+  done = done || function(err, warnings) {
+    console.log(err, warnings);
+  };
+
+  this.attach(table.container, this.container);
+
+  return table.showDecision(decision, function(err, warnings) {
+    self._emit('view.switch', assign({ decision: decision }, attrs));
+
+    done(err, warnings);
+  });
 };
 
-Viewer.prototype.showDRD = function() {
+Viewer.prototype.showDRD = function(attrs) {
+  var decision = this.table.getCurrentDecision();
 
-  this.attach(this.container, this.tableViewer.container);
+  attrs = attrs || {};
+
+  this.attach(this.container, this.table.container);
+
+  this._emit('view.switch', assign({ decision: decision }, attrs));
 };
 
 Viewer.prototype.getModules = function() {
@@ -376,7 +437,7 @@ Viewer.prototype._init = function(container, moddle, options) {
       additionalModules = options.additionalModules || [],
       staticModules = [
         {
-          bpmnjs: [ 'value', this ],
+          drdjs: [ 'value', this ],
           moddle: [ 'value', moddle ]
         }
       ];
@@ -397,31 +458,23 @@ Viewer.prototype._init = function(container, moddle, options) {
   // invoke diagram constructor
   Diagram.call(this, diagramOptions);
 
-  this._setupTableSwitchListeners(options);
+  // Enabled DRD interaction -> setup table switch buttons
+  if (options.disableDrdInteraction === false) {
+    this._setupTableSwitchListeners(options);
+  }
 };
 
 Viewer.prototype._setupTableSwitchListeners = function(options) {
-  var tableViewer = this.tableViewer;
+  var table = this.table;
 
   var self = this;
 
-  if (!options.disableDrdInteraction) {
+  table.get('eventBus').on('controls.init', function(event) {
 
-    this.get('eventBus').on('element.dblclick', function(evt) {
-      var businessObject = evt.element.businessObject;
-
-      if (businessObject.$instanceOf('dmn:Decision')) {
-        this.showDecision(businessObject);
-      }
-    }, this);
-
-    tableViewer.get('eventBus').on('controls.init', function(event) {
-
-      event.controls.addControl('Show DRD', function() {
-        self.showDRD();
-      });
+    event.controls.addControl('Show DRD', function() {
+      self.showDRD({ fromTable: true });
     });
-  }
+  });
 };
 
 /**
@@ -470,17 +523,18 @@ Viewer.prototype._createContainer = function(options) {
 Viewer.prototype._createModdle = function(options) {
   var moddleOptions = assign({}, this._moddleExtensions, options.moddleExtensions);
 
-  return new BpmnModdle(moddleOptions);
+  return new DmnModdle(moddleOptions);
 };
 
 
 // modules the viewer is composed of
 Viewer.prototype._modules = [
-  _dereq_(9),
-  _dereq_(4),
-  _dereq_(92),
+  _dereq_(2),
+  _dereq_(98),
   _dereq_(91),
-  _dereq_(84)
+  _dereq_(12),
+  _dereq_(10),
+  _dereq_(8)
 ];
 
 // default moddle extensions the viewer is composed of
@@ -488,8 +542,8 @@ Viewer.prototype._moddleExtensions = {};
 
 /* <project-logo> */
 
-var PoweredBy = _dereq_(56),
-    domEvent = _dereq_(254);
+var PoweredBy = _dereq_(63),
+    domEvent = _dereq_(261);
 
 /**
  * Adds the project logo to the diagram container as
@@ -524,18 +578,68 @@ function addProjectLogo(container) {
 
 /* </project-logo> */
 
-},{"10":10,"109":109,"118":118,"233":233,"236":236,"239":239,"243":243,"253":253,"254":254,"255":255,"256":256,"4":4,"56":56,"64":64,"8":8,"84":84,"9":9,"91":91,"92":92}],2:[function(_dereq_,module,exports){
+},{"10":10,"114":114,"12":12,"122":122,"130":130,"15":15,"17":17,"2":2,"240":240,"243":243,"246":246,"250":250,"260":260,"261":261,"262":262,"263":263,"62":62,"63":63,"71":71,"8":8,"91":91,"98":98}],2:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(118),
-    isArray = _dereq_(230),
-    isObject = _dereq_(234),
-    assign = _dereq_(239);
+module.exports = {
+  __depends__: [
+    _dereq_(6),
+    _dereq_(16)
+  ]
+};
 
-var BaseRenderer = _dereq_(75),
-    RenderUtil = _dereq_(102),
-    TextUtil = _dereq_(103),
-    ModelUtil = _dereq_(55);
+},{"16":16,"6":6}],3:[function(_dereq_,module,exports){
+'use strict';
+
+var forEach = _dereq_(132);
+
+function DecisionLabelUpdater(eventBus, elementRegistry, graphicsFactory) {
+  this._elementRegistry = elementRegistry;
+  this._graphicsFactory = graphicsFactory;
+
+  eventBus.on('view.switch', this.updateDecisionLabels, this);
+}
+
+DecisionLabelUpdater.$inject = [ 'eventBus', 'elementRegistry', 'graphicsFactory' ];
+
+module.exports = DecisionLabelUpdater;
+
+DecisionLabelUpdater.prototype.updateDecisionLabels = function(context) {
+  var elementRegistry = this._elementRegistry,
+      graphicsFactory = this._graphicsFactory,
+      decisions;
+
+  decisions = elementRegistry.filter(function(element) {
+    return element.type === 'dmn:Decision';
+  });
+
+  forEach(decisions, function(decision) {
+    var gfx = elementRegistry.getGraphics(decision.id);
+
+    graphicsFactory.update('shape', decision, gfx);
+  });
+
+};
+
+},{"132":132}],4:[function(_dereq_,module,exports){
+'use strict';
+
+var inherits = _dereq_(122),
+    isArray = _dereq_(237),
+    isObject = _dereq_(241),
+    assign = _dereq_(246);
+
+var domClasses = _dereq_(257),
+    domQuery = _dereq_(262);
+
+var svgAppend = _dereq_(316),
+    svgAttr = _dereq_(318),
+    svgCreate = _dereq_(320);
+
+var BaseRenderer = _dereq_(80),
+    RenderUtil = _dereq_(107),
+    TextUtil = _dereq_(109),
+    ModelUtil = _dereq_(62);
 
 var is = ModelUtil.is,
     getName = ModelUtil.getName;
@@ -563,7 +667,9 @@ function DrdRenderer(eventBus, pathMap, styles) {
   }
 
   function marker(id) {
-    return markers[id];
+    var marker = markers[id];
+
+    return 'url(#' + marker.id + ')';
   }
 
   function initMarkers(svg) {
@@ -585,19 +691,40 @@ function DrdRenderer(eventBus, pathMap, styles) {
         attrs.strokeDasharray = [10000, 1];
       }
 
-      var marker = options.element
-                     .attr(attrs)
-                     .marker(0, 0, 20, 20, ref.x, ref.y)
-                     .attr({
-                       markerWidth: 20 * scale,
-                       markerHeight: 20 * scale
-                     });
+      var marker = svgCreate('marker');
+
+      svgAttr(options.element, attrs);
+
+      svgAppend(marker, options.element);
+
+      svgAttr(marker, {
+        id: id,
+        viewBox: '0 0 20 20',
+        refX: ref.x,
+        refY: ref.y,
+        markerWidth: 20 * scale,
+        markerHeight: 20 * scale,
+        orient: 'auto'
+      });
+
+      var defs = domQuery('defs', svg);
+
+      if (!defs) {
+        defs = svgCreate('defs');
+
+        svgAppend(svg, defs);
+      }
+
+      svgAppend(defs, marker);
 
       return addMarker(id, marker);
     }
 
+    var associationStart = svgCreate('path');
+    svgAttr(associationStart, { d: 'M 11 5 L 1 10 L 11 15' });
+
     createMarker('association-start', {
-      element: svg.path('M 11 5 L 1 10 L 11 15'),
+      element: associationStart,
       attrs: {
         fill: 'none',
         stroke: 'black',
@@ -607,8 +734,11 @@ function DrdRenderer(eventBus, pathMap, styles) {
       scale: 0.5
     });
 
+    var associationEnd = svgCreate('path');
+    svgAttr(associationEnd, { d: 'M 1 5 L 11 10 L 1 15' });
+
     createMarker('association-end', {
-      element: svg.path('M 1 5 L 11 10 L 1 15'),
+      element: associationEnd,
       attrs: {
         fill: 'none',
         stroke: 'black',
@@ -618,24 +748,34 @@ function DrdRenderer(eventBus, pathMap, styles) {
       scale: 0.5
     });
 
+    var informationRequirementEnd = svgCreate('path');
+    svgAttr(informationRequirementEnd, { d: 'M 1 5 L 11 10 L 1 15 Z' });
+
     createMarker('information-requirement-end', {
-      element: svg.path('M 1 5 L 11 10 L 1 15 Z'),
+      element: informationRequirementEnd,
       ref: { x: 11, y: 10 },
       scale: 1
     });
 
+    var knowledgeRequirementEnd = svgCreate('path');
+    svgAttr(knowledgeRequirementEnd, { d: 'M 1 3 L 11 10 L 1 17' });
+
     createMarker('knowledge-requirement-end', {
-      element: svg.path('M 1 3 L 11 10 L 1 17').attr({
+      element: knowledgeRequirementEnd,
+      attrs: {
         fill: 'none',
         stroke: 'black',
         strokeWidth: 2
-      }),
+      },
       ref: { x: 11, y: 10 },
       scale: 0.8
     });
 
+    var authorityRequirementEnd = svgCreate('circle');
+    svgAttr(authorityRequirementEnd, { cx: 3, cy: 3, r: 3 });
+
     createMarker('authority-requirement-end', {
-      element: svg.circle(3, 3, 3),
+      element: authorityRequirementEnd,
       ref: { x: 3, y: 3 },
       scale: 0.9
     });
@@ -666,11 +806,27 @@ function DrdRenderer(eventBus, pathMap, styles) {
       fill: 'white'
     });
 
-    return p.rect(offset, offset, width - offset * 2, height - offset * 2, r).attr(attrs);
+    var rect = svgCreate('rect');
+    svgAttr(rect, {
+      x: offset,
+      y: offset,
+      width: width - offset * 2,
+      height: height - offset * 2,
+      rx: r,
+      ry: r
+    });
+    svgAttr(rect, attrs);
+
+    svgAppend(p, rect);
+
+    return rect;
   }
 
   function renderLabel(p, label, options) {
-    return textUtil.createText(p, label || '', options).addClass('djs-label');
+    var text = textUtil.createText(p, label || '', options);
+    domClasses(text).add('djs-label');
+
+    return text;
   }
 
   function renderEmbeddedLabel(p, element, align) {
@@ -685,7 +841,13 @@ function DrdRenderer(eventBus, pathMap, styles) {
       stroke: 'black'
     });
 
-    return p.path(d).attr(attrs);
+    var path = svgCreate('path');
+    svgAttr(path, { d: d });
+    svgAttr(path, attrs);
+
+    svgAppend(p, path);
+
+    return path;
   }
 
 
@@ -864,7 +1026,11 @@ function DrdRenderer(eventBus, pathMap, styles) {
       fill: 'none'
     });
 
-    return createLine(waypoints, attrs).appendTo(p);
+    var line = createLine(waypoints, attrs);
+
+    svgAppend(p, line);
+
+    return line;
   }
 
   this.canRender = function(element) {
@@ -898,10 +1064,8 @@ function getSemantic(element) {
   return element.businessObject;
 }
 
-},{"102":102,"103":103,"118":118,"230":230,"234":234,"239":239,"55":55,"75":75}],3:[function(_dereq_,module,exports){
+},{"107":107,"109":109,"122":122,"237":237,"241":241,"246":246,"257":257,"262":262,"316":316,"318":318,"320":320,"62":62,"80":80}],5:[function(_dereq_,module,exports){
 'use strict';
-
-var Snap = _dereq_(104);
 
 /**
  * Map containing SVG paths needed by BpmnRenderer.
@@ -1062,7 +1226,7 @@ function PathMap() {
     }
 
     //Apply value to raw path
-    var path = Snap.format(
+    var path = format(
       rawPath.d, {
         mx: mx,
         my: my,
@@ -1075,35 +1239,338 @@ function PathMap() {
 
 module.exports = PathMap;
 
-},{"104":104}],4:[function(_dereq_,module,exports){
-module.exports = {
-  __init__: [ 'drdRenderer' ],
-  drdRenderer: [ 'type', _dereq_(2) ],
-  pathMap: [ 'type', _dereq_(3)]
-};
 
-},{"2":2,"3":3}],5:[function(_dereq_,module,exports){
-'use strict';
+////////// helpers //////////
 
-var inherits = _dereq_(118);
+// copied from https://github.com/adobe-webplatform/Snap.svg/blob/master/src/svg.js
+var tokenRegex = /\{([^\}]+)\}/g,
+    objNotationRegex = /(?:(?:^|\.)(.+?)(?=\[|\.|$|\()|\[('|")(.+?)\2\])(\(\))?/g; // matches .xxxxx or ["xxxxx"] to run over object properties
 
-var BaseElementFactory = _dereq_(70);
+function replacer(all, key, obj) {
+  var res = obj;
+  key.replace(objNotationRegex, function(all, name, quote, quotedName, isFunc) {
+    name = name || quotedName;
+    if (res) {
+      if (name in res) {
+        res = res[name];
+      }
+      typeof res == 'function' && isFunc && (res = res());
+    }
+  });
+  res = (res == null || res == obj ? all : res) + '';
 
-function DrdElementFactory() {
-  BaseElementFactory.call(this);
+  return res;
 }
 
-inherits(DrdElementFactory, BaseElementFactory);
+function format(str, obj) {
+  return String(str).replace(tokenRegex, function(all, key) {
+    return replacer(all, key, obj);
+  });
+}
 
-module.exports = DrdElementFactory;
-
-},{"118":118,"70":70}],6:[function(_dereq_,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(239),
-    map = _dereq_(129);
+module.exports = {
+  __init__: [ 'drdRenderer', 'decisionLabelUpdater' ],
+  drdRenderer: [ 'type', _dereq_(4) ],
+  pathMap: [ 'type', _dereq_(5)],
+  decisionLabelUpdater: [ 'type', _dereq_(3) ]
+};
 
-var ModelUtil = _dereq_(55),
+},{"3":3,"4":4,"5":5}],7:[function(_dereq_,module,exports){
+'use strict';
+
+var domify = _dereq_(260),
+    domQuery = _dereq_(262),
+    domDelegate = _dereq_(259);
+
+function DefinitionIdView(eventBus, canvas) {
+  this._eventBus = eventBus;
+  this._canvas = canvas;
+
+  eventBus.on('diagram.init', function() {
+    this._init();
+  }, this);
+
+  eventBus.on('import.done', function(event) {
+    this.update();
+  }, this);
+}
+
+DefinitionIdView.$inject = [ 'eventBus', 'canvas' ];
+
+module.exports = DefinitionIdView;
+
+/**
+ * Initialize
+ */
+DefinitionIdView.prototype._init = function() {
+  var canvas = this._canvas,
+      eventBus = this._eventBus;
+
+  var parent = canvas.getContainer(),
+      container = this._container = domify(DefinitionIdView.HTML_MARKUP);
+
+  parent.appendChild(container);
+
+  domDelegate.bind(container, '.dmn-definitions-name, .dmn-definitions-id', 'mousedown', function(event) {
+    event.stopPropagation();
+  });
+
+  eventBus.fire('definitionIdView.create', {
+    html: container
+  });
+};
+
+DefinitionIdView.prototype.update = function(newName) {
+  var businessObject = this._canvas.getRootElement().businessObject,
+      nameElement = domQuery('.dmn-definitions-name', this._container),
+      idElement = domQuery('.dmn-definitions-id', this._container);
+
+  nameElement.textContent = businessObject.name;
+  idElement.textContent = businessObject.id;
+};
+
+
+/* markup definition */
+
+DefinitionIdView.HTML_MARKUP =
+  '<div class="dmn-definitions">' +
+    '<div class="dmn-definitions-name" title="Definition Name"></div>' +
+    '<div class="dmn-definitions-id" title="Definition ID"></div>' +
+  '</div>';
+
+},{"259":259,"260":260,"262":262}],8:[function(_dereq_,module,exports){
+module.exports = {
+  __depends__: [ ],
+  __init__: [ 'definitionIdView' ],
+  definitionIdView: [ 'type', _dereq_(7) ]
+};
+
+},{"7":7}],9:[function(_dereq_,module,exports){
+'use strict';
+
+var domify = _dereq_(260),
+    domDelegate = _dereq_(259);
+
+function DrillDown(eventBus, overlays, drdRules) {
+  this._eventBus = eventBus;
+  this._overlays = overlays;
+  this._drdRules = drdRules;
+
+  eventBus.on([ 'drdElement.added', 'shape.create' ], function(context) {
+    var element = context.element,
+        canDrillDown = drdRules.canDrillDown(element);
+
+    if (canDrillDown) {
+      this.addOverlay(element, canDrillDown);
+    }
+  }, this);
+}
+
+module.exports = DrillDown;
+
+DrillDown.$inject = [ 'eventBus', 'overlays', 'drdRules' ];
+
+
+DrillDown.prototype.addOverlay = function(decision, decisionType) {
+  var overlays = this._overlays;
+
+  var icon = decisionType === 'table' ? 'decision-table' : 'literal-expression';
+
+  var overlay = domify([
+    '<div class="drill-down-overlay">',
+    '<span class="dmn-icon-' + icon + '" />',
+    '</div>'
+  ].join(''));
+
+  var overlayId = overlays.add(decision, {
+    position: {
+      top: 1,
+      left: 1
+    },
+    html: overlay
+  });
+
+  this.bindEventListener(decision, overlay, overlayId);
+};
+
+DrillDown.prototype.bindEventListener = function(decision, overlay, id) {
+  var overlays = this._overlays,
+      eventBus = this._eventBus;
+
+  var overlaysRoot = overlays._overlayRoot;
+
+  domDelegate.bind(overlaysRoot, '[data-overlay-id="' + id + '"]', 'click', function() {
+
+    eventBus.fire('decision.open', { decision: decision.businessObject });
+  });
+};
+
+},{"259":259,"260":260}],10:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = {
+  __depends__: [
+    _dereq_(85)
+  ],
+  __init__: [ 'drillDown' ],
+  drillDown: [ 'type', _dereq_(9) ]
+};
+
+},{"85":85,"9":9}],11:[function(_dereq_,module,exports){
+'use strict';
+
+var ModelUtil = _dereq_(62),
+    is = ModelUtil.is,
+    isAny = ModelUtil.isAny;
+
+var inherits = _dereq_(122);
+
+var RuleProvider = _dereq_(92);
+
+/**
+ * DRD specific modeling rule
+ */
+function DrdRules(eventBus) {
+  RuleProvider.call(this, eventBus);
+}
+
+inherits(DrdRules, RuleProvider);
+
+DrdRules.$inject = [ 'eventBus' ];
+
+module.exports = DrdRules;
+
+DrdRules.prototype.init = function() {
+
+  this.addRule('elements.move', function(context) {
+
+    var target = context.target,
+        shapes = context.shapes,
+        position = context.position;
+
+    return canMove(shapes, target, position);
+  });
+
+  this.addRule('connection.create', function(context) {
+    var source = context.source,
+        target = context.target;
+
+    return canConnect(source, target);
+  });
+
+  this.addRule('connection.reconnectStart', function(context) {
+
+    var connection = context.connection,
+        source = context.hover || context.source,
+        target = connection.target;
+
+    return canConnect(source, target, connection);
+  });
+
+  this.addRule('connection.reconnectEnd', function(context) {
+
+    var connection = context.connection,
+        source = connection.source,
+        target = context.hover || context.target;
+
+    return canConnect(source, target, connection);
+  });
+
+  this.addRule('connection.updateWaypoints', function(context) {
+    // OK! but visually ignore
+    return null;
+  });
+
+};
+
+DrdRules.prototype.canConnect = canConnect;
+
+DrdRules.prototype.canMove = canMove;
+
+DrdRules.prototype.canDrillDown = canDrillDown;
+
+
+function canConnect(source, target) {
+
+  if (is(source, 'dmn:Decision') || is(source, 'dmn:InputData')) {
+    if (is(target, 'dmn:Decision') ||
+       (is(source, 'dmn:Decision') && is(target, 'dmn:InputData'))) {
+      return { type: 'dmn:InformationRequirement' };
+    }
+
+    if (is(target, 'dmn:KnowledgeSource')) {
+      return { type: 'dmn:AuthorityRequirement' };
+    }
+  }
+
+  if (is(source, 'dmn:BusinessKnowledgeModel') &&
+      isAny(target, [ 'dmn:Decision', 'dmn:BusinessKnowledgeModel' ])) {
+    return { type: 'dmn:KnowledgeRequirement' };
+  }
+
+  if (is(source, 'dmn:KnowledgeSource') &&
+      isAny(target, [ 'dmn:Decision', 'dmn:BusinessKnowledgeModel', 'dmn:KnowledgeSource' ])) {
+    return { type: 'dmn:AuthorityRequirement' };
+  }
+
+  if (is(target, 'dmn:TextAnnotation')) {
+    return { type: 'dmn:Association' };
+  }
+
+  return false;
+}
+
+function canMove(elements, target) {
+
+  // allow default move check to start move operation
+  if (!target) {
+    return true;
+  }
+
+  if (is(target, 'dmn:Definitions')) {
+    return true;
+  }
+
+  return false;
+}
+
+function canDrillDown(element) {
+  var businessObject = element.businessObject;
+
+  if (!is(element, 'dmn:Decision')) {
+    return false;
+  }
+
+  if (businessObject.decisionTable) {
+    return 'table';
+  } else if (businessObject.literalExpression) {
+    return 'literal';
+  }
+
+  return false;
+}
+
+},{"122":122,"62":62,"92":92}],12:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = {
+  __depends__: [
+    _dereq_(94)
+  ],
+  __init__: [ 'drdRules' ],
+  drdRules: [ 'type', _dereq_(11) ]
+};
+
+},{"11":11,"94":94}],13:[function(_dereq_,module,exports){
+'use strict';
+
+var assign = _dereq_(246),
+    map = _dereq_(134);
+
+var ModelUtil = _dereq_(62),
     is = ModelUtil.is;
 
 function elementData(semantic, attrs) {
@@ -1123,19 +1590,21 @@ function collectWaypoints(edge) {
 
   if (waypoints) {
     return map(waypoints, function(waypoint) {
-      return { x: waypoint.x, y: waypoint.y };
+      var position = { x: waypoint.x, y: waypoint.y };
+
+      return assign({ original: position }, position);
     });
   }
 }
 
-function DrdImporter(eventBus, canvas, drdElementFactory, elementRegistry) {
+function DrdImporter(eventBus, canvas, elementFactory, elementRegistry) {
   this._eventBus = eventBus;
   this._canvas = canvas;
   this._elementRegistry = elementRegistry;
-  this._elementFactory = drdElementFactory;
+  this._elementFactory = elementFactory;
 }
 
-DrdImporter.$inject = [ 'eventBus', 'canvas', 'drdElementFactory', 'elementRegistry' ];
+DrdImporter.$inject = [ 'eventBus', 'canvas', 'elementFactory', 'elementRegistry' ];
 
 module.exports = DrdImporter;
 
@@ -1152,7 +1621,6 @@ DrdImporter.prototype.root = function(diagram) {
  * Add drd element (semantic) to the canvas.
  */
 DrdImporter.prototype.add = function(semantic, di) {
-
   var elementFactory = this._elementFactory,
       canvas = this._canvas,
       eventBus = this._eventBus;
@@ -1187,8 +1655,6 @@ DrdImporter.prototype.add = function(semantic, di) {
     sourceShape = this._getShape(sourceID);
     targetShape = this._getShape(targetID);
 
-    semantic.di = di;
-
     if (sourceShape && targetShape) {
       elementDefinition = elementData(semantic, {
         hidden: false,
@@ -1215,13 +1681,13 @@ DrdImporter.prototype._getShape = function(id) {
   return this._elementRegistry.get(id);
 };
 
-},{"129":129,"239":239,"55":55}],7:[function(_dereq_,module,exports){
+},{"134":134,"246":246,"62":62}],14:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(127),
-    find = _dereq_(126);
+var forEach = _dereq_(132),
+    find = _dereq_(131);
 
-var is = _dereq_(55).is;
+var is = _dereq_(62).is;
 
 
 function parseID(element) {
@@ -1358,10 +1824,10 @@ function DRDTreeWalker(handler, options) {
 
 module.exports = DRDTreeWalker;
 
-},{"126":126,"127":127,"55":55}],8:[function(_dereq_,module,exports){
+},{"131":131,"132":132,"62":62}],15:[function(_dereq_,module,exports){
 'use strict';
 
-var DrdTreeWalker = _dereq_(7);
+var DrdTreeWalker = _dereq_(14);
 
 
 /**
@@ -1422,15 +1888,14 @@ function importDRD(canvas, definitions, done) {
 
 module.exports.importDRD = importDRD;
 
-},{"7":7}],9:[function(_dereq_,module,exports){
+},{"14":14}],16:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
-  drdImporter: [ 'type', _dereq_(6) ],
-  drdElementFactory: [ 'type', _dereq_(5) ]
+  drdImporter: [ 'type', _dereq_(13) ]
 };
 
-},{"5":5,"6":6}],10:[function(_dereq_,module,exports){
+},{"13":13}],17:[function(_dereq_,module,exports){
 /**
  * The code in the <project-logo></project-logo> area
  * must not be changed.
@@ -1439,25 +1904,25 @@ module.exports = {
  */
 'use strict';
 
-var assign = _dereq_(239),
-    omit = _dereq_(243),
-    isString = _dereq_(236),
-    filter = _dereq_(125);
+var assign = _dereq_(246),
+    omit = _dereq_(250),
+    isString = _dereq_(243),
+    filter = _dereq_(130);
 
-var domify = _dereq_(253),
-    domQuery = _dereq_(255),
-    domRemove = _dereq_(256);
+var domify = _dereq_(260),
+    domQuery = _dereq_(262),
+    domRemove = _dereq_(263);
 
-var Table = _dereq_(274),
-    DmnModdle = _dereq_(109);
+var Table = _dereq_(280),
+    DmnModdle = _dereq_(114);
 
-var inherits = _dereq_(118);
+var inherits = _dereq_(122);
 
-var Importer = _dereq_(50);
+var Importer = _dereq_(57);
 
-var is = _dereq_(55).is;
+var is = _dereq_(62).is;
 
-var ComboBox = _dereq_(284);
+var ComboBox = _dereq_(290);
 
 
 function checkValidationError(err) {
@@ -1529,7 +1994,11 @@ function Viewer(options) {
 
   this.options = options = assign({}, DEFAULT_OPTIONS, options || {});
 
-  this.moddle = this._createModdle(options);
+  this.moddle = options.moddle;
+
+  if (!this.moddle) {
+    this.moddle = this._createModdle(options);
+  }
 
   this.container = this._createContainer(options);
 
@@ -1630,6 +2099,10 @@ Viewer.prototype.getDecisions = function(definitions) {
   });
 };
 
+Viewer.prototype.getCurrentDecision = function() {
+  return this._decision;
+};
+
 Viewer.prototype.showDecision = function(decision, done) {
   var self = this;
 
@@ -1645,7 +2118,10 @@ Viewer.prototype.showDecision = function(decision, done) {
     done = function() {};
   }
 
-  // import the definition with the given index
+  // so we can get it later from the DRD Viewer
+  this._decision = decision;
+
+  // import the definition with the given decision
   this.importDefinitions(this.definitions, decision, function(err, importWarnings) {
     var warnings = importWarnings || [];
 
@@ -1719,7 +2195,7 @@ Viewer.prototype._createContainer = function(options) {
   container = domify('<div class="dmn-table"></div>');
 
   // append to DOM unless explicity defined otherwise
-  if (!options.isDetached) {
+  if (options.isDetached !== true) {
     parent.appendChild(container);
   }
 
@@ -1819,30 +2295,30 @@ Viewer.prototype.off = function(event, callback) {
 
 // modules the viewer is composed of
 Viewer.prototype._modules = [
-  _dereq_(11),
-  _dereq_(292),
-  _dereq_(31),
-  _dereq_(45),
-  _dereq_(16),
+  _dereq_(18),
+  _dereq_(298),
   _dereq_(38),
-  _dereq_(49),
-  _dereq_(40),
-  _dereq_(27),
-  _dereq_(21),
-  _dereq_(19),
-  _dereq_(43),
+  _dereq_(52),
+  _dereq_(23),
+  _dereq_(45),
+  _dereq_(56),
+  _dereq_(47),
   _dereq_(34),
+  _dereq_(28),
+  _dereq_(26),
+  _dereq_(50),
+  _dereq_(41),
 
-  _dereq_(290),
-  _dereq_(288),
-  _dereq_(286)
+  _dereq_(296),
+  _dereq_(294),
+  _dereq_(292)
 ];
 
 
 /* <project-logo> */
 
-var PoweredBy = _dereq_(56),
-    domEvent = _dereq_(254);
+var PoweredBy = _dereq_(63),
+    domEvent = _dereq_(261);
 
 /**
  * Adds the project logo to the diagram container as
@@ -1877,18 +2353,18 @@ function addProjectLogo(container) {
 
 /* </project-logo> */
 
-},{"109":109,"11":11,"118":118,"125":125,"16":16,"19":19,"21":21,"236":236,"239":239,"243":243,"253":253,"254":254,"255":255,"256":256,"27":27,"274":274,"284":284,"286":286,"288":288,"290":290,"292":292,"31":31,"34":34,"38":38,"40":40,"43":43,"45":45,"49":49,"50":50,"55":55,"56":56}],11:[function(_dereq_,module,exports){
+},{"114":114,"122":122,"130":130,"18":18,"23":23,"243":243,"246":246,"250":250,"26":26,"260":260,"261":261,"262":262,"263":263,"28":28,"280":280,"290":290,"292":292,"294":294,"296":296,"298":298,"34":34,"38":38,"41":41,"45":45,"47":47,"50":50,"52":52,"56":56,"57":57,"62":62,"63":63}],18:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(54),
-    _dereq_(13)
+    _dereq_(61),
+    _dereq_(20)
   ]
 };
 
-},{"13":13,"54":54}],12:[function(_dereq_,module,exports){
+},{"20":20,"61":61}],19:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(250);
+var domClasses = _dereq_(257);
 
 var HIGH_PRIORITY = 1500,
     UTILITY_COL_WIDTH = 45;
@@ -1977,16 +2453,16 @@ DmnRenderer.$inject = [ 'eventBus', 'elementRegistry', 'sheet', 'config' ];
 
 module.exports = DmnRenderer;
 
-},{"250":250}],13:[function(_dereq_,module,exports){
+},{"257":257}],20:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'tableRenderer' ],
-  tableRenderer: [ 'type', _dereq_(12) ]
+  tableRenderer: [ 'type', _dereq_(19) ]
 };
 
-},{"12":12}],14:[function(_dereq_,module,exports){
+},{"19":19}],21:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(253);
+var domify = _dereq_(260);
 
 /**
  * Adds an annotation column to the table
@@ -2047,10 +2523,10 @@ Annotations.prototype.getColumn = function() {
   return this.column;
 };
 
-},{"253":253}],15:[function(_dereq_,module,exports){
+},{"260":260}],22:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(250);
+var domClasses = _dereq_(257);
 
 function AnnotationsRenderer(
     eventBus,
@@ -2074,20 +2550,20 @@ AnnotationsRenderer.$inject = [
 
 module.exports = AnnotationsRenderer;
 
-},{"250":250}],16:[function(_dereq_,module,exports){
+},{"257":257}],23:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'annotations', 'annotationsRenderer'],
   __depends__: [
   ],
-  annotations: [ 'type', _dereq_(14) ],
-  annotationsRenderer: [ 'type', _dereq_(15) ]
+  annotations: [ 'type', _dereq_(21) ],
+  annotationsRenderer: [ 'type', _dereq_(22) ]
 };
 
-},{"14":14,"15":15}],17:[function(_dereq_,module,exports){
+},{"21":21,"22":22}],24:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(253),
-    utils  = _dereq_(18);
+var domify = _dereq_(260),
+    utils  = _dereq_(25);
 
 var isDateCell = utils.isDateCell,
     parseDate  = utils.parseDate;
@@ -2173,7 +2649,7 @@ DateView.$inject = ['eventBus', 'simpleMode'];
 
 module.exports = DateView;
 
-},{"18":18,"253":253}],18:[function(_dereq_,module,exports){
+},{"25":25,"260":260}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var hasDateType = function(column) {
@@ -2244,20 +2720,20 @@ module.exports = {
   }
 };
 
-},{}],19:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'dateView' ],
   __depends__: [],
-  dateView: [ 'type', _dereq_(17) ]
+  dateView: [ 'type', _dereq_(24) ]
 };
 
 
-},{"17":17}],20:[function(_dereq_,module,exports){
+},{"24":24}],27:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(253);
+var domify = _dereq_(260);
 
-var hasSecondaryModifier = _dereq_(100).hasSecondaryModifier;
+var hasSecondaryModifier = _dereq_(105).hasSecondaryModifier;
 
 var OFFSET_X = 2,
     OFFSET_Y = 2;
@@ -2358,18 +2834,18 @@ Descriptions.prototype.openPopover = function(context) {
   node.textContent = context.content.description;
 };
 
-},{"100":100,"253":253}],21:[function(_dereq_,module,exports){
+},{"105":105,"260":260}],28:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'descriptions' ],
-  descriptions: [ 'type', _dereq_(20) ]
+  descriptions: [ 'type', _dereq_(27) ]
 };
 
-},{"20":20}],22:[function(_dereq_,module,exports){
+},{"27":27}],29:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(118);
+var inherits = _dereq_(122);
 
-var BaseElementFactory = _dereq_(276);
+var BaseElementFactory = _dereq_(282);
 
 
 /**
@@ -2427,7 +2903,7 @@ ElementFactory.prototype.create = function(elementType, attrs) {
 
 };
 
-},{"118":118,"276":276}],23:[function(_dereq_,module,exports){
+},{"122":122,"282":282}],30:[function(_dereq_,module,exports){
 'use strict';
 
 function TableFactory(moddle) {
@@ -2555,19 +3031,19 @@ TableFactory.prototype.createOutputValues = function(output) {
 
 module.exports = TableFactory;
 
-},{}],24:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 module.exports = {
-  tableFactory: [ 'type', _dereq_(23) ],
-  elementFactory: [ 'type', _dereq_(22) ]
+  tableFactory: [ 'type', _dereq_(30) ],
+  elementFactory: [ 'type', _dereq_(29) ]
 };
 
-},{"22":22,"23":23}],25:[function(_dereq_,module,exports){
+},{"29":29,"30":30}],32:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(253),
-    domClasses = _dereq_(250);
+var domify = _dereq_(260),
+    domClasses = _dereq_(257);
 
-var ComboBox = _dereq_(284);
+var ComboBox = _dereq_(290);
 
 var OFFSET_X = 36,
     OFFSET_Y = -16;
@@ -2712,7 +3188,7 @@ HitPolicy.prototype.getAggregation = function() {
 
 module.exports = HitPolicy;
 
-},{"250":250,"253":253,"284":284}],26:[function(_dereq_,module,exports){
+},{"257":257,"260":260,"290":290}],33:[function(_dereq_,module,exports){
 'use strict';
 
 function convertOperators(operator) {
@@ -2747,25 +3223,25 @@ HitPolicyRenderer.$inject = [
 
 module.exports = HitPolicyRenderer;
 
-},{}],27:[function(_dereq_,module,exports){
+},{}],34:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'hitPolicy', 'hitPolicyRenderer' ],
   __depends__: [
-    _dereq_(297),
-    _dereq_(31)
+    _dereq_(303),
+    _dereq_(38)
   ],
-  hitPolicy: [ 'type', _dereq_(25) ],
-  hitPolicyRenderer: [ 'type', _dereq_(26) ]
+  hitPolicy: [ 'type', _dereq_(32) ],
+  hitPolicyRenderer: [ 'type', _dereq_(33) ]
 };
 
-},{"25":25,"26":26,"297":297,"31":31}],28:[function(_dereq_,module,exports){
+},{"303":303,"32":32,"33":33,"38":38}],35:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(253),
-    forEach = _dereq_(127);
+var domify = _dereq_(260),
+    forEach = _dereq_(132);
 
 // document wide unique overlay ids
-var ids = new (_dereq_(99))('clause');
+var ids = new (_dereq_(104))('clause');
 
 /**
  * Adds a control to the table to add more columns
@@ -2909,7 +3385,7 @@ IoLabel.prototype.getRow = function() {
   return this.row;
 };
 
-},{"127":127,"253":253,"99":99}],29:[function(_dereq_,module,exports){
+},{"104":104,"132":132,"260":260}],36:[function(_dereq_,module,exports){
 'use strict';
 
 function IoLabelRenderer(
@@ -2933,12 +3409,12 @@ IoLabelRenderer.$inject = [
 
 module.exports = IoLabelRenderer;
 
-},{}],30:[function(_dereq_,module,exports){
+},{}],37:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(118);
+var inherits = _dereq_(122);
 
-var RuleProvider = _dereq_(85);
+var RuleProvider = _dereq_(92);
 
 /**
  * LineNumber specific modeling rule
@@ -2965,25 +3441,25 @@ IoLabelRules.prototype.init = function() {
 
 };
 
-},{"118":118,"85":85}],31:[function(_dereq_,module,exports){
+},{"122":122,"92":92}],38:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'ioLabel', 'ioLabelRules', 'ioLabelRenderer' ],
   __depends__: [],
-  ioLabel: [ 'type', _dereq_(28) ],
-  ioLabelRules: [ 'type', _dereq_(30) ],
-  ioLabelRenderer: [ 'type', _dereq_(29) ]
+  ioLabel: [ 'type', _dereq_(35) ],
+  ioLabelRules: [ 'type', _dereq_(37) ],
+  ioLabelRenderer: [ 'type', _dereq_(36) ]
 };
 
-},{"28":28,"29":29,"30":30}],32:[function(_dereq_,module,exports){
+},{"35":35,"36":36,"37":37}],39:[function(_dereq_,module,exports){
 module.exports = "<div class=\"literal-expression-editor\">\n  <textarea placeholder=\"return obj.propertyName;\"></textarea>\n\n  <div>\n    <div class=\"literal-expression-field\">\n      <div class=\"dmn-combobox\">\n        <label>Variable Name:</label>\n        <input class=\"variable-name\" placeholder=\"varName\">\n      </div>\n    </div>\n    <div class=\"literal-expression-field variable-type\">\n    </div>\n  </div>\n  <div>\n    <div class=\"literal-expression-field expression-language\">\n    </div>\n  </div>\n</div>\n";
 
-},{}],33:[function(_dereq_,module,exports){
+},{}],40:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(253);
-var template = _dereq_(32);
+var domify = _dereq_(260);
+var template = _dereq_(39);
 
-var ComboBox = _dereq_(284);
+var ComboBox = _dereq_(290);
 
 function LiteralExpressionEditor(eventBus, sheet, rules) {
   this._eventBus = eventBus;
@@ -3020,7 +3496,7 @@ LiteralExpressionEditor.prototype.show = function(decision) {
   var editor = domify(template);
 
   // set the literal expression to the textarea
-  editor.querySelector('textarea').value = decision.literalExpression.text;
+  editor.querySelector('textarea').value = decision.literalExpression.text || '';
 
   // add variable with name and type information
   var typeBox = new ComboBox({
@@ -3040,7 +3516,7 @@ LiteralExpressionEditor.prototype.show = function(decision) {
   var languageBox = new ComboBox({
     label: 'Expression Language',
     classNames: [ 'dmn-combobox', 'expression-language' ],
-    options: [ 'juel', 'FEEL' ],
+    options: [ 'javascript', 'groovy', 'python', 'jruby', 'juel', 'feel' ],
     dropdownClassNames: [ 'dmn-combobox-suggestions' ]
   });
   editor.querySelector('.expression-language').appendChild(languageBox.getNode());
@@ -3053,7 +3529,7 @@ LiteralExpressionEditor.prototype.show = function(decision) {
       text: editor.querySelector('textarea').value,
       variableName: editor.querySelector('.variable-name').value,
       variableType: typeBox.getValue(),
-      language: editor.querySelector('.expression-language').value
+      language: languageBox.getValue()
     });
   };
 
@@ -3084,27 +3560,27 @@ LiteralExpressionEditor.prototype.show = function(decision) {
 
 };
 
-},{"253":253,"284":284,"32":32}],34:[function(_dereq_,module,exports){
+},{"260":260,"290":290,"39":39}],41:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'literalExpressionEditor' ],
   __depends__: [],
-  literalExpressionEditor: [ 'type', _dereq_(33) ]
+  literalExpressionEditor: [ 'type', _dereq_(40) ]
 };
 
-},{"33":33}],35:[function(_dereq_,module,exports){
+},{"40":40}],42:[function(_dereq_,module,exports){
 module.exports = "<div>\n  <div class=\"links\">\n    <div class=\"toggle-type\">\n      <label>Use:</label>\n      <a class=\"expression\">Expression</a>\n      /\n      <a class=\"script\">Script</a>\n    </div>\n    <a class=\"dmn-icon-clear\"></a>\n  </div>\n  <div class=\"expression region\">\n    <div class=\"input-expression\">\n      <label>Expression:</label>\n      <input placeholder=\"propertyName\">\n    </div>\n    <div class=\"input-expression\">\n      <label>Input Variable Name:</label>\n      <input placeholder=\"cellInput\">\n    </div>\n  </div>\n  <div class=\"script region\">\n    <textarea placeholder=\"return obj.propertyName;\"></textarea>\n    <div class=\"input-expression\">\n      <label>Input Variable Name:</label>\n      <input placeholder=\"cellInput\">\n    </div>\n  </div>\n</div>\n";
 
-},{}],36:[function(_dereq_,module,exports){
+},{}],43:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(253),
-    domClasses = _dereq_(250),
-    assign = _dereq_(239),
-    forEach = _dereq_(127);
+var domify = _dereq_(260),
+    domClasses = _dereq_(257),
+    assign = _dereq_(246),
+    forEach = _dereq_(132);
 
-var exprTemplate = _dereq_(35);
+var exprTemplate = _dereq_(42);
 
-var ComboBox = _dereq_(284);
+var ComboBox = _dereq_(290);
 
 var PROP_NAME = '.expression .input-expression input[placeholder="propertyName"]',
     EXPR_IPT_VAR = '.expression .input-expression input[placeholder="cellInput"]',
@@ -3218,7 +3694,7 @@ function MappingsRow(eventBus, sheet, elementRegistry, graphicsFactory, complexC
       var comboBox = new ComboBox({
         label: 'Language',
         classNames: [ 'dmn-combobox', 'language' ],
-        options: [ 'Javascript', 'Groovy', 'Python', 'Ruby' ],
+        options: [ 'javascript', 'groovy', 'python', 'jruby', 'juel', 'feel' ],
         dropdownClassNames: [ 'dmn-combobox-suggestions' ]
       });
 
@@ -3418,10 +3894,10 @@ MappingsRow.prototype.getRow = function() {
   return this.row;
 };
 
-},{"127":127,"239":239,"250":250,"253":253,"284":284,"35":35}],37:[function(_dereq_,module,exports){
+},{"132":132,"246":246,"257":257,"260":260,"290":290,"42":42}],44:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(250);
+var domClasses = _dereq_(257);
 
 function MappingsRowRenderer(
     eventBus,
@@ -3458,21 +3934,21 @@ MappingsRowRenderer.$inject = [
 
 module.exports = MappingsRowRenderer;
 
-},{"250":250}],38:[function(_dereq_,module,exports){
+},{"257":257}],45:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(286)
+    _dereq_(292)
   ],
   __init__: [ 'mappingsRow', 'mappingsRowRenderer' ],
-  mappingsRow: [ 'type', _dereq_(36) ],
-  mappingsRowRenderer: [ 'type', _dereq_(37) ]
+  mappingsRow: [ 'type', _dereq_(43) ],
+  mappingsRowRenderer: [ 'type', _dereq_(44) ]
 };
 
-},{"286":286,"36":36,"37":37}],39:[function(_dereq_,module,exports){
+},{"292":292,"43":43,"44":44}],46:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(250),
-    domify = _dereq_(253);
+var domClasses = _dereq_(257),
+    domify = _dereq_(260);
 
 function isType(bo, type) {
   return bo.inputExpression &&
@@ -3727,17 +4203,17 @@ SimpleMode.prototype.isString = function(textContent) {
   return firstCondition && !secondCondition;
 };
 
-},{"250":250,"253":253}],40:[function(_dereq_,module,exports){
+},{"257":257,"260":260}],47:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'simpleMode' ],
-  simpleMode: [ 'type', _dereq_(39) ]
+  simpleMode: [ 'type', _dereq_(46) ]
 };
 
-},{"39":39}],41:[function(_dereq_,module,exports){
+},{"46":46}],48:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(253),
-    utils  = _dereq_(42);
+var domify = _dereq_(260),
+    utils  = _dereq_(49);
 
 var isStringCell = utils.isStringCell,
     parseString  = utils.parseString;
@@ -3819,7 +4295,7 @@ StringView.$inject = ['eventBus', 'simpleMode'];
 
 module.exports = StringView;
 
-},{"253":253,"42":42}],42:[function(_dereq_,module,exports){
+},{"260":260,"49":49}],49:[function(_dereq_,module,exports){
 'use strict';
 
 var hasStringType = function(column) {
@@ -3911,22 +4387,22 @@ module.exports = {
   }
 };
 
-},{}],43:[function(_dereq_,module,exports){
+},{}],50:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'stringView' ],
-  stringView: [ 'type', _dereq_(41) ]
+  stringView: [ 'type', _dereq_(48) ]
 };
 
-},{"41":41}],44:[function(_dereq_,module,exports){
+},{"48":48}],51:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(253);
+var domify = _dereq_(260);
 
-var inherits = _dereq_(118);
+var inherits = _dereq_(122);
 
-var BaseModule = _dereq_(293);
+var BaseModule = _dereq_(299);
 /**
  * Adds a header to the table containing the table name
  *
@@ -3991,23 +4467,23 @@ TableName.prototype.getId = function() {
   return this.semantic.id;
 };
 
-},{"118":118,"253":253,"293":293}],45:[function(_dereq_,module,exports){
+},{"122":122,"260":260,"299":299}],52:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'tableName' ],
   __depends__: [],
-  tableName: [ 'type', _dereq_(44) ]
+  tableName: [ 'type', _dereq_(51) ]
 };
 
-},{"44":44}],46:[function(_dereq_,module,exports){
+},{"51":51}],53:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(239);
+var assign = _dereq_(246);
 
-var domify = _dereq_(253),
-    domClasses = _dereq_(250),
-    ComboBox = _dereq_(284);
+var domify = _dereq_(260),
+    domClasses = _dereq_(257),
+    ComboBox = _dereq_(290);
 
-var typeTemplate = _dereq_(48);
+var typeTemplate = _dereq_(55);
 
 var OFFSET_X = -4,
     OFFSET_Y = -17;
@@ -4252,10 +4728,10 @@ TypeRow.prototype.getRow = function() {
   return this.row;
 };
 
-},{"239":239,"250":250,"253":253,"284":284,"48":48}],47:[function(_dereq_,module,exports){
+},{"246":246,"257":257,"260":260,"290":290,"55":55}],54:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(250);
+var domClasses = _dereq_(257);
 
 function TypeRowRenderer(
     eventBus,
@@ -4289,21 +4765,21 @@ TypeRowRenderer.$inject = [
 
 module.exports = TypeRowRenderer;
 
-},{"250":250}],48:[function(_dereq_,module,exports){
+},{"257":257}],55:[function(_dereq_,module,exports){
 module.exports = "<div>\n  <div class=\"allowed-values\">\n    <label>Input Values:</label>\n    <ul></ul>\n    <input type=\"text\" placeholder=\"value1, value2, otherValue\">\n  </div>\n</div>\n";
 
-},{}],49:[function(_dereq_,module,exports){
+},{}],56:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'typeRow', 'typeRowRenderer' ],
-  __depends__: [ _dereq_(286) ],
-  typeRow: [ 'type', _dereq_(46) ],
-  typeRowRenderer: [ 'type', _dereq_(47) ]
+  __depends__: [ _dereq_(292) ],
+  typeRow: [ 'type', _dereq_(53) ],
+  typeRowRenderer: [ 'type', _dereq_(54) ]
 };
 
-},{"286":286,"46":46,"47":47}],50:[function(_dereq_,module,exports){
+},{"292":292,"53":53,"54":54}],57:[function(_dereq_,module,exports){
 'use strict';
 
-var TableTreeWalker = _dereq_(52);
+var TableTreeWalker = _dereq_(59);
 
 
 /**
@@ -4376,14 +4852,14 @@ function importDmnTable(sheet, definitions, decision, done) {
 
 module.exports.importDmnTable = importDmnTable;
 
-},{"52":52}],51:[function(_dereq_,module,exports){
+},{"59":59}],58:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(239),
-    filter = _dereq_(125),
-    union  = _dereq_(120);
+var assign = _dereq_(246),
+    filter = _dereq_(130),
+    union  = _dereq_(124);
 
-var elementToString = _dereq_(53).elementToString;
+var elementToString = _dereq_(60).elementToString;
 
 
 function elementData(semantic, attrs) {
@@ -4570,12 +5046,12 @@ TableImporter.prototype.add = function(semantic, parentElement, definitions) {
   return element;
 };
 
-},{"120":120,"125":125,"239":239,"53":53}],52:[function(_dereq_,module,exports){
+},{"124":124,"130":130,"246":246,"60":60}],59:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(127);
+var forEach = _dereq_(132);
 
-var elementToString = _dereq_(53).elementToString;
+var elementToString = _dereq_(60).elementToString;
 
 function TableTreeWalker(handler, options) {
 
@@ -4705,7 +5181,7 @@ function TableTreeWalker(handler, options) {
 
 module.exports = TableTreeWalker;
 
-},{"127":127,"53":53}],53:[function(_dereq_,module,exports){
+},{"132":132,"60":60}],60:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports.elementToString = function(e) {
@@ -4715,19 +5191,21 @@ module.exports.elementToString = function(e) {
 
   return '<' + e.$type + (e.id ? ' id="' + e.id : '') + '" />';
 };
-},{}],54:[function(_dereq_,module,exports){
+},{}],61:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(24)
+    _dereq_(31)
   ],
-  tableImporter: [ 'type', _dereq_(51) ]
+  tableImporter: [ 'type', _dereq_(58) ]
 };
 
-},{"24":24,"51":51}],55:[function(_dereq_,module,exports){
+},{"31":31,"58":58}],62:[function(_dereq_,module,exports){
 'use strict';
 
+var any = _dereq_(128);
+
 /**
- * Is an element of the given BPMN type?
+ * Is an element of the given DMN type?
  *
  * @param  {tjs.model.Base|ModdleElement} element
  * @param  {String} type
@@ -4767,7 +5245,24 @@ function getName(element) {
 
 module.exports.getName = getName;
 
-},{}],56:[function(_dereq_,module,exports){
+
+/**
+ * Return true if element has any of the given types.
+ *
+ * @param {djs.model.Base} element
+ * @param {Array<String>} types
+ *
+ * @return {Boolean}
+ */
+function isAny(element, types) {
+  return any(types, function(t) {
+    return is(element, t);
+  });
+}
+
+module.exports.isAny = isAny;
+
+},{"128":128}],63:[function(_dereq_,module,exports){
 /**
  * This file must not be changed or exchanged.
  *
@@ -4776,9 +5271,9 @@ module.exports.getName = getName;
 
 'use strict';
 
-var domify = _dereq_(253);
+var domify = _dereq_(260);
 
-var domDelegate = _dereq_(252);
+var domDelegate = _dereq_(259);
 
 /* jshint -W101 */
 
@@ -4852,15 +5347,15 @@ function open() {
 
 module.exports.open = open;
 
-},{"252":252,"253":253}],57:[function(_dereq_,module,exports){
+},{"259":259,"260":260}],64:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
 try {
-  var index = _dereq_(61);
+  var index = _dereq_(68);
 } catch (err) {
-  var index = _dereq_(61);
+  var index = _dereq_(68);
 }
 
 /**
@@ -5045,8 +5540,8 @@ ClassList.prototype.contains = function(name){
     : !! ~index(this.array(), name);
 };
 
-},{"61":61}],58:[function(_dereq_,module,exports){
-var matches = _dereq_(62)
+},{"68":68}],65:[function(_dereq_,module,exports){
+var matches = _dereq_(69)
 
 module.exports = function (element, selector, checkYoSelf, root) {
   element = checkYoSelf ? {parentNode: element} : element
@@ -5066,21 +5561,21 @@ module.exports = function (element, selector, checkYoSelf, root) {
   }
 }
 
-},{"62":62}],59:[function(_dereq_,module,exports){
+},{"69":69}],66:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
 try {
-  var closest = _dereq_(58);
+  var closest = _dereq_(65);
 } catch(err) {
-  var closest = _dereq_(58);
+  var closest = _dereq_(65);
 }
 
 try {
-  var event = _dereq_(60);
+  var event = _dereq_(67);
 } catch(err) {
-  var event = _dereq_(60);
+  var event = _dereq_(67);
 }
 
 /**
@@ -5119,7 +5614,7 @@ exports.unbind = function(el, type, fn, capture){
   event.unbind(el, type, fn, capture);
 };
 
-},{"58":58,"60":60}],60:[function(_dereq_,module,exports){
+},{"65":65,"67":67}],67:[function(_dereq_,module,exports){
 var bind = window.addEventListener ? 'addEventListener' : 'attachEvent',
     unbind = window.removeEventListener ? 'removeEventListener' : 'detachEvent',
     prefix = bind !== 'addEventListener' ? 'on' : '';
@@ -5155,7 +5650,7 @@ exports.unbind = function(el, type, fn, capture){
   el[unbind](prefix + type, fn, capture || false);
   return fn;
 };
-},{}],61:[function(_dereq_,module,exports){
+},{}],68:[function(_dereq_,module,exports){
 module.exports = function(arr, obj){
   if (arr.indexOf) return arr.indexOf(obj);
   for (var i = 0; i < arr.length; ++i) {
@@ -5163,15 +5658,15 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],62:[function(_dereq_,module,exports){
+},{}],69:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
 try {
-  var query = _dereq_(63);
+  var query = _dereq_(70);
 } catch (err) {
-  var query = _dereq_(63);
+  var query = _dereq_(70);
 }
 
 /**
@@ -5215,7 +5710,7 @@ function match(el, selector) {
   return false;
 }
 
-},{"63":63}],63:[function(_dereq_,module,exports){
+},{"70":70}],70:[function(_dereq_,module,exports){
 function one(selector, el) {
   return el.querySelector(selector);
 }
@@ -5238,12 +5733,12 @@ exports.engine = function(obj){
   return exports;
 };
 
-},{}],64:[function(_dereq_,module,exports){
-module.exports = _dereq_(65);
-},{"65":65}],65:[function(_dereq_,module,exports){
+},{}],71:[function(_dereq_,module,exports){
+module.exports = _dereq_(72);
+},{"72":72}],72:[function(_dereq_,module,exports){
 'use strict';
 
-var di = _dereq_(106);
+var di = _dereq_(111);
 
 
 /**
@@ -5320,7 +5815,7 @@ function createInjector(options) {
     'config': ['value', options]
   };
 
-  var coreModule = _dereq_(74);
+  var coreModule = _dereq_(79);
 
   var modules = [ configModule, coreModule ].concat(options.modules || []);
 
@@ -5441,13 +5936,14 @@ Diagram.prototype.destroy = function() {
 Diagram.prototype.clear = function() {
   this.get('eventBus').fire('diagram.clear');
 };
-},{"106":106,"74":74}],66:[function(_dereq_,module,exports){
+
+},{"111":111,"79":79}],73:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(127),
-    isFunction = _dereq_(231),
-    isArray = _dereq_(230),
-    isNumber = _dereq_(233);
+var forEach = _dereq_(132),
+    isFunction = _dereq_(238),
+    isArray = _dereq_(237),
+    isNumber = _dereq_(240);
 
 
 var DEFAULT_PRIORITY = 1000;
@@ -5592,524 +6088,26 @@ forEach(hooks, function(hook) {
   };
 });
 
-},{"127":127,"230":230,"231":231,"233":233}],67:[function(_dereq_,module,exports){
+},{"132":132,"237":237,"238":238,"240":240}],74:[function(_dereq_,module,exports){
 'use strict';
 
-var unique = _dereq_(122),
-    isArray = _dereq_(230),
-    assign = _dereq_(239);
+var isNumber = _dereq_(240),
+    assign = _dereq_(246),
+    forEach = _dereq_(132),
+    every = _dereq_(129),
+    debounce = _dereq_(139);
+
+var Collections = _dereq_(100),
+    Elements = _dereq_(101);
+
+var svgAppend = _dereq_(316),
+    svgAttr = _dereq_(318),
+    svgClasses = _dereq_(319),
+    svgCreate = _dereq_(320),
+    svgTransform = _dereq_(323);
+
+var createMatrix = _dereq_(321).createMatrix;
 
-var InternalEvent = _dereq_(72).Event;
-
-
-/**
- * A service that offers un- and redoable execution of commands.
- *
- * The command stack is responsible for executing modeling actions
- * in a un- and redoable manner. To do this it delegates the actual
- * command execution to {@link CommandHandler}s.
- *
- * Command handlers provide {@link CommandHandler#execute(ctx)} and
- * {@link CommandHandler#revert(ctx)} methods to un- and redo a command
- * identified by a command context.
- *
- *
- * ## Life-Cycle events
- *
- * In the process the command stack fires a number of life-cycle events
- * that other components to participate in the command execution.
- *
- *    * preExecute
- *    * preExecuted
- *    * execute
- *    * executed
- *    * postExecute
- *    * postExecuted
- *    * revert
- *    * reverted
- *
- * A special event is used for validating, whether a command can be
- * performed prior to its execution.
- *
- *    * canExecute
- *
- * Each of the events is fired as `commandStack.{eventName}` and
- * `commandStack.{commandName}.{eventName}`, respectively. This gives
- * components fine grained control on where to hook into.
- *
- * The event object fired transports `command`, the name of the
- * command and `context`, the command context.
- *
- *
- * ## Creating Command Handlers
- *
- * Command handlers should provide the {@link CommandHandler#execute(ctx)}
- * and {@link CommandHandler#revert(ctx)} methods to implement
- * redoing and undoing of a command. They must ensure undo is performed
- * properly in order not to break the undo chain.
- *
- * Command handlers may execute other modeling operations (and thus
- * commands) in their `preExecute` and `postExecute` phases. The command
- * stack will properly group all commands together into a logical unit
- * that may be re- and undone atomically.
- *
- * Command handlers must not execute other commands from within their
- * core implementation (`execute`, `revert`).
- *
- *
- * ## Change Tracking
- *
- * During the execution of the CommandStack it will keep track of all
- * elements that have been touched during the command's execution.
- *
- * At the end of the CommandStack execution it will notify interested
- * components via an 'elements.changed' event with all the dirty
- * elements.
- *
- * The event can be picked up by components that are interested in the fact
- * that elements have been changed. One use case for this is updating
- * their graphical representation after moving / resizing or deletion.
- *
- *
- * @param {EventBus} eventBus
- * @param {Injector} injector
- */
-function CommandStack(eventBus, injector) {
-
-  /**
-   * A map of all registered command handlers.
-   *
-   * @type {Object}
-   */
-  this._handlerMap = {};
-
-  /**
-   * A stack containing all re/undoable actions on the diagram
-   *
-   * @type {Array<Object>}
-   */
-  this._stack = [];
-
-  /**
-   * The current index on the stack
-   *
-   * @type {Number}
-   */
-  this._stackIdx = -1;
-
-  /**
-   * Current active commandStack execution
-   *
-   * @type {Object}
-   */
-  this._currentExecution = {
-    actions: [],
-    dirty: []
-  };
-
-
-  this._injector = injector;
-  this._eventBus = eventBus;
-
-  this._uid = 1;
-
-  eventBus.on([ 'diagram.destroy', 'diagram.clear' ], this.clear, this);
-}
-
-CommandStack.$inject = [ 'eventBus', 'injector' ];
-
-module.exports = CommandStack;
-
-
-/**
- * Execute a command
- *
- * @param {String} command the command to execute
- * @param {Object} context the environment to execute the command in
- */
-CommandStack.prototype.execute = function(command, context) {
-  if (!command) {
-    throw new Error('command required');
-  }
-
-  var action = { command: command, context: context };
-
-  this._pushAction(action);
-  this._internalExecute(action);
-  this._popAction(action);
-};
-
-
-/**
- * Ask whether a given command can be executed.
- *
- * Implementors may hook into the mechanism on two ways:
- *
- *   * in event listeners:
- *
- *     Users may prevent the execution via an event listener.
- *     It must prevent the default action for `commandStack.(<command>.)canExecute` events.
- *
- *   * in command handlers:
- *
- *     If the method {@link CommandHandler#canExecute} is implemented in a handler
- *     it will be called to figure out whether the execution is allowed.
- *
- * @param  {String} command the command to execute
- * @param  {Object} context the environment to execute the command in
- *
- * @return {Boolean} true if the command can be executed
- */
-CommandStack.prototype.canExecute = function(command, context) {
-
-  var action = { command: command, context: context };
-
-  var handler = this._getHandler(command);
-
-  var result = this._fire(command, 'canExecute', action);
-
-  // handler#canExecute will only be called if no listener
-  // decided on a result already
-  if (result === undefined) {
-    if (!handler) {
-      return false;
-    }
-
-    if (handler.canExecute) {
-      result = handler.canExecute(context);
-    }
-  }
-
-  return result;
-};
-
-
-/**
- * Clear the command stack, erasing all undo / redo history
- */
-CommandStack.prototype.clear = function() {
-  this._stack.length = 0;
-  this._stackIdx = -1;
-
-  this._fire('changed');
-};
-
-
-/**
- * Undo last command(s)
- */
-CommandStack.prototype.undo = function() {
-  var action = this._getUndoAction(),
-      next;
-
-  if (action) {
-    this._pushAction(action);
-
-    while (action) {
-      this._internalUndo(action);
-      next = this._getUndoAction();
-
-      if (!next || next.id !== action.id) {
-        break;
-      }
-
-      action = next;
-    }
-
-    this._popAction();
-  }
-};
-
-
-/**
- * Redo last command(s)
- */
-CommandStack.prototype.redo = function() {
-  var action = this._getRedoAction(),
-      next;
-
-  if (action) {
-    this._pushAction(action);
-
-    while (action) {
-      this._internalExecute(action, true);
-      next = this._getRedoAction();
-
-      if (!next || next.id !== action.id) {
-        break;
-      }
-
-      action = next;
-    }
-
-    this._popAction();
-  }
-};
-
-
-/**
- * Register a handler instance with the command stack
- *
- * @param {String} command
- * @param {CommandHandler} handler
- */
-CommandStack.prototype.register = function(command, handler) {
-  this._setHandler(command, handler);
-};
-
-
-/**
- * Register a handler type with the command stack
- * by instantiating it and injecting its dependencies.
- *
- * @param {String} command
- * @param {Function} a constructor for a {@link CommandHandler}
- */
-CommandStack.prototype.registerHandler = function(command, handlerCls) {
-
-  if (!command || !handlerCls) {
-    throw new Error('command and handlerCls must be defined');
-  }
-
-  var handler = this._injector.instantiate(handlerCls);
-  this.register(command, handler);
-};
-
-CommandStack.prototype.canUndo = function() {
-  return !!this._getUndoAction();
-};
-
-CommandStack.prototype.canRedo = function() {
-  return !!this._getRedoAction();
-};
-
-////// stack access  //////////////////////////////////////
-
-CommandStack.prototype._getRedoAction = function() {
-  return this._stack[this._stackIdx + 1];
-};
-
-
-CommandStack.prototype._getUndoAction = function() {
-  return this._stack[this._stackIdx];
-};
-
-
-////// internal functionality /////////////////////////////
-
-CommandStack.prototype._internalUndo = function(action) {
-  var self = this;
-
-  var command = action.command,
-      context = action.context;
-
-  var handler = this._getHandler(command);
-
-  // guard against illegal nested command stack invocations
-  this._atomicDo(function() {
-    self._fire(command, 'revert', action);
-
-    if (handler.revert) {
-      self._markDirty(handler.revert(context));
-    }
-
-    self._revertedAction(action);
-
-    self._fire(command, 'reverted', action);
-  });
-};
-
-
-CommandStack.prototype._fire = function(command, qualifier, event) {
-  if (arguments.length < 3) {
-    event = qualifier;
-    qualifier = null;
-  }
-
-  var names = qualifier ? [ command + '.' + qualifier, qualifier ] : [ command ],
-      i, name, result;
-
-  event = assign(new InternalEvent(), event);
-
-  for (i = 0; (name = names[i]); i++) {
-    result = this._eventBus.fire('commandStack.' + name, event);
-
-    if (event.cancelBubble) {
-      break;
-    }
-  }
-
-  return result;
-};
-
-CommandStack.prototype._createId = function() {
-  return this._uid++;
-};
-
-CommandStack.prototype._atomicDo = function(fn) {
-
-  var execution = this._currentExecution;
-
-  execution.atomic = true;
-
-  try {
-    fn();
-  } finally {
-    execution.atomic = false;
-  }
-};
-
-CommandStack.prototype._internalExecute = function(action, redo) {
-  var self = this;
-
-  var command = action.command,
-      context = action.context;
-
-  var handler = this._getHandler(command);
-
-  if (!handler) {
-    throw new Error('no command handler registered for <' + command + '>');
-  }
-
-  this._pushAction(action);
-
-  if (!redo) {
-    this._fire(command, 'preExecute', action);
-
-    if (handler.preExecute) {
-      handler.preExecute(context);
-    }
-
-    this._fire(command, 'preExecuted', action);
-  }
-
-  // guard against illegal nested command stack invocations
-  this._atomicDo(function() {
-
-    self._fire(command, 'execute', action);
-
-    if (handler.execute) {
-      // actual execute + mark return results as dirty
-      self._markDirty(handler.execute(context));
-    }
-
-    // log to stack
-    self._executedAction(action, redo);
-
-    self._fire(command, 'executed', action);
-  });
-
-  if (!redo) {
-    this._fire(command, 'postExecute', action);
-
-    if (handler.postExecute) {
-      handler.postExecute(context);
-    }
-
-    this._fire(command, 'postExecuted', action);
-  }
-
-  this._popAction(action);
-};
-
-
-CommandStack.prototype._pushAction = function(action) {
-
-  var execution = this._currentExecution,
-      actions = execution.actions;
-
-  var baseAction = actions[0];
-
-  if (execution.atomic) {
-    throw new Error('illegal invocation in <execute> or <revert> phase (action: ' + action.command + ')');
-  }
-
-  if (!action.id) {
-    action.id = (baseAction && baseAction.id) || this._createId();
-  }
-
-  actions.push(action);
-};
-
-
-CommandStack.prototype._popAction = function() {
-  var execution = this._currentExecution,
-      actions = execution.actions,
-      dirty = execution.dirty;
-
-  actions.pop();
-
-  if (!actions.length) {
-    this._eventBus.fire('elements.changed', { elements: unique(dirty) });
-
-    dirty.length = 0;
-
-    this._fire('changed');
-  }
-};
-
-
-CommandStack.prototype._markDirty = function(elements) {
-  var execution = this._currentExecution;
-
-  if (!elements) {
-    return;
-  }
-
-  elements = isArray(elements) ? elements : [ elements ];
-
-  execution.dirty = execution.dirty.concat(elements);
-};
-
-
-CommandStack.prototype._executedAction = function(action, redo) {
-  var stackIdx = ++this._stackIdx;
-
-  if (!redo) {
-    this._stack.splice(stackIdx, this._stack.length, action);
-  }
-};
-
-
-CommandStack.prototype._revertedAction = function(action) {
-  this._stackIdx--;
-};
-
-
-CommandStack.prototype._getHandler = function(command) {
-  return this._handlerMap[command];
-};
-
-CommandStack.prototype._setHandler = function(command, handler) {
-  if (!command || !handler) {
-    throw new Error('command and handler required');
-  }
-
-  if (this._handlerMap[command]) {
-    throw new Error('overriding handler for command <' + command + '>');
-  }
-
-  this._handlerMap[command] = handler;
-};
-
-},{"122":122,"230":230,"239":239,"72":72}],68:[function(_dereq_,module,exports){
-module.exports = {
-  commandStack: [ 'type', _dereq_(67) ]
-};
-
-},{"67":67}],69:[function(_dereq_,module,exports){
-'use strict';
-
-var isNumber = _dereq_(233),
-    assign = _dereq_(239),
-    forEach = _dereq_(127),
-    every = _dereq_(124),
-    debounce = _dereq_(133);
-
-var Collections = _dereq_(95),
-    Elements = _dereq_(96);
-
-var Snap = _dereq_(104);
 
 function round(number, resolution) {
   return Math.round(number * resolution) / resolution;
@@ -6151,7 +6149,12 @@ function createContainer(options) {
 }
 
 function createGroup(parent, cls) {
-  return parent.group().attr({ 'class' : cls });
+  var group = svgCreate('g');
+  svgClasses(group).add(cls);
+
+  svgAppend(parent, group);
+
+  return group;
 }
 
 var BASE_LAYER = 'base';
@@ -6206,9 +6209,14 @@ Canvas.prototype._init = function(config) {
   // </div>
 
   // html container
-  var container = this._container = createContainer(config),
-      svg = this._svg = Snap.createSnapAt('100%', '100%', container),
-      viewport = this._viewport = createGroup(svg, 'viewport');
+  var container = this._container = createContainer(config);
+
+  var svg = this._svg = svgCreate('svg');
+  svgAttr(svg, { width: '100%', height: '100%' });
+
+  svgAppend(container, svg);
+
+  var viewport = this._viewport = createGroup(svg, 'viewport');
 
   this._layers = {};
 
@@ -6349,7 +6357,11 @@ Canvas.prototype._updateMarker = function(element, marker, add) {
   forEach([ container.gfx, container.secondaryGfx ], function(gfx) {
     if (gfx) {
       // invoke either addClass or removeClass based on mode
-      gfx[add ? 'addClass' : 'removeClass'](marker);
+      if (add) {
+        svgClasses(gfx).add(marker);
+      } else {
+        svgClasses(gfx).remove(marker);
+      }
     }
   });
 
@@ -6414,7 +6426,7 @@ Canvas.prototype.hasMarker = function(element, marker) {
 
   var gfx = this.getGraphics(element);
 
-  return gfx && gfx.hasClass(marker);
+  return svgClasses(gfx).has(marker);
 };
 
 /**
@@ -6787,9 +6799,10 @@ Canvas.prototype.viewbox = function(box) {
     // compute the inner box based on the
     // diagrams default layer. This allows us to exclude
     // external components, such as overlays
-    innerBox = this.getDefaultLayer().getBBox(true);
+    innerBox = this.getDefaultLayer().getBBox();
 
-    matrix = viewport.transform().localMatrix;
+    var transform = svgTransform(viewport);
+    matrix = transform ? transform.matrix : createMatrix();
     scale = round(matrix.a, 1000);
 
     x = round(-matrix.e || 0, 1000);
@@ -6816,8 +6829,11 @@ Canvas.prototype.viewbox = function(box) {
     this._changeViewbox(function() {
       scale = Math.min(outerBox.width / box.width, outerBox.height / box.height);
 
-      matrix = new Snap.Matrix().scale(scale).translate(-box.x, -box.y);
-      viewport.transform(matrix);
+      var matrix = this._svg.createSVGMatrix()
+        .scale(scale)
+        .translate(-box.x, -box.y);
+
+      svgTransform(viewport, matrix);
     });
   }
 
@@ -6835,14 +6851,14 @@ Canvas.prototype.viewbox = function(box) {
  */
 Canvas.prototype.scroll = function(delta) {
 
-  var node = this._viewport.node;
+  var node = this._viewport;
   var matrix = node.getCTM();
 
   if (delta) {
     this._changeViewbox(function() {
       delta = assign({ dx: 0, dy: 0 }, delta || {});
 
-      matrix = this._svg.node.createSVGMatrix().translate(delta.dx, delta.dy).multiply(matrix);
+      matrix = this._svg.createSVGMatrix().translate(delta.dx, delta.dy).multiply(matrix);
 
       setCTM(node, matrix);
     });
@@ -6946,8 +6962,8 @@ Canvas.prototype._fitViewport = function(center) {
 
 Canvas.prototype._setZoom = function(scale, center) {
 
-  var svg = this._svg.node,
-      viewport = this._viewport.node;
+  var svg = this._svg,
+      viewport = this._viewport;
 
   var matrix = svg.createSVGMatrix();
   var point = svg.createSVGPoint();
@@ -6959,7 +6975,6 @@ Canvas.prototype._setZoom = function(scale, center) {
       newMatrix;
 
   currentMatrix = viewport.getCTM();
-
 
   var currentScale = currentMatrix.a;
 
@@ -6980,7 +6995,7 @@ Canvas.prototype._setZoom = function(scale, center) {
     newMatrix = matrix.scale(scale);
   }
 
-  setCTM(this._viewport.node, newMatrix);
+  setCTM(this._viewport, newMatrix);
 
   return newMatrix;
 };
@@ -7059,12 +7074,12 @@ Canvas.prototype.resized = function() {
   this._eventBus.fire('canvas.resized');
 };
 
-},{"104":104,"124":124,"127":127,"133":133,"233":233,"239":239,"95":95,"96":96}],70:[function(_dereq_,module,exports){
+},{"100":100,"101":101,"129":129,"132":132,"139":139,"240":240,"246":246,"316":316,"318":318,"319":319,"320":320,"321":321,"323":323}],75:[function(_dereq_,module,exports){
 'use strict';
 
-var Model = _dereq_(94);
+var Model = _dereq_(99);
 
-var assign = _dereq_(239);
+var assign = _dereq_(246);
 
 /**
  * A factory for diagram-js shapes
@@ -7110,10 +7125,12 @@ ElementFactory.prototype.create = function(type, attrs) {
 
   return Model.create(type, attrs);
 };
-},{"239":239,"94":94}],71:[function(_dereq_,module,exports){
+},{"246":246,"99":99}],76:[function(_dereq_,module,exports){
 'use strict';
 
 var ELEMENT_ID = 'data-element-id';
+
+var svgAttr = _dereq_(318);
 
 
 /**
@@ -7131,8 +7148,8 @@ module.exports = ElementRegistry;
  * Register a pair of (element, gfx, (secondaryGfx)).
  *
  * @param {djs.model.Base} element
- * @param {Snap<SVGElement>} gfx
- * @param {Snap<SVGElement>} [secondaryGfx] optional other element to register, too
+ * @param {SVGElement} gfx
+ * @param {SVGElement} [secondaryGfx] optional other element to register, too
  */
 ElementRegistry.prototype.add = function(element, gfx, secondaryGfx) {
 
@@ -7141,10 +7158,10 @@ ElementRegistry.prototype.add = function(element, gfx, secondaryGfx) {
   this._validateId(id);
 
   // associate dom node with element
-  gfx.attr(ELEMENT_ID, id);
+  svgAttr(gfx, ELEMENT_ID, id);
 
   if (secondaryGfx) {
-    secondaryGfx.attr(ELEMENT_ID, id);
+    svgAttr(secondaryGfx, ELEMENT_ID, id);
   }
 
   this._elements[id] = { element: element, gfx: gfx, secondaryGfx: secondaryGfx };
@@ -7163,10 +7180,10 @@ ElementRegistry.prototype.remove = function(element) {
   if (container) {
 
     // unset element id on gfx
-    container.gfx.attr(ELEMENT_ID, '');
+    svgAttr(container.gfx, ELEMENT_ID, '');
 
     if (container.secondaryGfx) {
-      container.secondaryGfx.attr(ELEMENT_ID, '');
+      svgAttr(container.secondaryGfx, ELEMENT_ID, '');
     }
 
     delete elements[id];
@@ -7216,7 +7233,7 @@ ElementRegistry.prototype.get = function(filter) {
   if (typeof filter === 'string') {
     id = filter;
   } else {
-    id = filter && filter.attr(ELEMENT_ID);
+    id = filter && svgAttr(filter, ELEMENT_ID);
   }
 
   var container = this._elements[id];
@@ -7309,14 +7326,15 @@ ElementRegistry.prototype._validateId = function(id) {
     throw new Error('element with id ' + id + ' already added');
   }
 };
-},{}],72:[function(_dereq_,module,exports){
+
+},{"318":318}],77:[function(_dereq_,module,exports){
 'use strict';
 
-var isFunction = _dereq_(231),
-    isArray = _dereq_(230),
-    isNumber = _dereq_(233),
-    bind = _dereq_(132),
-    assign = _dereq_(239);
+var isFunction = _dereq_(238),
+    isArray = _dereq_(237),
+    isNumber = _dereq_(240),
+    bind = _dereq_(138),
+    assign = _dereq_(246);
 
 var FN_REF = '__fn';
 
@@ -7767,14 +7785,24 @@ function invokeFunction(fn, args) {
   return fn.apply(null, args);
 }
 
-},{"132":132,"230":230,"231":231,"233":233,"239":239}],73:[function(_dereq_,module,exports){
+},{"138":138,"237":237,"238":238,"240":240,"246":246}],78:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(127),
-    reduce = _dereq_(130);
+var forEach = _dereq_(132),
+    reduce = _dereq_(135);
 
-var GraphicsUtil = _dereq_(98),
-    domClear = _dereq_(251);
+var GraphicsUtil = _dereq_(103);
+
+var translate = _dereq_(108).translate;
+
+var domClear = _dereq_(258);
+
+var svgAppend = _dereq_(316),
+    svgAttr = _dereq_(318),
+    svgClasses = _dereq_(319),
+    svgCreate = _dereq_(320),
+    svgRemove = _dereq_(322);
+
 
 /**
  * A factory that creates graphical elements
@@ -7804,7 +7832,10 @@ GraphicsFactory.prototype._getChildren = function(element) {
   } else {
     childrenGfx = GraphicsUtil.getChildren(gfx);
     if (!childrenGfx) {
-      childrenGfx = gfx.parent().group().attr('class', 'djs-children');
+      childrenGfx = svgCreate('g');
+      svgClasses(childrenGfx).add('djs-children');
+
+      svgAppend(gfx.parentNode, childrenGfx);
     }
   }
 
@@ -7818,7 +7849,7 @@ GraphicsFactory.prototype._getChildren = function(element) {
 GraphicsFactory.prototype._clear = function(gfx) {
   var visual = GraphicsUtil.getVisual(gfx);
 
-  domClear(visual.node);
+  domClear(visual);
 
   return visual;
 };
@@ -7847,11 +7878,22 @@ GraphicsFactory.prototype._clear = function(gfx) {
  * @param {String} type the type of the element, i.e. shape | connection
  */
 GraphicsFactory.prototype._createContainer = function(type, parentGfx) {
-  var outerGfx = parentGfx.group().attr('class', 'djs-group'),
-      gfx = outerGfx.group().attr('class', 'djs-element djs-' + type);
+  var outerGfx = svgCreate('g');
+  svgClasses(outerGfx).add('djs-group');
+
+  svgAppend(parentGfx, outerGfx);
+
+  var gfx = svgCreate('g');
+  svgClasses(gfx).add('djs-element');
+  svgClasses(gfx).add('djs-' + type);
+
+  svgAppend(outerGfx, gfx);
 
   // create visual
-  gfx.group().attr('class', 'djs-visual');
+  var visual = svgCreate('g');
+  svgClasses(visual).add('djs-visual');
+
+  svgAppend(gfx, visual);
 
   return gfx;
 };
@@ -7861,13 +7903,11 @@ GraphicsFactory.prototype.create = function(type, element) {
   return this._createContainer(type, childrenGfx);
 };
 
-
 GraphicsFactory.prototype.updateContainments = function(elements) {
 
   var self = this,
       elementRegistry = this._elementRegistry,
       parents;
-
 
   parents = reduce(elements, function(map, e) {
 
@@ -7891,7 +7931,8 @@ GraphicsFactory.prototype.updateContainments = function(elements) {
 
     forEach(children.slice().reverse(), function(c) {
       var gfx = elementRegistry.getGraphics(c);
-      gfx.parent().prependTo(childGfx);
+
+      prependTo(gfx.parentNode, childGfx);
     });
   });
 };
@@ -7933,7 +7974,7 @@ GraphicsFactory.prototype.update = function(type, element, gfx) {
     this.drawShape(visual, element);
 
     // update positioning
-    gfx.translate(element.x, element.y);
+    translate(gfx, element.x, element.y);
   } else
   if (type === 'connection') {
     this.drawConnection(visual, element);
@@ -7941,27 +7982,37 @@ GraphicsFactory.prototype.update = function(type, element, gfx) {
     throw new Error('unknown type: ' + type);
   }
 
-  gfx.attr('display', element.hidden ? 'none' : 'block');
+  if (element.hidden) {
+    svgAttr(gfx, 'display', 'none');
+  } else {
+    svgAttr(gfx, 'display', 'block');
+  }
 };
 
 GraphicsFactory.prototype.remove = function(element) {
   var gfx = this._elementRegistry.getGraphics(element);
 
   // remove
-  gfx.parent().remove();
+  svgRemove(gfx.parentNode);
 };
 
-},{"127":127,"130":130,"251":251,"98":98}],74:[function(_dereq_,module,exports){
+////////// helpers ///////////
+
+function prependTo(newNode, parentNode) {
+  parentNode.insertBefore(newNode, parentNode.firstChild);
+}
+
+},{"103":103,"108":108,"132":132,"135":135,"258":258,"316":316,"318":318,"319":319,"320":320,"322":322}],79:[function(_dereq_,module,exports){
 module.exports = {
-  __depends__: [ _dereq_(78) ],
+  __depends__: [ _dereq_(83) ],
   __init__: [ 'canvas' ],
-  canvas: [ 'type', _dereq_(69) ],
-  elementRegistry: [ 'type', _dereq_(71) ],
-  elementFactory: [ 'type', _dereq_(70) ],
-  eventBus: [ 'type', _dereq_(72) ],
-  graphicsFactory: [ 'type', _dereq_(73) ]
+  canvas: [ 'type', _dereq_(74) ],
+  elementRegistry: [ 'type', _dereq_(76) ],
+  elementFactory: [ 'type', _dereq_(75) ],
+  eventBus: [ 'type', _dereq_(77) ],
+  graphicsFactory: [ 'type', _dereq_(78) ]
 };
-},{"69":69,"70":70,"71":71,"72":72,"73":73,"78":78}],75:[function(_dereq_,module,exports){
+},{"74":74,"75":75,"76":76,"77":77,"78":78,"83":83}],80:[function(_dereq_,module,exports){
 'use strict';
 
 var DEFAULT_RENDER_PRIORITY = 1000;
@@ -8052,17 +8103,21 @@ BaseRenderer.prototype.getConnectionPath = function() {};
 
 module.exports = BaseRenderer;
 
-},{}],76:[function(_dereq_,module,exports){
+},{}],81:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(118);
+var inherits = _dereq_(122);
 
-var BaseRenderer = _dereq_(75);
+var BaseRenderer = _dereq_(80);
 
-var renderUtil = _dereq_(102);
+var renderUtil = _dereq_(107);
 
 var componentsToPath = renderUtil.componentsToPath,
     createLine = renderUtil.createLine;
+
+var svgAppend = _dereq_(316),
+    svgAttr = _dereq_(318),
+    svgCreate = _dereq_(320);
 
 // apply default renderer with lowest possible priority
 // so that it only kicks in if noone else could render
@@ -8090,11 +8145,27 @@ DefaultRenderer.prototype.canRender = function() {
 };
 
 DefaultRenderer.prototype.drawShape = function drawShape(visuals, element) {
-  return visuals.rect(0, 0, element.width || 0, element.height || 0).attr(this.SHAPE_STYLE);
+
+  var rect = svgCreate('rect');
+  svgAttr(rect, {
+    x: 0,
+    y: 0,
+    width: element.width || 0,
+    height: element.height || 0
+  });
+  svgAttr(rect, this.SHAPE_STYLE);
+
+  svgAppend(visuals, rect);
+
+  return rect;
 };
 
 DefaultRenderer.prototype.drawConnection = function drawConnection(visuals, connection) {
-  return createLine(connection.waypoints, this.CONNECTION_STYLE).appendTo(visuals);
+
+  var line = createLine(connection.waypoints, this.CONNECTION_STYLE);
+  svgAppend(visuals, line);
+
+  return line;
 };
 
 DefaultRenderer.prototype.getShapePath = function getShapePath(shape) {
@@ -8137,12 +8208,12 @@ DefaultRenderer.$inject = [ 'eventBus', 'styles' ];
 
 module.exports = DefaultRenderer;
 
-},{"102":102,"118":118,"75":75}],77:[function(_dereq_,module,exports){
+},{"107":107,"122":122,"316":316,"318":318,"320":320,"80":80}],82:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(230),
-    assign = _dereq_(239),
-    reduce = _dereq_(130);
+var isArray = _dereq_(237),
+    assign = _dereq_(246),
+    reduce = _dereq_(135);
 
 
 /**
@@ -8214,28 +8285,344 @@ function Styles() {
 
 module.exports = Styles;
 
-},{"130":130,"230":230,"239":239}],78:[function(_dereq_,module,exports){
+},{"135":135,"237":237,"246":246}],83:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'defaultRenderer' ],
-  defaultRenderer: [ 'type', _dereq_(76) ],
-  styles: [ 'type', _dereq_(77) ]
+  defaultRenderer: [ 'type', _dereq_(81) ],
+  styles: [ 'type', _dereq_(82) ]
 };
 
-},{"76":76,"77":77}],79:[function(_dereq_,module,exports){
+},{"81":81,"82":82}],84:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(127),
-    domDelegate = _dereq_(252);
+var isFunction = _dereq_(238),
+    isArray = _dereq_(237),
+    forEach = _dereq_(132),
+
+    domDelegate = _dereq_(259),
+    domEvent = _dereq_(261),
+    domAttr = _dereq_(256),
+    domQuery = _dereq_(262),
+    domClasses = _dereq_(257),
+    domify = _dereq_(260);
 
 
-var isPrimaryButton = _dereq_(100).isPrimaryButton;
+var entrySelector = '.entry';
 
-var Snap = _dereq_(104);
 
-var renderUtil = _dereq_(102);
+/**
+ * A context pad that displays element specific, contextual actions next
+ * to a diagram element.
+ *
+ * @param {EventBus} eventBus
+ * @param {Overlays} overlays
+ */
+function ContextPad(eventBus, overlays) {
+
+  this._providers = [];
+
+  this._eventBus = eventBus;
+  this._overlays = overlays;
+
+  this._current = null;
+
+  this._init();
+}
+
+ContextPad.$inject = [ 'eventBus', 'overlays' ];
+
+module.exports = ContextPad;
+
+
+/**
+ * Registers events needed for interaction with other components
+ */
+ContextPad.prototype._init = function() {
+
+  var eventBus = this._eventBus;
+
+  var self = this;
+
+  eventBus.on('selection.changed', function(e) {
+
+    var selection = e.newSelection;
+
+    if (selection.length === 1) {
+      self.open(selection[0]);
+    } else {
+      self.close();
+    }
+  });
+
+  eventBus.on('elements.delete', function(event) {
+    var elements = event.elements;
+
+    forEach(elements, function(e) {
+      if (self.isOpen(e)) {
+        self.close();
+      }
+    });
+  });
+
+  eventBus.on('element.changed', function(event) {
+    var element = event.element,
+        current = self._current;
+
+    // force reopen if element for which we are currently opened changed
+    if (current && current.element === element) {
+      self.open(element, true);
+    }
+  });
+};
+
+
+/**
+ * Register a provider with the context pad
+ *
+ * @param  {ContextPadProvider} provider
+ */
+ContextPad.prototype.registerProvider = function(provider) {
+  this._providers.push(provider);
+};
+
+
+/**
+ * Returns the context pad entries for a given element
+ *
+ * @param {djs.element.Base} element
+ *
+ * @return {Array<ContextPadEntryDescriptor>} list of entries
+ */
+ContextPad.prototype.getEntries = function(element) {
+  var entries = {};
+
+  // loop through all providers and their entries.
+  // group entries by id so that overriding an entry is possible
+  forEach(this._providers, function(provider) {
+    var e = provider.getContextPadEntries(element);
+
+    forEach(e, function(entry, id) {
+      entries[id] = entry;
+    });
+  });
+
+  return entries;
+};
+
+
+/**
+ * Trigger an action available on the opened context pad
+ *
+ * @param  {String} action
+ * @param  {Event} event
+ * @param  {Boolean} [autoActivate=false]
+ */
+ContextPad.prototype.trigger = function(action, event, autoActivate) {
+
+  var element = this._current.element,
+      entries = this._current.entries,
+      entry,
+      handler,
+      originalEvent,
+      button = event.delegateTarget || event.target;
+
+  if (!button) {
+    return event.preventDefault();
+  }
+
+  entry = entries[domAttr(button, 'data-action')];
+  handler = entry.action;
+
+  originalEvent = event.originalEvent || event;
+
+  // simple action (via callback function)
+  if (isFunction(handler)) {
+    if (action === 'click') {
+      return handler(originalEvent, element, autoActivate);
+    }
+  } else {
+    if (handler[action]) {
+      return handler[action](originalEvent, element, autoActivate);
+    }
+  }
+
+  // silence other actions
+  event.preventDefault();
+};
+
+
+/**
+ * Open the context pad for the given element
+ *
+ * @param {djs.model.Base} element
+ * @param {Boolean} force if true, force reopening the context pad
+ */
+ContextPad.prototype.open = function(element, force) {
+  if (!force && this.isOpen(element)) {
+    return;
+  }
+
+  this.close();
+  this._updateAndOpen(element);
+};
+
+
+ContextPad.prototype._updateAndOpen = function(element) {
+
+  var entries = this.getEntries(element),
+      pad = this.getPad(element),
+      html = pad.html;
+
+  forEach(entries, function(entry, id) {
+    var grouping = entry.group || 'default',
+        control = domify(entry.html || '<div class="entry" draggable="true"></div>'),
+        container;
+
+    domAttr(control, 'data-action', id);
+
+    container = domQuery('[data-group=' + grouping + ']', html);
+    if (!container) {
+      container = domify('<div class="group" data-group="' + grouping + '"></div>');
+      html.appendChild(container);
+    }
+
+    container.appendChild(control);
+
+    if (entry.className) {
+      addClasses(control, entry.className);
+    }
+
+    if (entry.title) {
+      domAttr(control, 'title', entry.title);
+    }
+
+    if (entry.imageUrl) {
+      control.appendChild(domify('<img src="' + entry.imageUrl + '">'));
+    }
+  });
+
+  domClasses(html).add('open');
+
+  this._current = {
+    element: element,
+    pad: pad,
+    entries: entries
+  };
+
+  this._eventBus.fire('contextPad.open', { current: this._current });
+};
+
+
+ContextPad.prototype.getPad = function(element) {
+  if (this.isOpen()) {
+    return this._current.pad;
+  }
+
+  var self = this;
+
+  var overlays = this._overlays;
+
+  var html = domify('<div class="djs-context-pad"></div>');
+
+  domDelegate.bind(html, entrySelector, 'click', function(event) {
+    self.trigger('click', event);
+  });
+
+  domDelegate.bind(html, entrySelector, 'dragstart', function(event) {
+    self.trigger('dragstart', event);
+  });
+
+  // stop propagation of mouse events
+  domEvent.bind(html, 'mousedown', function(event) {
+    event.stopPropagation();
+  });
+
+  this._overlayId = overlays.add(element, 'context-pad', {
+    position: {
+      right: -9,
+      top: -6
+    },
+    html: html
+  });
+
+  var pad = overlays.get(this._overlayId);
+
+  this._eventBus.fire('contextPad.create', { element: element, pad: pad });
+
+  return pad;
+};
+
+
+/**
+ * Close the context pad
+ */
+ContextPad.prototype.close = function() {
+  if (!this.isOpen()) {
+    return;
+  }
+
+  this._overlays.remove(this._overlayId);
+
+  this._overlayId = null;
+
+  this._eventBus.fire('contextPad.close', { current: this._current });
+
+  this._current = null;
+};
+
+/**
+ * Check if pad is open. If element is given, will check
+ * if pad is opened with given element.
+ *
+ * @param {Element} element
+ * @return {Boolean}
+ */
+ContextPad.prototype.isOpen = function(element) {
+  return !!this._current && (!element ? true : this._current.element === element);
+};
+
+
+
+
+////////// helpers /////////////////////////////
+
+function addClasses(element, classNames) {
+
+  var classes = domClasses(element);
+
+  var actualClassNames = isArray(classNames) ? classNames : classNames.split(/\s+/g);
+  actualClassNames.forEach(function(cls) {
+    classes.add(cls);
+  });
+}
+},{"132":132,"237":237,"238":238,"256":256,"257":257,"259":259,"260":260,"261":261,"262":262}],85:[function(_dereq_,module,exports){
+module.exports = {
+  __depends__: [
+    _dereq_(87),
+    _dereq_(91)
+  ],
+  contextPad: [ 'type', _dereq_(84) ]
+};
+},{"84":84,"87":87,"91":91}],86:[function(_dereq_,module,exports){
+'use strict';
+
+var forEach = _dereq_(132),
+    domDelegate = _dereq_(259);
+
+var isPrimaryButton = _dereq_(105).isPrimaryButton;
+
+var svgAppend = _dereq_(316),
+    svgAttr = _dereq_(318),
+    svgCreate = _dereq_(320);
+
+var domQuery = _dereq_(262);
+
+var renderUtil = _dereq_(107);
 
 var createLine = renderUtil.createLine,
     updateLine = renderUtil.updateLine;
+
+var LOW_PRIORITY = 500;
 
 /**
  * A plugin that provides interaction events for diagram elements.
@@ -8283,7 +8670,7 @@ function InteractionEvents(eventBus, elementRegistry, styles) {
       target = event.delegateTarget || event.target;
 
       if (target) {
-        gfx = new Snap(target);
+        gfx = target;
         element = elementRegistry.get(gfx);
       }
     } else {
@@ -8366,13 +8753,13 @@ function InteractionEvents(eventBus, elementRegistry, styles) {
 
   function registerEvents(svg) {
     forEach(bindings, function(val, key) {
-      registerEvent(svg.node, key, val);
+      registerEvent(svg, key, val);
     });
   }
 
   function unregisterEvents(svg) {
     forEach(bindings, function(val, key) {
-      unregisterEvent(svg.node, key, val);
+      unregisterEvent(svg, key, val);
     });
   }
 
@@ -8393,21 +8780,30 @@ function InteractionEvents(eventBus, elementRegistry, styles) {
     if (element.waypoints) {
       hit = createLine(element.waypoints);
     } else {
-      hit = Snap.create('rect', { x: 0, y: 0, width: element.width, height: element.height });
+      hit = svgCreate('rect');
+      svgAttr(hit, {
+        x: 0,
+        y: 0,
+        width: element.width,
+        height: element.height
+      });
     }
 
-    hit.attr(HIT_STYLE).appendTo(gfx.node);
+    svgAttr(hit, HIT_STYLE);
+
+    svgAppend(gfx, hit);
   });
 
-  // update djs-hit on change
-
-  eventBus.on('shape.changed', function(event) {
+  // Update djs-hit on change.
+  // A low priortity is necessary, because djs-hit of labels has to be updated
+  // after the label bounds have been updated in the renderer.
+  eventBus.on('shape.changed', LOW_PRIORITY, function(event) {
 
     var element = event.element,
         gfx = event.gfx,
-        hit = gfx.select('.djs-hit');
+        hit = domQuery('.djs-hit', gfx);
 
-    hit.attr({
+    svgAttr(hit, {
       width: element.width,
       height: element.height
     });
@@ -8417,7 +8813,7 @@ function InteractionEvents(eventBus, elementRegistry, styles) {
 
     var element = event.element,
         gfx = event.gfx,
-        hit = gfx.select('.djs-hit');
+        hit = domQuery('.djs-hit', gfx);
 
     updateLine(hit, element.waypoints);
   });
@@ -8448,7 +8844,7 @@ module.exports = InteractionEvents;
  *
  * @type {Object}
  * @property {djs.model.Base} element
- * @property {Snap<Element>} gfx
+ * @property {SVGElement} gfx
  * @property {Event} originalEvent
  */
 
@@ -8459,7 +8855,7 @@ module.exports = InteractionEvents;
  *
  * @type {Object}
  * @property {djs.model.Base} element
- * @property {Snap<Element>} gfx
+ * @property {SVGElement} gfx
  * @property {Event} originalEvent
  */
 
@@ -8470,7 +8866,7 @@ module.exports = InteractionEvents;
  *
  * @type {Object}
  * @property {djs.model.Base} element
- * @property {Snap<Element>} gfx
+ * @property {SVGElement} gfx
  * @property {Event} originalEvent
  */
 
@@ -8481,7 +8877,7 @@ module.exports = InteractionEvents;
  *
  * @type {Object}
  * @property {djs.model.Base} element
- * @property {Snap<Element>} gfx
+ * @property {SVGElement} gfx
  * @property {Event} originalEvent
  */
 
@@ -8492,7 +8888,7 @@ module.exports = InteractionEvents;
  *
  * @type {Object}
  * @property {djs.model.Base} element
- * @property {Snap<Element>} gfx
+ * @property {SVGElement} gfx
  * @property {Event} originalEvent
  */
 
@@ -8503,19 +8899,29 @@ module.exports = InteractionEvents;
  *
  * @type {Object}
  * @property {djs.model.Base} element
- * @property {Snap<Element>} gfx
+ * @property {SVGElement} gfx
  * @property {Event} originalEvent
  */
 
-},{"100":100,"102":102,"104":104,"127":127,"252":252}],80:[function(_dereq_,module,exports){
+},{"105":105,"107":107,"132":132,"259":259,"262":262,"316":316,"318":318,"320":320}],87:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'interactionEvents' ],
-  interactionEvents: [ 'type', _dereq_(79) ]
+  interactionEvents: [ 'type', _dereq_(86) ]
 };
-},{"79":79}],81:[function(_dereq_,module,exports){
+},{"86":86}],88:[function(_dereq_,module,exports){
 'use strict';
 
-var getBBox = _dereq_(96).getBBox;
+var getBBox = _dereq_(101).getBBox;
+
+var LOW_PRIORITY = 500;
+
+var svgAppend = _dereq_(316),
+    svgAttr = _dereq_(318),
+    svgCreate = _dereq_(320);
+
+var domQuery = _dereq_(262);
+
+var assign = _dereq_(246);
 
 
 /**
@@ -8537,14 +8943,27 @@ function Outline(eventBus, styles, elementRegistry) {
   var self = this;
 
   function createOutline(gfx, bounds) {
-    return gfx.rect(10, 10, 0, 0).attr(OUTLINE_STYLE);
+    var outline = svgCreate('rect');
+
+    svgAttr(outline, assign({
+      x: 10,
+      y: 10,
+      width: 100,
+      height: 100
+    }, OUTLINE_STYLE));
+
+    svgAppend(gfx, outline);
+
+    return outline;
   }
 
-  eventBus.on([ 'shape.added', 'shape.changed' ], function(event) {
+  // A low priortity is necessary, because outlines of labels have to be updated
+  // after the label bounds have been updated in the renderer.
+  eventBus.on([ 'shape.added', 'shape.changed' ], LOW_PRIORITY, function(event) {
     var element = event.element,
         gfx     = event.gfx;
 
-    var outline = gfx.select('.djs-outline');
+    var outline = domQuery('.djs-outline', gfx);
 
     if (!outline) {
       outline = createOutline(gfx, element);
@@ -8557,7 +8976,7 @@ function Outline(eventBus, styles, elementRegistry) {
     var element = event.element,
         gfx     = event.gfx;
 
-    var outline = gfx.select('.djs-outline');
+    var outline = domQuery('.djs-outline', gfx);
 
     if (!outline) {
       outline = createOutline(gfx, element);
@@ -8577,7 +8996,7 @@ function Outline(eventBus, styles, elementRegistry) {
  */
 Outline.prototype.updateShapeOutline = function(outline, element) {
 
-  outline.attr({
+  svgAttr(outline, {
     x: -this.offset,
     y: -this.offset,
     width: element.width + this.offset * 2,
@@ -8598,7 +9017,7 @@ Outline.prototype.updateConnectionOutline = function(outline, connection) {
 
   var bbox = getBBox(connection);
 
-  outline.attr({
+  svgAttr(outline, {
     x: bbox.x - this.offset,
     y: bbox.y - this.offset,
     width: bbox.width + this.offset * 2,
@@ -8612,34 +9031,34 @@ Outline.$inject = ['eventBus', 'styles', 'elementRegistry'];
 
 module.exports = Outline;
 
-},{"96":96}],82:[function(_dereq_,module,exports){
+},{"101":101,"246":246,"262":262,"316":316,"318":318,"320":320}],89:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'outline' ],
-  outline: [ 'type', _dereq_(81) ]
+  outline: [ 'type', _dereq_(88) ]
 };
-},{"81":81}],83:[function(_dereq_,module,exports){
+},{"88":88}],90:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(230),
-    isString = _dereq_(236),
-    isObject = _dereq_(234),
-    assign = _dereq_(239),
-    forEach = _dereq_(127),
-    find = _dereq_(126),
-    filter = _dereq_(125);
+var isArray = _dereq_(237),
+    isString = _dereq_(243),
+    isObject = _dereq_(241),
+    assign = _dereq_(246),
+    forEach = _dereq_(132),
+    find = _dereq_(131),
+    filter = _dereq_(130);
 
-var domify = _dereq_(253),
-    domClasses = _dereq_(250),
-    domAttr = _dereq_(249),
-    domRemove = _dereq_(256),
-    domClear = _dereq_(251);
+var domify = _dereq_(260),
+    domClasses = _dereq_(257),
+    domAttr = _dereq_(256),
+    domRemove = _dereq_(263),
+    domClear = _dereq_(258);
 
-var getBBox = _dereq_(96).getBBox;
+var getBBox = _dereq_(101).getBBox;
 
 // document wide unique overlay ids
-var ids = new (_dereq_(99))('ov');
+var ids = new (_dereq_(104))('ov');
 
 
 function createRoot(parent) {
@@ -9170,18 +9589,18 @@ Overlays.prototype._init = function() {
   eventBus.on('diagram.clear', this.clear, this);
 };
 
-},{"125":125,"126":126,"127":127,"230":230,"234":234,"236":236,"239":239,"249":249,"250":250,"251":251,"253":253,"256":256,"96":96,"99":99}],84:[function(_dereq_,module,exports){
+},{"101":101,"104":104,"130":130,"131":131,"132":132,"237":237,"241":241,"243":243,"246":246,"256":256,"257":257,"258":258,"260":260,"263":263}],91:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'overlays' ],
-  overlays: [ 'type', _dereq_(83) ]
+  overlays: [ 'type', _dereq_(90) ]
 };
-},{"83":83}],85:[function(_dereq_,module,exports){
+},{"90":90}],92:[function(_dereq_,module,exports){
 
 'use strict';
 
-var inherits = _dereq_(118);
+var inherits = _dereq_(122);
 
-var CommandInterceptor = _dereq_(66);
+var CommandInterceptor = _dereq_(73);
 
 /**
  * A basic provider that may be extended to implement modeling rules.
@@ -9268,7 +9687,7 @@ RuleProvider.prototype.addRule = function(actions, priority, fn) {
  * Implement this method to add new rules during provider initialization.
  */
 RuleProvider.prototype.init = function() {};
-},{"118":118,"66":66}],86:[function(_dereq_,module,exports){
+},{"122":122,"73":73}],93:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -9319,17 +9738,17 @@ Rules.prototype.allowed = function(action, context) {
   // map undefined to true, i.e. no rules
   return allowed === undefined ? true : allowed;
 };
-},{}],87:[function(_dereq_,module,exports){
+},{}],94:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'rules' ],
-  rules: [ 'type', _dereq_(86) ]
+  rules: [ 'type', _dereq_(93) ]
 };
 
-},{"86":86}],88:[function(_dereq_,module,exports){
+},{"93":93}],95:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(230),
-    forEach = _dereq_(127);
+var isArray = _dereq_(237),
+    forEach = _dereq_(132);
 
 
 /**
@@ -9424,12 +9843,12 @@ Selection.prototype.select = function(elements, add) {
   this._eventBus.fire('selection.changed', { oldSelection: oldSelection, newSelection: selectedElements });
 };
 
-},{"127":127,"230":230}],89:[function(_dereq_,module,exports){
+},{"132":132,"237":237}],96:[function(_dereq_,module,exports){
 'use strict';
 
-var hasPrimaryModifier = _dereq_(100).hasPrimaryModifier;
+var hasPrimaryModifier = _dereq_(105).hasPrimaryModifier;
 
-var find = _dereq_(126);
+var find = _dereq_(131);
 
 
 function SelectionBehavior(eventBus, selection, canvas, elementRegistry) {
@@ -9504,10 +9923,10 @@ function SelectionBehavior(eventBus, selection, canvas, elementRegistry) {
 SelectionBehavior.$inject = [ 'eventBus', 'selection', 'canvas', 'elementRegistry' ];
 module.exports = SelectionBehavior;
 
-},{"100":100,"126":126}],90:[function(_dereq_,module,exports){
+},{"105":105,"131":131}],97:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(127);
+var forEach = _dereq_(132);
 
 var MARKER_HOVER = 'hover',
     MARKER_SELECTED = 'selected';
@@ -9525,7 +9944,7 @@ var MARKER_HOVER = 'hover',
  * @param {SelectionService} selection
  * @param {Canvas} canvas
  */
-function SelectionVisuals(events, canvas, selection, graphicsFactory, styles) {
+function SelectionVisuals(events, canvas, selection, styles) {
 
   this._multiSelectionBox = null;
 
@@ -9576,64 +9995,30 @@ SelectionVisuals.$inject = [
   'eventBus',
   'canvas',
   'selection',
-  'graphicsFactory',
   'styles'
 ];
 
 module.exports = SelectionVisuals;
 
-},{"127":127}],91:[function(_dereq_,module,exports){
+},{"132":132}],98:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'selectionVisuals', 'selectionBehavior' ],
   __depends__: [
-    _dereq_(80),
-    _dereq_(82)
+    _dereq_(87),
+    _dereq_(89)
   ],
-  selection: [ 'type', _dereq_(88) ],
-  selectionVisuals: [ 'type', _dereq_(90) ],
-  selectionBehavior: [ 'type', _dereq_(89) ]
+  selection: [ 'type', _dereq_(95) ],
+  selectionVisuals: [ 'type', _dereq_(97) ],
+  selectionBehavior: [ 'type', _dereq_(96) ]
 };
 
-},{"80":80,"82":82,"88":88,"89":89,"90":90}],92:[function(_dereq_,module,exports){
-module.exports = {
-  translate: [ 'value', _dereq_(93) ]
-};
-},{"93":93}],93:[function(_dereq_,module,exports){
+},{"87":87,"89":89,"95":95,"96":96,"97":97}],99:[function(_dereq_,module,exports){
 'use strict';
 
-/**
- * A simple translation stub to be used for multi-language support
- * in diagrams. Can be easily replaced with a more sophisticated
- * solution.
- *
- * @example
- *
- * // use it inside any diagram component by injecting `translate`.
- *
- * function MyService(translate) {
- *   alert(translate('HELLO {you}', { you: 'You!' }));
- * }
- *
- * @param {String} template to interpolate
- * @param {Object} [replacements] a map with substitutes
- *
- * @return {String} the translated string
- */
-module.exports = function translate(template, replacements) {
+var assign = _dereq_(246),
+    inherits = _dereq_(122);
 
-  replacements = replacements || {};
-
-  return template.replace(/{([^}]+)}/g, function(_, key) {
-    return replacements[key] || '{' + key + '}';
-  });
-};
-},{}],94:[function(_dereq_,module,exports){
-'use strict';
-
-var assign = _dereq_(239),
-    inherits = _dereq_(118);
-
-var Refs = _dereq_(269);
+var Refs = _dereq_(276);
 
 var parentRefs = new Refs({ name: 'children', enumerable: true, collection: true }, { name: 'parent' }),
     labelRefs = new Refs({ name: 'label', enumerable: true }, { name: 'labelTarget' }),
@@ -9843,7 +10228,7 @@ module.exports.Shape = Shape;
 module.exports.Connection = Connection;
 module.exports.Label = Label;
 
-},{"118":118,"239":239,"269":269}],95:[function(_dereq_,module,exports){
+},{"122":122,"246":246,"276":276}],100:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -9934,13 +10319,13 @@ module.exports.indexOf = function(collection, element) {
   return collection.indexOf(element);
 };
 
-},{}],96:[function(_dereq_,module,exports){
+},{}],101:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(230),
-    isNumber = _dereq_(233),
-    groupBy = _dereq_(128),
-    forEach = _dereq_(127);
+var isArray = _dereq_(237),
+    isNumber = _dereq_(240),
+    groupBy = _dereq_(133),
+    forEach = _dereq_(132);
 
 /**
  * Adds an element to a collection and returns true if the
@@ -10232,7 +10617,7 @@ function getElementType(element) {
 }
 
 module.exports.getType = getElementType;
-},{"127":127,"128":128,"230":230,"233":233}],97:[function(_dereq_,module,exports){
+},{"132":132,"133":133,"237":237,"240":240}],102:[function(_dereq_,module,exports){
 'use strict';
 
 function __preventDefault(event) {
@@ -10303,8 +10688,10 @@ function toPoint(event) {
 
 module.exports.toPoint = toPoint;
 
-},{}],98:[function(_dereq_,module,exports){
+},{}],103:[function(_dereq_,module,exports){
 'use strict';
+
+var domQuery = _dereq_(262);
 
 /**
  * SVGs for elements are generated by the {@link GraphicsFactory}.
@@ -10321,7 +10708,7 @@ module.exports.toPoint = toPoint;
  * @return {Snap<SVGElement>}
  */
 function getVisual(gfx) {
-  return gfx.select('.djs-visual');
+  return domQuery('.djs-visual', gfx);
 }
 
 /**
@@ -10331,25 +10718,13 @@ function getVisual(gfx) {
  * @return {Snap<SVGElement>}
  */
 function getChildren(gfx) {
-  return gfx.parent().children()[1];
+  return gfx.parentNode.childNodes[1];
 }
-
-/**
- * Returns the visual bbox of an element
- *
- * @param {Snap<SVGElement>} gfx
- *
- * @return {Bounds}
- */
-function getBBox(gfx) {
-  return getVisual(gfx).select('*').getBBox();
-}
-
 
 module.exports.getVisual = getVisual;
 module.exports.getChildren = getChildren;
-module.exports.getBBox = getBBox;
-},{}],99:[function(_dereq_,module,exports){
+
+},{"262":262}],104:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -10382,12 +10757,12 @@ IdGenerator.prototype.next = function() {
   return this._prefix + (++this._counter);
 };
 
-},{}],100:[function(_dereq_,module,exports){
+},{}],105:[function(_dereq_,module,exports){
 'use strict';
 
-var getOriginalEvent = _dereq_(97).getOriginal;
+var getOriginalEvent = _dereq_(102).getOriginal;
 
-var isMac = _dereq_(101).isMac;
+var isMac = _dereq_(106).isMac;
 
 
 function isPrimaryButton(event) {
@@ -10421,16 +10796,17 @@ module.exports.hasSecondaryModifier = function(event) {
   return isPrimaryButton(event) && originalEvent.shiftKey;
 };
 
-},{"101":101,"97":97}],101:[function(_dereq_,module,exports){
+},{"102":102,"106":106}],106:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports.isMac = function isMac() {
   return (/mac/i).test(navigator.platform);
 };
-},{}],102:[function(_dereq_,module,exports){
+},{}],107:[function(_dereq_,module,exports){
 'use strict';
 
-var Snap = _dereq_(104);
+var svgAttr = _dereq_(318),
+    svgCreate = _dereq_(320);
 
 
 module.exports.componentsToPath = function(elements) {
@@ -10450,24 +10826,102 @@ function toSVGPoints(points) {
 module.exports.toSVGPoints = toSVGPoints;
 
 module.exports.createLine = function(points, attrs) {
-  return Snap.create('polyline', { points: toSVGPoints(points) }).attr(attrs || {});
+
+  var line = svgCreate('polyline');
+  svgAttr(line, { points: toSVGPoints(points) });
+
+  if (attrs) {
+    svgAttr(line, attrs);
+  }
+
+  return line;
 };
 
 module.exports.updateLine = function(gfx, points) {
-  return gfx.attr({ points: toSVGPoints(points) });
+  svgAttr(gfx, { points: toSVGPoints(points) });
+
+  return gfx;
 };
 
-},{"104":104}],103:[function(_dereq_,module,exports){
+},{"318":318,"320":320}],108:[function(_dereq_,module,exports){
 'use strict';
 
-var isObject = _dereq_(234),
-    assign = _dereq_(239),
-    pick = _dereq_(245),
-    forEach = _dereq_(127),
-    reduce = _dereq_(130),
-    merge = _dereq_(242);
+var svgTransform = _dereq_(323);
 
-var Snap = _dereq_(104);
+var createTransform = _dereq_(321).createTransform;
+
+
+/**
+ * @param {<SVGElement>} element
+ * @param {Number} x
+ * @param {Number} y
+ * @param {Number} angle
+ * @param {Number} amount
+ */
+module.exports.transform = function(gfx, x, y, angle, amount) {
+  var translate = createTransform();
+  translate.setTranslate(x, y);
+
+  var rotate = createTransform();
+  rotate.setRotate(angle, 0, 0);
+
+  var scale = createTransform();
+  scale.setScale(amount || 1, amount || 1);
+
+  svgTransform(gfx, [ translate, rotate, scale ]);
+};
+
+
+/**
+ * @param {SVGElement} element
+ * @param {Number} x
+ * @param {Number} y
+ */
+module.exports.translate = function(gfx, x, y) {
+  var translate = createTransform();
+  translate.setTranslate(x, y);
+
+  svgTransform(gfx, translate);
+};
+
+
+/**
+ * @param {SVGElement} element
+ * @param {Number} angle
+ */
+module.exports.rotate = function(gfx, angle) {
+  var rotate = createTransform();
+  rotate.setRotate(angle, 0, 0);
+
+  svgTransform(gfx, rotate);
+};
+
+
+/**
+ * @param {SVGElement} element
+ * @param {Number} amount
+ */
+module.exports.scale = function(gfx, amount) {
+  var scale = createTransform();
+  scale.setScale(amount, amount);
+
+  svgTransform(gfx, scale);
+};
+
+},{"321":321,"323":323}],109:[function(_dereq_,module,exports){
+'use strict';
+
+var isObject = _dereq_(241),
+    assign = _dereq_(246),
+    pick = _dereq_(252),
+    forEach = _dereq_(132),
+    reduce = _dereq_(135),
+    merge = _dereq_(249);
+
+var svgAppend = _dereq_(316),
+    svgAttr = _dereq_(318),
+    svgCreate = _dereq_(320),
+    svgRemove = _dereq_(322);
 
 var DEFAULT_BOX_PADDING = 0;
 
@@ -10502,8 +10956,27 @@ function parsePadding(padding) {
 }
 
 function getTextBBox(text, fakeText) {
+
   fakeText.textContent = text;
-  return pick(fakeText.getBBox(), [ 'width', 'height' ]);
+
+  try {
+    var bbox,
+        emptyLine = text === '';
+
+    // add dummy text, when line is empty to determine correct height
+    fakeText.textContent = emptyLine ? 'dummy' : text;
+
+    bbox = pick(fakeText.getBBox(), [ 'width', 'height' ]);
+
+    if (emptyLine) {
+      // correct width
+      bbox.width = 0;
+    }
+
+    return bbox;
+  } catch (e) {
+    return { width: 0, height: 0 };
+  }
 }
 
 
@@ -10652,7 +11125,11 @@ Text.prototype.createText = function(parent, text, options) {
 
   // FF regression: ensure text is shown during rendering
   // by attaching it directly to the body
-  var fakeText = parent.paper.text(0, 0, '').attr(style).node;
+  var fakeText = svgCreate('text');
+  svgAttr(fakeText, { x: 0, y: 0 });
+  svgAttr(fakeText, style);
+
+  svgAppend(parent, fakeText);
 
   while (lines.length) {
     layouted.push(layoutNext(lines, maxWidth, fakeText));
@@ -10674,7 +11151,11 @@ Text.prototype.createText = function(parent, text, options) {
     y = padding.top;
   }
 
-  var textElement = parent.text().attr(style);
+  var textElement = svgCreate('text');
+
+  svgAttr(textElement, style);
+
+  svgAppend(parent, textElement);
 
   forEach(layouted, function(line) {
     y += line.height;
@@ -10693,15 +11174,16 @@ Text.prototype.createText = function(parent, text, options) {
       x = Math.max(((maxWidth - line.width) / 2 + padding.left), 0);
     }
 
+    var tspan = svgCreate('tspan');
+    svgAttr(tspan, { x: x, y: y });
 
-    var tspan = Snap.create('tspan', { x: x, y: y }).node;
     tspan.textContent = line.text;
 
-    textElement.append(tspan);
+    svgAppend(textElement, tspan);
   });
 
   // remove fake text
-  fakeText.parentNode.removeChild(fakeText);
+  svgRemove(fakeText);
 
   return textElement;
 };
@@ -10709,216 +11191,7 @@ Text.prototype.createText = function(parent, text, options) {
 
 module.exports = Text;
 
-},{"104":104,"127":127,"130":130,"234":234,"239":239,"242":242,"245":245}],104:[function(_dereq_,module,exports){
-'use strict';
-
-var snapsvg = module.exports = _dereq_(273);
-
-snapsvg.plugin(function(Snap, Element) {
-
-  /*\
-   * Element.children
-   [ method ]
-   **
-   * Returns array of all the children of the element.
-   = (array) array of Elements
-  \*/
-  Element.prototype.children = function () {
-      var out = [],
-          ch = this.node.childNodes;
-      for (var i = 0, ii = ch.length; i < ii; i++) {
-          out[i] = new Snap(ch[i]);
-      }
-      return out;
-  };
-});
-
-
-/**
- * @class ClassPlugin
- *
- * Extends snapsvg with methods to add and remove classes
- */
-snapsvg.plugin(function (Snap, Element, Paper, global) {
-
-  function split(str) {
-    return str.split(/\s+/);
-  }
-
-  function join(array) {
-    return array.join(' ');
-  }
-
-  function getClasses(e) {
-    return split(e.attr('class') || '');
-  }
-
-  function setClasses(e, classes) {
-    e.attr('class', join(classes));
-  }
-
-  /**
-   * @method snapsvg.Element#addClass
-   *
-   * @example
-   *
-   * e.attr('class', 'selector');
-   *
-   * e.addClass('foo bar'); // adds classes foo and bar
-   * e.attr('class'); // -> 'selector foo bar'
-   *
-   * e.addClass('fooBar');
-   * e.attr('class'); // -> 'selector foo bar fooBar'
-   *
-   * @param {String} cls classes to be added to the element
-   *
-   * @return {snapsvg.Element} the element (this)
-   */
-  Element.prototype.addClass = function(cls) {
-    var current = getClasses(this),
-        add = split(cls),
-        i, e;
-
-    for (i = 0, e; !!(e = add[i]); i++) {
-      if (current.indexOf(e) === -1) {
-        current.push(e);
-      }
-    }
-
-    setClasses(this, current);
-
-    return this;
-  };
-
-  /**
-   * @method snapsvg.Element#hasClass
-   *
-   * @param  {String}  cls the class to query for
-   * @return {Boolean} returns true if the element has the given class
-   */
-  Element.prototype.hasClass = function(cls) {
-    if (!cls) {
-      throw new Error('[snapsvg] syntax: hasClass(clsStr)');
-    }
-
-    return getClasses(this).indexOf(cls) !== -1;
-  };
-
-  /**
-   * @method snapsvg.Element#removeClass
-   *
-   * @example
-   *
-   * e.attr('class', 'foo bar');
-   *
-   * e.removeClass('foo');
-   * e.attr('class'); // -> 'bar'
-   *
-   * e.removeClass('foo bar'); // removes classes foo and bar
-   * e.attr('class'); // -> ''
-   *
-   * @param {String} cls classes to be removed from element
-   *
-   * @return {snapsvg.Element} the element (this)
-   */
-  Element.prototype.removeClass = function(cls) {
-    var current = getClasses(this),
-        remove = split(cls),
-        i, e, idx;
-
-    for (i = 0, e; !!(e = remove[i]); i++) {
-      idx = current.indexOf(e);
-
-      if (idx !== -1) {
-        // remove element from array
-        current.splice(idx, 1);
-      }
-    }
-
-    setClasses(this, current);
-
-    return this;
-  };
-
-});
-
-/**
- * @class TranslatePlugin
- *
- * Extends snapsvg with methods to translate elements
- */
-snapsvg.plugin(function (Snap, Element, Paper, global) {
-
-  /*
-   * @method snapsvg.Element#translate
-   *
-   * @example
-   *
-   * e.translate(10, 20);
-   *
-   * // sets transform matrix to translate(10, 20)
-   *
-   * @param {Number} x translation
-   * @param {Number} y translation
-   *
-   * @return {snapsvg.Element} the element (this)
-   */
-  Element.prototype.translate = function(x, y) {
-    var matrix = new Snap.Matrix();
-    matrix.translate(x, y);
-    return this.transform(matrix);
-  };
-});
-
-
-/**
- * @class CreatePlugin
- *
- * Create an svg element without attaching it to the dom
- */
-snapsvg.plugin(function(Snap) {
-
-  Snap.create = function(name, attrs) {
-    return Snap._.wrap(Snap._.$(name, attrs));
-  };
-});
-
-
-/**
- * @class CreatSnapAtPlugin
- *
- * Extends snap.svg with a method to create a SVG element
- * at a specific position in the DOM.
- */
-snapsvg.plugin(function(Snap, Element, Paper, global) {
-
-  /*
-   * @method snapsvg.createSnapAt
-   *
-   * @example
-   *
-   * snapsvg.createSnapAt(parentNode, 200, 200);
-   *
-   * @param {Number} width of svg
-   * @param {Number} height of svg
-   * @param {Object} parentNode svg Element will be child of this
-   *
-   * @return {snapsvg.Element} the newly created wrapped SVG element instance
-   */
-  Snap.createSnapAt = function(width, height, parentNode) {
-
-    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('width', width);
-    svg.setAttribute('height', height);
-    if (!parentNode) {
-      parentNode = document.body;
-    }
-    parentNode.appendChild(svg);
-
-    return new Snap(svg);
-  };
-});
-},{"273":273}],105:[function(_dereq_,module,exports){
+},{"132":132,"135":135,"241":241,"246":246,"249":249,"252":252,"316":316,"318":318,"320":320,"322":322}],110:[function(_dereq_,module,exports){
 
 var isArray = function(obj) {
   return Object.prototype.toString.call(obj) === '[object Array]';
@@ -10968,18 +11241,18 @@ exports.annotate = annotate;
 exports.parse = parse;
 exports.isArray = isArray;
 
-},{}],106:[function(_dereq_,module,exports){
+},{}],111:[function(_dereq_,module,exports){
 module.exports = {
-  annotate: _dereq_(105).annotate,
-  Module: _dereq_(108),
-  Injector: _dereq_(107)
+  annotate: _dereq_(110).annotate,
+  Module: _dereq_(113),
+  Injector: _dereq_(112)
 };
 
-},{"105":105,"107":107,"108":108}],107:[function(_dereq_,module,exports){
-var Module = _dereq_(108);
-var autoAnnotate = _dereq_(105).parse;
-var annotate = _dereq_(105).annotate;
-var isArray = _dereq_(105).isArray;
+},{"110":110,"112":112,"113":113}],112:[function(_dereq_,module,exports){
+var Module = _dereq_(113);
+var autoAnnotate = _dereq_(110).parse;
+var annotate = _dereq_(110).annotate;
+var isArray = _dereq_(110).isArray;
 
 
 var Injector = function(modules, parent) {
@@ -11205,7 +11478,7 @@ var Injector = function(modules, parent) {
 
 module.exports = Injector;
 
-},{"105":105,"108":108}],108:[function(_dereq_,module,exports){
+},{"110":110,"113":113}],113:[function(_dereq_,module,exports){
 var Module = function() {
   var providers = [];
 
@@ -11231,18 +11504,18 @@ var Module = function() {
 
 module.exports = Module;
 
-},{}],109:[function(_dereq_,module,exports){
-module.exports = _dereq_(111);
-},{"111":111}],110:[function(_dereq_,module,exports){
+},{}],114:[function(_dereq_,module,exports){
+module.exports = _dereq_(116);
+},{"116":116}],115:[function(_dereq_,module,exports){
 'use strict';
 
-var isString = _dereq_(236),
-    isFunction = _dereq_(231),
-    assign = _dereq_(239);
+var isString = _dereq_(243),
+    isFunction = _dereq_(238),
+    assign = _dereq_(246);
 
-var Moddle = _dereq_(260),
-    XmlReader = _dereq_(258),
-    XmlWriter = _dereq_(259);
+var Moddle = _dereq_(267),
+    XmlReader = _dereq_(265),
+    XmlWriter = _dereq_(266);
 
 /**
  * A sub class of {@link Moddle} with support for import and export of DMN xml files.
@@ -11314,25 +11587,25 @@ DmnModdle.prototype.toXML = function(element, options, done) {
   }
 };
 
-},{"231":231,"236":236,"239":239,"258":258,"259":259,"260":260}],111:[function(_dereq_,module,exports){
+},{"238":238,"243":243,"246":246,"265":265,"266":266,"267":267}],116:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(239);
+var assign = _dereq_(246);
 
-var DmnModdle = _dereq_(110);
+var DmnModdle = _dereq_(115);
 
 var packages = {
-  dmn: _dereq_(115),
-  camunda: _dereq_(114),
-  dc: _dereq_(113),
-  biodi: _dereq_(112)
+  dmn: _dereq_(120),
+  camunda: _dereq_(119),
+  dc: _dereq_(118),
+  biodi: _dereq_(117)
 };
 
 module.exports = function(additionalPackages, options) {
   return new DmnModdle(assign({}, packages, additionalPackages), options);
 };
 
-},{"110":110,"112":112,"113":113,"114":114,"115":115,"239":239}],112:[function(_dereq_,module,exports){
+},{"115":115,"117":117,"118":118,"119":119,"120":120,"246":246}],117:[function(_dereq_,module,exports){
 module.exports={
   "name": "bpmn.io DI for DMN",
   "uri": "http://bpmn.io/schema/dmn/biodi/1.0",
@@ -11374,7 +11647,7 @@ module.exports={
   ]
 }
 
-},{}],113:[function(_dereq_,module,exports){
+},{}],118:[function(_dereq_,module,exports){
 module.exports={
   "name": "DC",
   "uri": "http://www.omg.org/spec/DD/20100524/DC",
@@ -11475,7 +11748,7 @@ module.exports={
   "associations": []
 }
 
-},{}],114:[function(_dereq_,module,exports){
+},{}],119:[function(_dereq_,module,exports){
 module.exports={
   "name": "Camunda",
   "uri": "http://camunda.org/schema/1.0/dmn",
@@ -11500,7 +11773,7 @@ module.exports={
   ]
 }
 
-},{}],115:[function(_dereq_,module,exports){
+},{}],120:[function(_dereq_,module,exports){
 module.exports={
   "name": "DMN",
   "uri": "http://www.omg.org/spec/DMN/20151101/dmn.xsd",
@@ -11827,7 +12100,7 @@ module.exports={
   ]
 }
 
-},{}],116:[function(_dereq_,module,exports){
+},{}],121:[function(_dereq_,module,exports){
 
 /**
  * Expose `parse`.
@@ -11941,412 +12214,7 @@ function parse(html, doc) {
   return fragment;
 }
 
-},{}],117:[function(_dereq_,module,exports){
-// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
-// 
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-// 
-// http://www.apache.org/licenses/LICENSE-2.0
-// 
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// ┌────────────────────────────────────────────────────────────┐ \\
-// │ Eve 0.4.2 - JavaScript Events Library                      │ \\
-// ├────────────────────────────────────────────────────────────┤ \\
-// │ Author Dmitry Baranovskiy (http://dmitry.baranovskiy.com/) │ \\
-// └────────────────────────────────────────────────────────────┘ \\
-
-(function (glob) {
-    var version = "0.4.2",
-        has = "hasOwnProperty",
-        separator = /[\.\/]/,
-        comaseparator = /\s*,\s*/,
-        wildcard = "*",
-        fun = function () {},
-        numsort = function (a, b) {
-            return a - b;
-        },
-        current_event,
-        stop,
-        events = {n: {}},
-        firstDefined = function () {
-            for (var i = 0, ii = this.length; i < ii; i++) {
-                if (typeof this[i] != "undefined") {
-                    return this[i];
-                }
-            }
-        },
-        lastDefined = function () {
-            var i = this.length;
-            while (--i) {
-                if (typeof this[i] != "undefined") {
-                    return this[i];
-                }
-            }
-        },
-    /*\
-     * eve
-     [ method ]
-
-     * Fires event with given `name`, given scope and other parameters.
-
-     > Arguments
-
-     - name (string) name of the *event*, dot (`.`) or slash (`/`) separated
-     - scope (object) context for the event handlers
-     - varargs (...) the rest of arguments will be sent to event handlers
-
-     = (object) array of returned values from the listeners. Array has two methods `.firstDefined()` and `.lastDefined()` to get first or last not `undefined` value.
-    \*/
-        eve = function (name, scope) {
-            name = String(name);
-            var e = events,
-                oldstop = stop,
-                args = Array.prototype.slice.call(arguments, 2),
-                listeners = eve.listeners(name),
-                z = 0,
-                f = false,
-                l,
-                indexed = [],
-                queue = {},
-                out = [],
-                ce = current_event,
-                errors = [];
-            out.firstDefined = firstDefined;
-            out.lastDefined = lastDefined;
-            current_event = name;
-            stop = 0;
-            for (var i = 0, ii = listeners.length; i < ii; i++) if ("zIndex" in listeners[i]) {
-                indexed.push(listeners[i].zIndex);
-                if (listeners[i].zIndex < 0) {
-                    queue[listeners[i].zIndex] = listeners[i];
-                }
-            }
-            indexed.sort(numsort);
-            while (indexed[z] < 0) {
-                l = queue[indexed[z++]];
-                out.push(l.apply(scope, args));
-                if (stop) {
-                    stop = oldstop;
-                    return out;
-                }
-            }
-            for (i = 0; i < ii; i++) {
-                l = listeners[i];
-                if ("zIndex" in l) {
-                    if (l.zIndex == indexed[z]) {
-                        out.push(l.apply(scope, args));
-                        if (stop) {
-                            break;
-                        }
-                        do {
-                            z++;
-                            l = queue[indexed[z]];
-                            l && out.push(l.apply(scope, args));
-                            if (stop) {
-                                break;
-                            }
-                        } while (l)
-                    } else {
-                        queue[l.zIndex] = l;
-                    }
-                } else {
-                    out.push(l.apply(scope, args));
-                    if (stop) {
-                        break;
-                    }
-                }
-            }
-            stop = oldstop;
-            current_event = ce;
-            return out;
-        };
-        // Undocumented. Debug only.
-        eve._events = events;
-    /*\
-     * eve.listeners
-     [ method ]
-
-     * Internal method which gives you array of all event handlers that will be triggered by the given `name`.
-
-     > Arguments
-
-     - name (string) name of the event, dot (`.`) or slash (`/`) separated
-
-     = (array) array of event handlers
-    \*/
-    eve.listeners = function (name) {
-        var names = name.split(separator),
-            e = events,
-            item,
-            items,
-            k,
-            i,
-            ii,
-            j,
-            jj,
-            nes,
-            es = [e],
-            out = [];
-        for (i = 0, ii = names.length; i < ii; i++) {
-            nes = [];
-            for (j = 0, jj = es.length; j < jj; j++) {
-                e = es[j].n;
-                items = [e[names[i]], e[wildcard]];
-                k = 2;
-                while (k--) {
-                    item = items[k];
-                    if (item) {
-                        nes.push(item);
-                        out = out.concat(item.f || []);
-                    }
-                }
-            }
-            es = nes;
-        }
-        return out;
-    };
-    
-    /*\
-     * eve.on
-     [ method ]
-     **
-     * Binds given event handler with a given name. You can use wildcards “`*`” for the names:
-     | eve.on("*.under.*", f);
-     | eve("mouse.under.floor"); // triggers f
-     * Use @eve to trigger the listener.
-     **
-     > Arguments
-     **
-     - name (string) name of the event, dot (`.`) or slash (`/`) separated, with optional wildcards
-     - f (function) event handler function
-     **
-     = (function) returned function accepts a single numeric parameter that represents z-index of the handler. It is an optional feature and only used when you need to ensure that some subset of handlers will be invoked in a given order, despite of the order of assignment. 
-     > Example:
-     | eve.on("mouse", eatIt)(2);
-     | eve.on("mouse", scream);
-     | eve.on("mouse", catchIt)(1);
-     * This will ensure that `catchIt` function will be called before `eatIt`.
-     *
-     * If you want to put your handler before non-indexed handlers, specify a negative value.
-     * Note: I assume most of the time you don’t need to worry about z-index, but it’s nice to have this feature “just in case”.
-    \*/
-    eve.on = function (name, f) {
-        name = String(name);
-        if (typeof f != "function") {
-            return function () {};
-        }
-        var names = name.split(comaseparator);
-        for (var i = 0, ii = names.length; i < ii; i++) {
-            (function (name) {
-                var names = name.split(separator),
-                    e = events,
-                    exist;
-                for (var i = 0, ii = names.length; i < ii; i++) {
-                    e = e.n;
-                    e = e.hasOwnProperty(names[i]) && e[names[i]] || (e[names[i]] = {n: {}});
-                }
-                e.f = e.f || [];
-                for (i = 0, ii = e.f.length; i < ii; i++) if (e.f[i] == f) {
-                    exist = true;
-                    break;
-                }
-                !exist && e.f.push(f);
-            }(names[i]));
-        }
-        return function (zIndex) {
-            if (+zIndex == +zIndex) {
-                f.zIndex = +zIndex;
-            }
-        };
-    };
-    /*\
-     * eve.f
-     [ method ]
-     **
-     * Returns function that will fire given event with optional arguments.
-     * Arguments that will be passed to the result function will be also
-     * concated to the list of final arguments.
-     | el.onclick = eve.f("click", 1, 2);
-     | eve.on("click", function (a, b, c) {
-     |     console.log(a, b, c); // 1, 2, [event object]
-     | });
-     > Arguments
-     - event (string) event name
-     - varargs (…) and any other arguments
-     = (function) possible event handler function
-    \*/
-    eve.f = function (event) {
-        var attrs = [].slice.call(arguments, 1);
-        return function () {
-            eve.apply(null, [event, null].concat(attrs).concat([].slice.call(arguments, 0)));
-        };
-    };
-    /*\
-     * eve.stop
-     [ method ]
-     **
-     * Is used inside an event handler to stop the event, preventing any subsequent listeners from firing.
-    \*/
-    eve.stop = function () {
-        stop = 1;
-    };
-    /*\
-     * eve.nt
-     [ method ]
-     **
-     * Could be used inside event handler to figure out actual name of the event.
-     **
-     > Arguments
-     **
-     - subname (string) #optional subname of the event
-     **
-     = (string) name of the event, if `subname` is not specified
-     * or
-     = (boolean) `true`, if current event’s name contains `subname`
-    \*/
-    eve.nt = function (subname) {
-        if (subname) {
-            return new RegExp("(?:\\.|\\/|^)" + subname + "(?:\\.|\\/|$)").test(current_event);
-        }
-        return current_event;
-    };
-    /*\
-     * eve.nts
-     [ method ]
-     **
-     * Could be used inside event handler to figure out actual name of the event.
-     **
-     **
-     = (array) names of the event
-    \*/
-    eve.nts = function () {
-        return current_event.split(separator);
-    };
-    /*\
-     * eve.off
-     [ method ]
-     **
-     * Removes given function from the list of event listeners assigned to given name.
-     * If no arguments specified all the events will be cleared.
-     **
-     > Arguments
-     **
-     - name (string) name of the event, dot (`.`) or slash (`/`) separated, with optional wildcards
-     - f (function) event handler function
-    \*/
-    /*\
-     * eve.unbind
-     [ method ]
-     **
-     * See @eve.off
-    \*/
-    eve.off = eve.unbind = function (name, f) {
-        if (!name) {
-            eve._events = events = {n: {}};
-            return;
-        }
-        var names = name.split(comaseparator);
-        if (names.length > 1) {
-            for (var i = 0, ii = names.length; i < ii; i++) {
-                eve.off(names[i], f);
-            }
-            return;
-        }
-        names = name.split(separator);
-        var e,
-            key,
-            splice,
-            i, ii, j, jj,
-            cur = [events];
-        for (i = 0, ii = names.length; i < ii; i++) {
-            for (j = 0; j < cur.length; j += splice.length - 2) {
-                splice = [j, 1];
-                e = cur[j].n;
-                if (names[i] != wildcard) {
-                    if (e[names[i]]) {
-                        splice.push(e[names[i]]);
-                    }
-                } else {
-                    for (key in e) if (e[has](key)) {
-                        splice.push(e[key]);
-                    }
-                }
-                cur.splice.apply(cur, splice);
-            }
-        }
-        for (i = 0, ii = cur.length; i < ii; i++) {
-            e = cur[i];
-            while (e.n) {
-                if (f) {
-                    if (e.f) {
-                        for (j = 0, jj = e.f.length; j < jj; j++) if (e.f[j] == f) {
-                            e.f.splice(j, 1);
-                            break;
-                        }
-                        !e.f.length && delete e.f;
-                    }
-                    for (key in e.n) if (e.n[has](key) && e.n[key].f) {
-                        var funcs = e.n[key].f;
-                        for (j = 0, jj = funcs.length; j < jj; j++) if (funcs[j] == f) {
-                            funcs.splice(j, 1);
-                            break;
-                        }
-                        !funcs.length && delete e.n[key].f;
-                    }
-                } else {
-                    delete e.f;
-                    for (key in e.n) if (e.n[has](key) && e.n[key].f) {
-                        delete e.n[key].f;
-                    }
-                }
-                e = e.n;
-            }
-        }
-    };
-    /*\
-     * eve.once
-     [ method ]
-     **
-     * Binds given event handler with a given name to only run once then unbind itself.
-     | eve.once("login", f);
-     | eve("login"); // triggers f
-     | eve("login"); // no listeners
-     * Use @eve to trigger the listener.
-     **
-     > Arguments
-     **
-     - name (string) name of the event, dot (`.`) or slash (`/`) separated, with optional wildcards
-     - f (function) event handler function
-     **
-     = (function) same return function as @eve.on
-    \*/
-    eve.once = function (name, f) {
-        var f2 = function () {
-            eve.unbind(name, f2);
-            return f.apply(this, arguments);
-        };
-        return eve.on(name, f2);
-    };
-    /*\
-     * eve.version
-     [ property (string) ]
-     **
-     * Current version of the library.
-    \*/
-    eve.version = version;
-    eve.toString = function () {
-        return "You are running Eve " + version;
-    };
-    (typeof module != "undefined" && module.exports) ? (module.exports = eve) : (typeof define === "function" && define.amd ? (define("eve", [], function() { return eve; })) : (glob.eve = eve));
-})(this);
-
-},{}],118:[function(_dereq_,module,exports){
+},{}],122:[function(_dereq_,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -12371,7 +12239,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],119:[function(_dereq_,module,exports){
+},{}],123:[function(_dereq_,module,exports){
 /**
  * Gets the last element of `array`.
  *
@@ -12392,10 +12260,10 @@ function last(array) {
 
 module.exports = last;
 
-},{}],120:[function(_dereq_,module,exports){
-var baseFlatten = _dereq_(159),
-    baseUniq = _dereq_(180),
-    restParam = _dereq_(135);
+},{}],124:[function(_dereq_,module,exports){
+var baseFlatten = _dereq_(165),
+    baseUniq = _dereq_(187),
+    restParam = _dereq_(141);
 
 /**
  * Creates an array of unique values, in order, from all of the provided arrays
@@ -12418,11 +12286,11 @@ var union = restParam(function(arrays) {
 
 module.exports = union;
 
-},{"135":135,"159":159,"180":180}],121:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(149),
-    baseUniq = _dereq_(180),
-    isIterateeCall = _dereq_(210),
-    sortedUniq = _dereq_(225);
+},{"141":141,"165":165,"187":187}],125:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(155),
+    baseUniq = _dereq_(187),
+    isIterateeCall = _dereq_(217),
+    sortedUniq = _dereq_(232);
 
 /**
  * Creates a duplicate-free version of an array, using
@@ -12491,16 +12359,16 @@ function uniq(array, isSorted, iteratee, thisArg) {
 
 module.exports = uniq;
 
-},{"149":149,"180":180,"210":210,"225":225}],122:[function(_dereq_,module,exports){
-module.exports = _dereq_(121);
+},{"155":155,"187":187,"217":217,"232":232}],126:[function(_dereq_,module,exports){
+module.exports = _dereq_(125);
 
-},{"121":121}],123:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(136),
-    LodashWrapper = _dereq_(137),
-    baseLodash = _dereq_(168),
-    isArray = _dereq_(230),
-    isObjectLike = _dereq_(214),
-    wrapperClone = _dereq_(228);
+},{"125":125}],127:[function(_dereq_,module,exports){
+var LazyWrapper = _dereq_(142),
+    LodashWrapper = _dereq_(143),
+    baseLodash = _dereq_(174),
+    isArray = _dereq_(237),
+    isObjectLike = _dereq_(221),
+    wrapperClone = _dereq_(235);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -12621,12 +12489,15 @@ lodash.prototype = baseLodash.prototype;
 
 module.exports = lodash;
 
-},{"136":136,"137":137,"168":168,"214":214,"228":228,"230":230}],124:[function(_dereq_,module,exports){
-var arrayEvery = _dereq_(141),
-    baseCallback = _dereq_(149),
-    baseEvery = _dereq_(155),
-    isArray = _dereq_(230),
-    isIterateeCall = _dereq_(210);
+},{"142":142,"143":143,"174":174,"221":221,"235":235,"237":237}],128:[function(_dereq_,module,exports){
+module.exports = _dereq_(136);
+
+},{"136":136}],129:[function(_dereq_,module,exports){
+var arrayEvery = _dereq_(147),
+    baseCallback = _dereq_(155),
+    baseEvery = _dereq_(161),
+    isArray = _dereq_(237),
+    isIterateeCall = _dereq_(217);
 
 /**
  * Checks if `predicate` returns truthy for **all** elements of `collection`.
@@ -12689,11 +12560,11 @@ function every(collection, predicate, thisArg) {
 
 module.exports = every;
 
-},{"141":141,"149":149,"155":155,"210":210,"230":230}],125:[function(_dereq_,module,exports){
-var arrayFilter = _dereq_(142),
-    baseCallback = _dereq_(149),
-    baseFilter = _dereq_(156),
-    isArray = _dereq_(230);
+},{"147":147,"155":155,"161":161,"217":217,"237":237}],130:[function(_dereq_,module,exports){
+var arrayFilter = _dereq_(148),
+    baseCallback = _dereq_(155),
+    baseFilter = _dereq_(162),
+    isArray = _dereq_(237);
 
 /**
  * Iterates over elements of `collection`, returning an array of all elements
@@ -12752,9 +12623,9 @@ function filter(collection, predicate, thisArg) {
 
 module.exports = filter;
 
-},{"142":142,"149":149,"156":156,"230":230}],126:[function(_dereq_,module,exports){
-var baseEach = _dereq_(154),
-    createFind = _dereq_(193);
+},{"148":148,"155":155,"162":162,"237":237}],131:[function(_dereq_,module,exports){
+var baseEach = _dereq_(160),
+    createFind = _dereq_(200);
 
 /**
  * Iterates over elements of `collection`, returning the first element
@@ -12810,10 +12681,10 @@ var find = createFind(baseEach);
 
 module.exports = find;
 
-},{"154":154,"193":193}],127:[function(_dereq_,module,exports){
-var arrayEach = _dereq_(140),
-    baseEach = _dereq_(154),
-    createForEach = _dereq_(194);
+},{"160":160,"200":200}],132:[function(_dereq_,module,exports){
+var arrayEach = _dereq_(146),
+    baseEach = _dereq_(160),
+    createForEach = _dereq_(201);
 
 /**
  * Iterates over elements of `collection` invoking `iteratee` for each element.
@@ -12849,8 +12720,8 @@ var forEach = createForEach(arrayEach, baseEach);
 
 module.exports = forEach;
 
-},{"140":140,"154":154,"194":194}],128:[function(_dereq_,module,exports){
-var createAggregator = _dereq_(186);
+},{"146":146,"160":160,"201":201}],133:[function(_dereq_,module,exports){
+var createAggregator = _dereq_(193);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -12910,11 +12781,11 @@ var groupBy = createAggregator(function(result, value, key) {
 
 module.exports = groupBy;
 
-},{"186":186}],129:[function(_dereq_,module,exports){
-var arrayMap = _dereq_(143),
-    baseCallback = _dereq_(149),
-    baseMap = _dereq_(169),
-    isArray = _dereq_(230);
+},{"193":193}],134:[function(_dereq_,module,exports){
+var arrayMap = _dereq_(149),
+    baseCallback = _dereq_(155),
+    baseMap = _dereq_(175),
+    isArray = _dereq_(237);
 
 /**
  * Creates an array of values by running each element in `collection` through
@@ -12980,10 +12851,10 @@ function map(collection, iteratee, thisArg) {
 
 module.exports = map;
 
-},{"143":143,"149":149,"169":169,"230":230}],130:[function(_dereq_,module,exports){
-var arrayReduce = _dereq_(145),
-    baseEach = _dereq_(154),
-    createReduce = _dereq_(197);
+},{"149":149,"155":155,"175":175,"237":237}],135:[function(_dereq_,module,exports){
+var arrayReduce = _dereq_(151),
+    baseEach = _dereq_(160),
+    createReduce = _dereq_(204);
 
 /**
  * Reduces `collection` to a value which is the accumulated result of running
@@ -13026,8 +12897,77 @@ var reduce = createReduce(arrayReduce, baseEach);
 
 module.exports = reduce;
 
-},{"145":145,"154":154,"197":197}],131:[function(_dereq_,module,exports){
-var getNative = _dereq_(206);
+},{"151":151,"160":160,"204":204}],136:[function(_dereq_,module,exports){
+var arraySome = _dereq_(152),
+    baseCallback = _dereq_(155),
+    baseSome = _dereq_(185),
+    isArray = _dereq_(237),
+    isIterateeCall = _dereq_(217);
+
+/**
+ * Checks if `predicate` returns truthy for **any** element of `collection`.
+ * The function returns as soon as it finds a passing value and does not iterate
+ * over the entire collection. The predicate is bound to `thisArg` and invoked
+ * with three arguments: (value, index|key, collection).
+ *
+ * If a property name is provided for `predicate` the created `_.property`
+ * style callback returns the property value of the given element.
+ *
+ * If a value is also provided for `thisArg` the created `_.matchesProperty`
+ * style callback returns `true` for elements that have a matching property
+ * value, else `false`.
+ *
+ * If an object is provided for `predicate` the created `_.matches` style
+ * callback returns `true` for elements that have the properties of the given
+ * object, else `false`.
+ *
+ * @static
+ * @memberOf _
+ * @alias any
+ * @category Collection
+ * @param {Array|Object|string} collection The collection to iterate over.
+ * @param {Function|Object|string} [predicate=_.identity] The function invoked
+ *  per iteration.
+ * @param {*} [thisArg] The `this` binding of `predicate`.
+ * @returns {boolean} Returns `true` if any element passes the predicate check,
+ *  else `false`.
+ * @example
+ *
+ * _.some([null, 0, 'yes', false], Boolean);
+ * // => true
+ *
+ * var users = [
+ *   { 'user': 'barney', 'active': true },
+ *   { 'user': 'fred',   'active': false }
+ * ];
+ *
+ * // using the `_.matches` callback shorthand
+ * _.some(users, { 'user': 'barney', 'active': false });
+ * // => false
+ *
+ * // using the `_.matchesProperty` callback shorthand
+ * _.some(users, 'active', false);
+ * // => true
+ *
+ * // using the `_.property` callback shorthand
+ * _.some(users, 'active');
+ * // => true
+ */
+function some(collection, predicate, thisArg) {
+  var func = isArray(collection) ? arraySome : baseSome;
+  if (thisArg && isIterateeCall(collection, predicate, thisArg)) {
+    predicate = undefined;
+  }
+  if (typeof predicate != 'function' || thisArg !== undefined) {
+    predicate = baseCallback(predicate, thisArg, 3);
+  }
+  return func(collection, predicate);
+}
+
+module.exports = some;
+
+},{"152":152,"155":155,"185":185,"217":217,"237":237}],137:[function(_dereq_,module,exports){
+var getNative = _dereq_(213);
 
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeNow = getNative(Date, 'now');
@@ -13052,10 +12992,10 @@ var now = nativeNow || function() {
 
 module.exports = now;
 
-},{"206":206}],132:[function(_dereq_,module,exports){
-var createWrapper = _dereq_(198),
-    replaceHolders = _dereq_(222),
-    restParam = _dereq_(135);
+},{"213":213}],138:[function(_dereq_,module,exports){
+var createWrapper = _dereq_(205),
+    replaceHolders = _dereq_(229),
+    restParam = _dereq_(141);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1,
@@ -13110,9 +13050,9 @@ bind.placeholder = {};
 
 module.exports = bind;
 
-},{"135":135,"198":198,"222":222}],133:[function(_dereq_,module,exports){
-var isObject = _dereq_(234),
-    now = _dereq_(131);
+},{"141":141,"205":205,"229":229}],139:[function(_dereq_,module,exports){
+var isObject = _dereq_(241),
+    now = _dereq_(137);
 
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
@@ -13293,9 +13233,9 @@ function debounce(func, wait, options) {
 
 module.exports = debounce;
 
-},{"131":131,"234":234}],134:[function(_dereq_,module,exports){
-var baseDelay = _dereq_(152),
-    restParam = _dereq_(135);
+},{"137":137,"241":241}],140:[function(_dereq_,module,exports){
+var baseDelay = _dereq_(158),
+    restParam = _dereq_(141);
 
 /**
  * Defers invoking the `func` until the current call stack has cleared. Any
@@ -13320,7 +13260,7 @@ var defer = restParam(function(func, args) {
 
 module.exports = defer;
 
-},{"135":135,"152":152}],135:[function(_dereq_,module,exports){
+},{"141":141,"158":158}],141:[function(_dereq_,module,exports){
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
 
@@ -13380,9 +13320,9 @@ function restParam(func, start) {
 
 module.exports = restParam;
 
-},{}],136:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(151),
-    baseLodash = _dereq_(168);
+},{}],142:[function(_dereq_,module,exports){
+var baseCreate = _dereq_(157),
+    baseLodash = _dereq_(174);
 
 /** Used as references for `-Infinity` and `Infinity`. */
 var POSITIVE_INFINITY = Number.POSITIVE_INFINITY;
@@ -13408,9 +13348,9 @@ LazyWrapper.prototype.constructor = LazyWrapper;
 
 module.exports = LazyWrapper;
 
-},{"151":151,"168":168}],137:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(151),
-    baseLodash = _dereq_(168);
+},{"157":157,"174":174}],143:[function(_dereq_,module,exports){
+var baseCreate = _dereq_(157),
+    baseLodash = _dereq_(174);
 
 /**
  * The base constructor for creating `lodash` wrapper objects.
@@ -13431,10 +13371,10 @@ LodashWrapper.prototype.constructor = LodashWrapper;
 
 module.exports = LodashWrapper;
 
-},{"151":151,"168":168}],138:[function(_dereq_,module,exports){
+},{"157":157,"174":174}],144:[function(_dereq_,module,exports){
 (function (global){
-var cachePush = _dereq_(183),
-    getNative = _dereq_(206);
+var cachePush = _dereq_(190),
+    getNative = _dereq_(213);
 
 /** Native method references. */
 var Set = getNative(global, 'Set');
@@ -13465,7 +13405,7 @@ module.exports = SetCache;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"183":183,"206":206}],139:[function(_dereq_,module,exports){
+},{"190":190,"213":213}],145:[function(_dereq_,module,exports){
 /**
  * Copies the values of `source` to `array`.
  *
@@ -13487,7 +13427,7 @@ function arrayCopy(source, array) {
 
 module.exports = arrayCopy;
 
-},{}],140:[function(_dereq_,module,exports){
+},{}],146:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.forEach` for arrays without support for callback
  * shorthands and `this` binding.
@@ -13511,7 +13451,7 @@ function arrayEach(array, iteratee) {
 
 module.exports = arrayEach;
 
-},{}],141:[function(_dereq_,module,exports){
+},{}],147:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.every` for arrays without support for callback
  * shorthands and `this` binding.
@@ -13536,7 +13476,7 @@ function arrayEvery(array, predicate) {
 
 module.exports = arrayEvery;
 
-},{}],142:[function(_dereq_,module,exports){
+},{}],148:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.filter` for arrays without support for callback
  * shorthands and `this` binding.
@@ -13563,7 +13503,7 @@ function arrayFilter(array, predicate) {
 
 module.exports = arrayFilter;
 
-},{}],143:[function(_dereq_,module,exports){
+},{}],149:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.map` for arrays without support for callback
  * shorthands and `this` binding.
@@ -13586,7 +13526,7 @@ function arrayMap(array, iteratee) {
 
 module.exports = arrayMap;
 
-},{}],144:[function(_dereq_,module,exports){
+},{}],150:[function(_dereq_,module,exports){
 /**
  * Appends the elements of `values` to `array`.
  *
@@ -13608,7 +13548,7 @@ function arrayPush(array, values) {
 
 module.exports = arrayPush;
 
-},{}],145:[function(_dereq_,module,exports){
+},{}],151:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.reduce` for arrays without support for callback
  * shorthands and `this` binding.
@@ -13636,7 +13576,7 @@ function arrayReduce(array, iteratee, accumulator, initFromArray) {
 
 module.exports = arrayReduce;
 
-},{}],146:[function(_dereq_,module,exports){
+},{}],152:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.some` for arrays without support for callback
  * shorthands and `this` binding.
@@ -13661,8 +13601,8 @@ function arraySome(array, predicate) {
 
 module.exports = arraySome;
 
-},{}],147:[function(_dereq_,module,exports){
-var keys = _dereq_(240);
+},{}],153:[function(_dereq_,module,exports){
+var keys = _dereq_(247);
 
 /**
  * A specialized version of `_.assign` for customizing assigned values without
@@ -13695,9 +13635,9 @@ function assignWith(object, source, customizer) {
 
 module.exports = assignWith;
 
-},{"240":240}],148:[function(_dereq_,module,exports){
-var baseCopy = _dereq_(150),
-    keys = _dereq_(240);
+},{"247":247}],154:[function(_dereq_,module,exports){
+var baseCopy = _dereq_(156),
+    keys = _dereq_(247);
 
 /**
  * The base implementation of `_.assign` without support for argument juggling,
@@ -13716,12 +13656,12 @@ function baseAssign(object, source) {
 
 module.exports = baseAssign;
 
-},{"150":150,"240":240}],149:[function(_dereq_,module,exports){
-var baseMatches = _dereq_(170),
-    baseMatchesProperty = _dereq_(171),
-    bindCallback = _dereq_(181),
-    identity = _dereq_(246),
-    property = _dereq_(248);
+},{"156":156,"247":247}],155:[function(_dereq_,module,exports){
+var baseMatches = _dereq_(176),
+    baseMatchesProperty = _dereq_(177),
+    bindCallback = _dereq_(188),
+    identity = _dereq_(253),
+    property = _dereq_(255);
 
 /**
  * The base implementation of `_.callback` which supports specifying the
@@ -13753,7 +13693,7 @@ function baseCallback(func, thisArg, argCount) {
 
 module.exports = baseCallback;
 
-},{"170":170,"171":171,"181":181,"246":246,"248":248}],150:[function(_dereq_,module,exports){
+},{"176":176,"177":177,"188":188,"253":253,"255":255}],156:[function(_dereq_,module,exports){
 /**
  * Copies properties of `source` to `object`.
  *
@@ -13778,8 +13718,8 @@ function baseCopy(source, props, object) {
 
 module.exports = baseCopy;
 
-},{}],151:[function(_dereq_,module,exports){
-var isObject = _dereq_(234);
+},{}],157:[function(_dereq_,module,exports){
+var isObject = _dereq_(241);
 
 /**
  * The base implementation of `_.create` without support for assigning
@@ -13803,7 +13743,7 @@ var baseCreate = (function() {
 
 module.exports = baseCreate;
 
-},{"234":234}],152:[function(_dereq_,module,exports){
+},{"241":241}],158:[function(_dereq_,module,exports){
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
 
@@ -13826,10 +13766,10 @@ function baseDelay(func, wait, args) {
 
 module.exports = baseDelay;
 
-},{}],153:[function(_dereq_,module,exports){
-var baseIndexOf = _dereq_(164),
-    cacheIndexOf = _dereq_(182),
-    createCache = _dereq_(191);
+},{}],159:[function(_dereq_,module,exports){
+var baseIndexOf = _dereq_(170),
+    cacheIndexOf = _dereq_(189),
+    createCache = _dereq_(198);
 
 /** Used as the size to enable large array optimizations. */
 var LARGE_ARRAY_SIZE = 200;
@@ -13883,9 +13823,9 @@ function baseDifference(array, values) {
 
 module.exports = baseDifference;
 
-},{"164":164,"182":182,"191":191}],154:[function(_dereq_,module,exports){
-var baseForOwn = _dereq_(162),
-    createBaseEach = _dereq_(188);
+},{"170":170,"189":189,"198":198}],160:[function(_dereq_,module,exports){
+var baseForOwn = _dereq_(168),
+    createBaseEach = _dereq_(195);
 
 /**
  * The base implementation of `_.forEach` without support for callback
@@ -13900,8 +13840,8 @@ var baseEach = createBaseEach(baseForOwn);
 
 module.exports = baseEach;
 
-},{"162":162,"188":188}],155:[function(_dereq_,module,exports){
-var baseEach = _dereq_(154);
+},{"168":168,"195":195}],161:[function(_dereq_,module,exports){
+var baseEach = _dereq_(160);
 
 /**
  * The base implementation of `_.every` without support for callback
@@ -13924,8 +13864,8 @@ function baseEvery(collection, predicate) {
 
 module.exports = baseEvery;
 
-},{"154":154}],156:[function(_dereq_,module,exports){
-var baseEach = _dereq_(154);
+},{"160":160}],162:[function(_dereq_,module,exports){
+var baseEach = _dereq_(160);
 
 /**
  * The base implementation of `_.filter` without support for callback
@@ -13948,7 +13888,7 @@ function baseFilter(collection, predicate) {
 
 module.exports = baseFilter;
 
-},{"154":154}],157:[function(_dereq_,module,exports){
+},{"160":160}],163:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.find`, `_.findLast`, `_.findKey`, and `_.findLastKey`,
  * without support for callback shorthands and `this` binding, which iterates
@@ -13975,7 +13915,7 @@ function baseFind(collection, predicate, eachFunc, retKey) {
 
 module.exports = baseFind;
 
-},{}],158:[function(_dereq_,module,exports){
+},{}],164:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.findIndex` and `_.findLastIndex` without
  * support for callback shorthands and `this` binding.
@@ -14000,12 +13940,12 @@ function baseFindIndex(array, predicate, fromRight) {
 
 module.exports = baseFindIndex;
 
-},{}],159:[function(_dereq_,module,exports){
-var arrayPush = _dereq_(144),
-    isArguments = _dereq_(229),
-    isArray = _dereq_(230),
-    isArrayLike = _dereq_(208),
-    isObjectLike = _dereq_(214);
+},{}],165:[function(_dereq_,module,exports){
+var arrayPush = _dereq_(150),
+    isArguments = _dereq_(236),
+    isArray = _dereq_(237),
+    isArrayLike = _dereq_(215),
+    isObjectLike = _dereq_(221);
 
 /**
  * The base implementation of `_.flatten` with added support for restricting
@@ -14043,8 +13983,8 @@ function baseFlatten(array, isDeep, isStrict, result) {
 
 module.exports = baseFlatten;
 
-},{"144":144,"208":208,"214":214,"229":229,"230":230}],160:[function(_dereq_,module,exports){
-var createBaseFor = _dereq_(189);
+},{"150":150,"215":215,"221":221,"236":236,"237":237}],166:[function(_dereq_,module,exports){
+var createBaseFor = _dereq_(196);
 
 /**
  * The base implementation of `baseForIn` and `baseForOwn` which iterates
@@ -14062,9 +14002,9 @@ var baseFor = createBaseFor();
 
 module.exports = baseFor;
 
-},{"189":189}],161:[function(_dereq_,module,exports){
-var baseFor = _dereq_(160),
-    keysIn = _dereq_(241);
+},{"196":196}],167:[function(_dereq_,module,exports){
+var baseFor = _dereq_(166),
+    keysIn = _dereq_(248);
 
 /**
  * The base implementation of `_.forIn` without support for callback
@@ -14081,9 +14021,9 @@ function baseForIn(object, iteratee) {
 
 module.exports = baseForIn;
 
-},{"160":160,"241":241}],162:[function(_dereq_,module,exports){
-var baseFor = _dereq_(160),
-    keys = _dereq_(240);
+},{"166":166,"248":248}],168:[function(_dereq_,module,exports){
+var baseFor = _dereq_(166),
+    keys = _dereq_(247);
 
 /**
  * The base implementation of `_.forOwn` without support for callback
@@ -14100,8 +14040,8 @@ function baseForOwn(object, iteratee) {
 
 module.exports = baseForOwn;
 
-},{"160":160,"240":240}],163:[function(_dereq_,module,exports){
-var toObject = _dereq_(226);
+},{"166":166,"247":247}],169:[function(_dereq_,module,exports){
+var toObject = _dereq_(233);
 
 /**
  * The base implementation of `get` without support for string paths
@@ -14131,8 +14071,8 @@ function baseGet(object, path, pathKey) {
 
 module.exports = baseGet;
 
-},{"226":226}],164:[function(_dereq_,module,exports){
-var indexOfNaN = _dereq_(207);
+},{"233":233}],170:[function(_dereq_,module,exports){
+var indexOfNaN = _dereq_(214);
 
 /**
  * The base implementation of `_.indexOf` without support for binary searches.
@@ -14160,10 +14100,10 @@ function baseIndexOf(array, value, fromIndex) {
 
 module.exports = baseIndexOf;
 
-},{"207":207}],165:[function(_dereq_,module,exports){
-var baseIsEqualDeep = _dereq_(166),
-    isObject = _dereq_(234),
-    isObjectLike = _dereq_(214);
+},{"214":214}],171:[function(_dereq_,module,exports){
+var baseIsEqualDeep = _dereq_(172),
+    isObject = _dereq_(241),
+    isObjectLike = _dereq_(221);
 
 /**
  * The base implementation of `_.isEqual` without support for `this` binding
@@ -14190,12 +14130,12 @@ function baseIsEqual(value, other, customizer, isLoose, stackA, stackB) {
 
 module.exports = baseIsEqual;
 
-},{"166":166,"214":214,"234":234}],166:[function(_dereq_,module,exports){
-var equalArrays = _dereq_(199),
-    equalByTag = _dereq_(200),
-    equalObjects = _dereq_(201),
-    isArray = _dereq_(230),
-    isTypedArray = _dereq_(237);
+},{"172":172,"221":221,"241":241}],172:[function(_dereq_,module,exports){
+var equalArrays = _dereq_(206),
+    equalByTag = _dereq_(207),
+    equalObjects = _dereq_(208),
+    isArray = _dereq_(237),
+    isTypedArray = _dereq_(244);
 
 /** `Object#toString` result references. */
 var argsTag = '[object Arguments]',
@@ -14294,9 +14234,9 @@ function baseIsEqualDeep(object, other, equalFunc, customizer, isLoose, stackA, 
 
 module.exports = baseIsEqualDeep;
 
-},{"199":199,"200":200,"201":201,"230":230,"237":237}],167:[function(_dereq_,module,exports){
-var baseIsEqual = _dereq_(165),
-    toObject = _dereq_(226);
+},{"206":206,"207":207,"208":208,"237":237,"244":244}],173:[function(_dereq_,module,exports){
+var baseIsEqual = _dereq_(171),
+    toObject = _dereq_(233);
 
 /**
  * The base implementation of `_.isMatch` without support for callback
@@ -14348,7 +14288,7 @@ function baseIsMatch(object, matchData, customizer) {
 
 module.exports = baseIsMatch;
 
-},{"165":165,"226":226}],168:[function(_dereq_,module,exports){
+},{"171":171,"233":233}],174:[function(_dereq_,module,exports){
 /**
  * The function whose prototype all chaining wrappers inherit from.
  *
@@ -14360,9 +14300,9 @@ function baseLodash() {
 
 module.exports = baseLodash;
 
-},{}],169:[function(_dereq_,module,exports){
-var baseEach = _dereq_(154),
-    isArrayLike = _dereq_(208);
+},{}],175:[function(_dereq_,module,exports){
+var baseEach = _dereq_(160),
+    isArrayLike = _dereq_(215);
 
 /**
  * The base implementation of `_.map` without support for callback shorthands
@@ -14385,10 +14325,10 @@ function baseMap(collection, iteratee) {
 
 module.exports = baseMap;
 
-},{"154":154,"208":208}],170:[function(_dereq_,module,exports){
-var baseIsMatch = _dereq_(167),
-    getMatchData = _dereq_(205),
-    toObject = _dereq_(226);
+},{"160":160,"215":215}],176:[function(_dereq_,module,exports){
+var baseIsMatch = _dereq_(173),
+    getMatchData = _dereq_(212),
+    toObject = _dereq_(233);
 
 /**
  * The base implementation of `_.matches` which does not clone `source`.
@@ -14417,16 +14357,16 @@ function baseMatches(source) {
 
 module.exports = baseMatches;
 
-},{"167":167,"205":205,"226":226}],171:[function(_dereq_,module,exports){
-var baseGet = _dereq_(163),
-    baseIsEqual = _dereq_(165),
-    baseSlice = _dereq_(178),
-    isArray = _dereq_(230),
-    isKey = _dereq_(211),
-    isStrictComparable = _dereq_(215),
-    last = _dereq_(119),
-    toObject = _dereq_(226),
-    toPath = _dereq_(227);
+},{"173":173,"212":212,"233":233}],177:[function(_dereq_,module,exports){
+var baseGet = _dereq_(169),
+    baseIsEqual = _dereq_(171),
+    baseSlice = _dereq_(184),
+    isArray = _dereq_(237),
+    isKey = _dereq_(218),
+    isStrictComparable = _dereq_(222),
+    last = _dereq_(123),
+    toObject = _dereq_(233),
+    toPath = _dereq_(234);
 
 /**
  * The base implementation of `_.matchesProperty` which does not clone `srcValue`.
@@ -14464,15 +14404,15 @@ function baseMatchesProperty(path, srcValue) {
 
 module.exports = baseMatchesProperty;
 
-},{"119":119,"163":163,"165":165,"178":178,"211":211,"215":215,"226":226,"227":227,"230":230}],172:[function(_dereq_,module,exports){
-var arrayEach = _dereq_(140),
-    baseMergeDeep = _dereq_(173),
-    isArray = _dereq_(230),
-    isArrayLike = _dereq_(208),
-    isObject = _dereq_(234),
-    isObjectLike = _dereq_(214),
-    isTypedArray = _dereq_(237),
-    keys = _dereq_(240);
+},{"123":123,"169":169,"171":171,"184":184,"218":218,"222":222,"233":233,"234":234,"237":237}],178:[function(_dereq_,module,exports){
+var arrayEach = _dereq_(146),
+    baseMergeDeep = _dereq_(179),
+    isArray = _dereq_(237),
+    isArrayLike = _dereq_(215),
+    isObject = _dereq_(241),
+    isObjectLike = _dereq_(221),
+    isTypedArray = _dereq_(244),
+    keys = _dereq_(247);
 
 /**
  * The base implementation of `_.merge` without support for argument juggling,
@@ -14522,14 +14462,14 @@ function baseMerge(object, source, customizer, stackA, stackB) {
 
 module.exports = baseMerge;
 
-},{"140":140,"173":173,"208":208,"214":214,"230":230,"234":234,"237":237,"240":240}],173:[function(_dereq_,module,exports){
-var arrayCopy = _dereq_(139),
-    isArguments = _dereq_(229),
-    isArray = _dereq_(230),
-    isArrayLike = _dereq_(208),
-    isPlainObject = _dereq_(235),
-    isTypedArray = _dereq_(237),
-    toPlainObject = _dereq_(238);
+},{"146":146,"179":179,"215":215,"221":221,"237":237,"241":241,"244":244,"247":247}],179:[function(_dereq_,module,exports){
+var arrayCopy = _dereq_(145),
+    isArguments = _dereq_(236),
+    isArray = _dereq_(237),
+    isArrayLike = _dereq_(215),
+    isPlainObject = _dereq_(242),
+    isTypedArray = _dereq_(244),
+    toPlainObject = _dereq_(245);
 
 /**
  * A specialized version of `baseMerge` for arrays and objects which performs
@@ -14591,7 +14531,7 @@ function baseMergeDeep(object, source, key, mergeFunc, customizer, stackA, stack
 
 module.exports = baseMergeDeep;
 
-},{"139":139,"208":208,"229":229,"230":230,"235":235,"237":237,"238":238}],174:[function(_dereq_,module,exports){
+},{"145":145,"215":215,"236":236,"237":237,"242":242,"244":244,"245":245}],180:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.property` without support for deep paths.
  *
@@ -14607,9 +14547,9 @@ function baseProperty(key) {
 
 module.exports = baseProperty;
 
-},{}],175:[function(_dereq_,module,exports){
-var baseGet = _dereq_(163),
-    toPath = _dereq_(227);
+},{}],181:[function(_dereq_,module,exports){
+var baseGet = _dereq_(169),
+    toPath = _dereq_(234);
 
 /**
  * A specialized version of `baseProperty` which supports deep paths.
@@ -14628,7 +14568,7 @@ function basePropertyDeep(path) {
 
 module.exports = basePropertyDeep;
 
-},{"163":163,"227":227}],176:[function(_dereq_,module,exports){
+},{"169":169,"234":234}],182:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.reduce` and `_.reduceRight` without support
  * for callback shorthands and `this` binding, which iterates over `collection`
@@ -14654,9 +14594,9 @@ function baseReduce(collection, iteratee, accumulator, initFromCollection, eachF
 
 module.exports = baseReduce;
 
-},{}],177:[function(_dereq_,module,exports){
-var identity = _dereq_(246),
-    metaMap = _dereq_(217);
+},{}],183:[function(_dereq_,module,exports){
+var identity = _dereq_(253),
+    metaMap = _dereq_(224);
 
 /**
  * The base implementation of `setData` without support for hot loop detection.
@@ -14673,7 +14613,7 @@ var baseSetData = !metaMap ? identity : function(func, data) {
 
 module.exports = baseSetData;
 
-},{"217":217,"246":246}],178:[function(_dereq_,module,exports){
+},{"224":224,"253":253}],184:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.slice` without an iteratee call guard.
  *
@@ -14707,7 +14647,32 @@ function baseSlice(array, start, end) {
 
 module.exports = baseSlice;
 
-},{}],179:[function(_dereq_,module,exports){
+},{}],185:[function(_dereq_,module,exports){
+var baseEach = _dereq_(160);
+
+/**
+ * The base implementation of `_.some` without support for callback shorthands
+ * and `this` binding.
+ *
+ * @private
+ * @param {Array|Object|string} collection The collection to iterate over.
+ * @param {Function} predicate The function invoked per iteration.
+ * @returns {boolean} Returns `true` if any element passes the predicate check,
+ *  else `false`.
+ */
+function baseSome(collection, predicate) {
+  var result;
+
+  baseEach(collection, function(value, index, collection) {
+    result = predicate(value, index, collection);
+    return !result;
+  });
+  return !!result;
+}
+
+module.exports = baseSome;
+
+},{"160":160}],186:[function(_dereq_,module,exports){
 /**
  * Converts `value` to a string if it's not one. An empty string is returned
  * for `null` or `undefined` values.
@@ -14722,10 +14687,10 @@ function baseToString(value) {
 
 module.exports = baseToString;
 
-},{}],180:[function(_dereq_,module,exports){
-var baseIndexOf = _dereq_(164),
-    cacheIndexOf = _dereq_(182),
-    createCache = _dereq_(191);
+},{}],187:[function(_dereq_,module,exports){
+var baseIndexOf = _dereq_(170),
+    cacheIndexOf = _dereq_(189),
+    createCache = _dereq_(198);
 
 /** Used as the size to enable large array optimizations. */
 var LARGE_ARRAY_SIZE = 200;
@@ -14784,8 +14749,8 @@ function baseUniq(array, iteratee) {
 
 module.exports = baseUniq;
 
-},{"164":164,"182":182,"191":191}],181:[function(_dereq_,module,exports){
-var identity = _dereq_(246);
+},{"170":170,"189":189,"198":198}],188:[function(_dereq_,module,exports){
+var identity = _dereq_(253);
 
 /**
  * A specialized version of `baseCallback` which only supports `this` binding
@@ -14825,8 +14790,8 @@ function bindCallback(func, thisArg, argCount) {
 
 module.exports = bindCallback;
 
-},{"246":246}],182:[function(_dereq_,module,exports){
-var isObject = _dereq_(234);
+},{"253":253}],189:[function(_dereq_,module,exports){
+var isObject = _dereq_(241);
 
 /**
  * Checks if `value` is in `cache` mimicking the return signature of
@@ -14846,8 +14811,8 @@ function cacheIndexOf(cache, value) {
 
 module.exports = cacheIndexOf;
 
-},{"234":234}],183:[function(_dereq_,module,exports){
-var isObject = _dereq_(234);
+},{"241":241}],190:[function(_dereq_,module,exports){
+var isObject = _dereq_(241);
 
 /**
  * Adds `value` to the cache.
@@ -14868,7 +14833,7 @@ function cachePush(value) {
 
 module.exports = cachePush;
 
-},{"234":234}],184:[function(_dereq_,module,exports){
+},{"241":241}],191:[function(_dereq_,module,exports){
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeMax = Math.max;
 
@@ -14904,7 +14869,7 @@ function composeArgs(args, partials, holders) {
 
 module.exports = composeArgs;
 
-},{}],185:[function(_dereq_,module,exports){
+},{}],192:[function(_dereq_,module,exports){
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeMax = Math.max;
 
@@ -14942,10 +14907,10 @@ function composeArgsRight(args, partials, holders) {
 
 module.exports = composeArgsRight;
 
-},{}],186:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(149),
-    baseEach = _dereq_(154),
-    isArray = _dereq_(230);
+},{}],193:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(155),
+    baseEach = _dereq_(160),
+    isArray = _dereq_(237);
 
 /**
  * Creates a `_.countBy`, `_.groupBy`, `_.indexBy`, or `_.partition` function.
@@ -14979,10 +14944,10 @@ function createAggregator(setter, initializer) {
 
 module.exports = createAggregator;
 
-},{"149":149,"154":154,"230":230}],187:[function(_dereq_,module,exports){
-var bindCallback = _dereq_(181),
-    isIterateeCall = _dereq_(210),
-    restParam = _dereq_(135);
+},{"155":155,"160":160,"237":237}],194:[function(_dereq_,module,exports){
+var bindCallback = _dereq_(188),
+    isIterateeCall = _dereq_(217),
+    restParam = _dereq_(141);
 
 /**
  * Creates a `_.assign`, `_.defaults`, or `_.merge` function.
@@ -15022,10 +14987,10 @@ function createAssigner(assigner) {
 
 module.exports = createAssigner;
 
-},{"135":135,"181":181,"210":210}],188:[function(_dereq_,module,exports){
-var getLength = _dereq_(204),
-    isLength = _dereq_(213),
-    toObject = _dereq_(226);
+},{"141":141,"188":188,"217":217}],195:[function(_dereq_,module,exports){
+var getLength = _dereq_(211),
+    isLength = _dereq_(220),
+    toObject = _dereq_(233);
 
 /**
  * Creates a `baseEach` or `baseEachRight` function.
@@ -15055,8 +15020,8 @@ function createBaseEach(eachFunc, fromRight) {
 
 module.exports = createBaseEach;
 
-},{"204":204,"213":213,"226":226}],189:[function(_dereq_,module,exports){
-var toObject = _dereq_(226);
+},{"211":211,"220":220,"233":233}],196:[function(_dereq_,module,exports){
+var toObject = _dereq_(233);
 
 /**
  * Creates a base function for `_.forIn` or `_.forInRight`.
@@ -15084,9 +15049,9 @@ function createBaseFor(fromRight) {
 
 module.exports = createBaseFor;
 
-},{"226":226}],190:[function(_dereq_,module,exports){
+},{"233":233}],197:[function(_dereq_,module,exports){
 (function (global){
-var createCtorWrapper = _dereq_(192);
+var createCtorWrapper = _dereq_(199);
 
 /**
  * Creates a function that wraps `func` and invokes it with the `this`
@@ -15111,10 +15076,10 @@ module.exports = createBindWrapper;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"192":192}],191:[function(_dereq_,module,exports){
+},{"199":199}],198:[function(_dereq_,module,exports){
 (function (global){
-var SetCache = _dereq_(138),
-    getNative = _dereq_(206);
+var SetCache = _dereq_(144),
+    getNative = _dereq_(213);
 
 /** Native method references. */
 var Set = getNative(global, 'Set');
@@ -15137,9 +15102,9 @@ module.exports = createCache;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"138":138,"206":206}],192:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(151),
-    isObject = _dereq_(234);
+},{"144":144,"213":213}],199:[function(_dereq_,module,exports){
+var baseCreate = _dereq_(157),
+    isObject = _dereq_(241);
 
 /**
  * Creates a function that produces an instance of `Ctor` regardless of
@@ -15176,11 +15141,11 @@ function createCtorWrapper(Ctor) {
 
 module.exports = createCtorWrapper;
 
-},{"151":151,"234":234}],193:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(149),
-    baseFind = _dereq_(157),
-    baseFindIndex = _dereq_(158),
-    isArray = _dereq_(230);
+},{"157":157,"241":241}],200:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(155),
+    baseFind = _dereq_(163),
+    baseFindIndex = _dereq_(164),
+    isArray = _dereq_(237);
 
 /**
  * Creates a `_.find` or `_.findLast` function.
@@ -15203,9 +15168,9 @@ function createFind(eachFunc, fromRight) {
 
 module.exports = createFind;
 
-},{"149":149,"157":157,"158":158,"230":230}],194:[function(_dereq_,module,exports){
-var bindCallback = _dereq_(181),
-    isArray = _dereq_(230);
+},{"155":155,"163":163,"164":164,"237":237}],201:[function(_dereq_,module,exports){
+var bindCallback = _dereq_(188),
+    isArray = _dereq_(237);
 
 /**
  * Creates a function for `_.forEach` or `_.forEachRight`.
@@ -15225,16 +15190,16 @@ function createForEach(arrayFunc, eachFunc) {
 
 module.exports = createForEach;
 
-},{"181":181,"230":230}],195:[function(_dereq_,module,exports){
+},{"188":188,"237":237}],202:[function(_dereq_,module,exports){
 (function (global){
-var arrayCopy = _dereq_(139),
-    composeArgs = _dereq_(184),
-    composeArgsRight = _dereq_(185),
-    createCtorWrapper = _dereq_(192),
-    isLaziable = _dereq_(212),
-    reorder = _dereq_(221),
-    replaceHolders = _dereq_(222),
-    setData = _dereq_(223);
+var arrayCopy = _dereq_(145),
+    composeArgs = _dereq_(191),
+    composeArgsRight = _dereq_(192),
+    createCtorWrapper = _dereq_(199),
+    isLaziable = _dereq_(219),
+    reorder = _dereq_(228),
+    replaceHolders = _dereq_(229),
+    setData = _dereq_(230);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1,
@@ -15341,9 +15306,9 @@ module.exports = createHybridWrapper;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"139":139,"184":184,"185":185,"192":192,"212":212,"221":221,"222":222,"223":223}],196:[function(_dereq_,module,exports){
+},{"145":145,"191":191,"192":192,"199":199,"219":219,"228":228,"229":229,"230":230}],203:[function(_dereq_,module,exports){
 (function (global){
-var createCtorWrapper = _dereq_(192);
+var createCtorWrapper = _dereq_(199);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1;
@@ -15389,10 +15354,10 @@ module.exports = createPartialWrapper;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"192":192}],197:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(149),
-    baseReduce = _dereq_(176),
-    isArray = _dereq_(230);
+},{"199":199}],204:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(155),
+    baseReduce = _dereq_(182),
+    isArray = _dereq_(237);
 
 /**
  * Creates a function for `_.reduce` or `_.reduceRight`.
@@ -15413,14 +15378,14 @@ function createReduce(arrayFunc, eachFunc) {
 
 module.exports = createReduce;
 
-},{"149":149,"176":176,"230":230}],198:[function(_dereq_,module,exports){
-var baseSetData = _dereq_(177),
-    createBindWrapper = _dereq_(190),
-    createHybridWrapper = _dereq_(195),
-    createPartialWrapper = _dereq_(196),
-    getData = _dereq_(202),
-    mergeData = _dereq_(216),
-    setData = _dereq_(223);
+},{"155":155,"182":182,"237":237}],205:[function(_dereq_,module,exports){
+var baseSetData = _dereq_(183),
+    createBindWrapper = _dereq_(197),
+    createHybridWrapper = _dereq_(202),
+    createPartialWrapper = _dereq_(203),
+    getData = _dereq_(209),
+    mergeData = _dereq_(223),
+    setData = _dereq_(230);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1,
@@ -15501,8 +15466,8 @@ function createWrapper(func, bitmask, thisArg, partials, holders, argPos, ary, a
 
 module.exports = createWrapper;
 
-},{"177":177,"190":190,"195":195,"196":196,"202":202,"216":216,"223":223}],199:[function(_dereq_,module,exports){
-var arraySome = _dereq_(146);
+},{"183":183,"197":197,"202":202,"203":203,"209":209,"223":223,"230":230}],206:[function(_dereq_,module,exports){
+var arraySome = _dereq_(152);
 
 /**
  * A specialized version of `baseIsEqualDeep` for arrays with support for
@@ -15554,7 +15519,7 @@ function equalArrays(array, other, equalFunc, customizer, isLoose, stackA, stack
 
 module.exports = equalArrays;
 
-},{"146":146}],200:[function(_dereq_,module,exports){
+},{"152":152}],207:[function(_dereq_,module,exports){
 /** `Object#toString` result references. */
 var boolTag = '[object Boolean]',
     dateTag = '[object Date]',
@@ -15604,8 +15569,8 @@ function equalByTag(object, other, tag) {
 
 module.exports = equalByTag;
 
-},{}],201:[function(_dereq_,module,exports){
-var keys = _dereq_(240);
+},{}],208:[function(_dereq_,module,exports){
+var keys = _dereq_(247);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -15673,9 +15638,9 @@ function equalObjects(object, other, equalFunc, customizer, isLoose, stackA, sta
 
 module.exports = equalObjects;
 
-},{"240":240}],202:[function(_dereq_,module,exports){
-var metaMap = _dereq_(217),
-    noop = _dereq_(247);
+},{"247":247}],209:[function(_dereq_,module,exports){
+var metaMap = _dereq_(224),
+    noop = _dereq_(254);
 
 /**
  * Gets metadata for `func`.
@@ -15690,8 +15655,8 @@ var getData = !metaMap ? noop : function(func) {
 
 module.exports = getData;
 
-},{"217":217,"247":247}],203:[function(_dereq_,module,exports){
-var realNames = _dereq_(220);
+},{"224":224,"254":254}],210:[function(_dereq_,module,exports){
+var realNames = _dereq_(227);
 
 /**
  * Gets the name of `func`.
@@ -15717,8 +15682,8 @@ function getFuncName(func) {
 
 module.exports = getFuncName;
 
-},{"220":220}],204:[function(_dereq_,module,exports){
-var baseProperty = _dereq_(174);
+},{"227":227}],211:[function(_dereq_,module,exports){
+var baseProperty = _dereq_(180);
 
 /**
  * Gets the "length" property value of `object`.
@@ -15734,9 +15699,9 @@ var getLength = baseProperty('length');
 
 module.exports = getLength;
 
-},{"174":174}],205:[function(_dereq_,module,exports){
-var isStrictComparable = _dereq_(215),
-    pairs = _dereq_(244);
+},{"180":180}],212:[function(_dereq_,module,exports){
+var isStrictComparable = _dereq_(222),
+    pairs = _dereq_(251);
 
 /**
  * Gets the propery names, values, and compare flags of `object`.
@@ -15757,8 +15722,8 @@ function getMatchData(object) {
 
 module.exports = getMatchData;
 
-},{"215":215,"244":244}],206:[function(_dereq_,module,exports){
-var isNative = _dereq_(232);
+},{"222":222,"251":251}],213:[function(_dereq_,module,exports){
+var isNative = _dereq_(239);
 
 /**
  * Gets the native function at `key` of `object`.
@@ -15775,7 +15740,7 @@ function getNative(object, key) {
 
 module.exports = getNative;
 
-},{"232":232}],207:[function(_dereq_,module,exports){
+},{"239":239}],214:[function(_dereq_,module,exports){
 /**
  * Gets the index at which the first occurrence of `NaN` is found in `array`.
  *
@@ -15800,9 +15765,9 @@ function indexOfNaN(array, fromIndex, fromRight) {
 
 module.exports = indexOfNaN;
 
-},{}],208:[function(_dereq_,module,exports){
-var getLength = _dereq_(204),
-    isLength = _dereq_(213);
+},{}],215:[function(_dereq_,module,exports){
+var getLength = _dereq_(211),
+    isLength = _dereq_(220);
 
 /**
  * Checks if `value` is array-like.
@@ -15817,7 +15782,7 @@ function isArrayLike(value) {
 
 module.exports = isArrayLike;
 
-},{"204":204,"213":213}],209:[function(_dereq_,module,exports){
+},{"211":211,"220":220}],216:[function(_dereq_,module,exports){
 /** Used to detect unsigned integer values. */
 var reIsUint = /^\d+$/;
 
@@ -15843,10 +15808,10 @@ function isIndex(value, length) {
 
 module.exports = isIndex;
 
-},{}],210:[function(_dereq_,module,exports){
-var isArrayLike = _dereq_(208),
-    isIndex = _dereq_(209),
-    isObject = _dereq_(234);
+},{}],217:[function(_dereq_,module,exports){
+var isArrayLike = _dereq_(215),
+    isIndex = _dereq_(216),
+    isObject = _dereq_(241);
 
 /**
  * Checks if the provided arguments are from an iteratee call.
@@ -15873,9 +15838,9 @@ function isIterateeCall(value, index, object) {
 
 module.exports = isIterateeCall;
 
-},{"208":208,"209":209,"234":234}],211:[function(_dereq_,module,exports){
-var isArray = _dereq_(230),
-    toObject = _dereq_(226);
+},{"215":215,"216":216,"241":241}],218:[function(_dereq_,module,exports){
+var isArray = _dereq_(237),
+    toObject = _dereq_(233);
 
 /** Used to match property names within property paths. */
 var reIsDeepProp = /\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\n\\]|\\.)*?\1)\]/,
@@ -15903,11 +15868,11 @@ function isKey(value, object) {
 
 module.exports = isKey;
 
-},{"226":226,"230":230}],212:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(136),
-    getData = _dereq_(202),
-    getFuncName = _dereq_(203),
-    lodash = _dereq_(123);
+},{"233":233,"237":237}],219:[function(_dereq_,module,exports){
+var LazyWrapper = _dereq_(142),
+    getData = _dereq_(209),
+    getFuncName = _dereq_(210),
+    lodash = _dereq_(127);
 
 /**
  * Checks if `func` has a lazy counterpart.
@@ -15932,7 +15897,7 @@ function isLaziable(func) {
 
 module.exports = isLaziable;
 
-},{"123":123,"136":136,"202":202,"203":203}],213:[function(_dereq_,module,exports){
+},{"127":127,"142":142,"209":209,"210":210}],220:[function(_dereq_,module,exports){
 /**
  * Used as the [maximum length](http://ecma-international.org/ecma-262/6.0/#sec-number.max_safe_integer)
  * of an array-like value.
@@ -15954,7 +15919,7 @@ function isLength(value) {
 
 module.exports = isLength;
 
-},{}],214:[function(_dereq_,module,exports){
+},{}],221:[function(_dereq_,module,exports){
 /**
  * Checks if `value` is object-like.
  *
@@ -15968,8 +15933,8 @@ function isObjectLike(value) {
 
 module.exports = isObjectLike;
 
-},{}],215:[function(_dereq_,module,exports){
-var isObject = _dereq_(234);
+},{}],222:[function(_dereq_,module,exports){
+var isObject = _dereq_(241);
 
 /**
  * Checks if `value` is suitable for strict equality comparisons, i.e. `===`.
@@ -15985,11 +15950,11 @@ function isStrictComparable(value) {
 
 module.exports = isStrictComparable;
 
-},{"234":234}],216:[function(_dereq_,module,exports){
-var arrayCopy = _dereq_(139),
-    composeArgs = _dereq_(184),
-    composeArgsRight = _dereq_(185),
-    replaceHolders = _dereq_(222);
+},{"241":241}],223:[function(_dereq_,module,exports){
+var arrayCopy = _dereq_(145),
+    composeArgs = _dereq_(191),
+    composeArgsRight = _dereq_(192),
+    replaceHolders = _dereq_(229);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1,
@@ -16076,9 +16041,9 @@ function mergeData(data, source) {
 
 module.exports = mergeData;
 
-},{"139":139,"184":184,"185":185,"222":222}],217:[function(_dereq_,module,exports){
+},{"145":145,"191":191,"192":192,"229":229}],224:[function(_dereq_,module,exports){
 (function (global){
-var getNative = _dereq_(206);
+var getNative = _dereq_(213);
 
 /** Native method references. */
 var WeakMap = getNative(global, 'WeakMap');
@@ -16090,8 +16055,8 @@ module.exports = metaMap;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"206":206}],218:[function(_dereq_,module,exports){
-var toObject = _dereq_(226);
+},{"213":213}],225:[function(_dereq_,module,exports){
+var toObject = _dereq_(233);
 
 /**
  * A specialized version of `_.pick` which picks `object` properties specified
@@ -16120,8 +16085,8 @@ function pickByArray(object, props) {
 
 module.exports = pickByArray;
 
-},{"226":226}],219:[function(_dereq_,module,exports){
-var baseForIn = _dereq_(161);
+},{"233":233}],226:[function(_dereq_,module,exports){
+var baseForIn = _dereq_(167);
 
 /**
  * A specialized version of `_.pick` which picks `object` properties `predicate`
@@ -16144,15 +16109,15 @@ function pickByCallback(object, predicate) {
 
 module.exports = pickByCallback;
 
-},{"161":161}],220:[function(_dereq_,module,exports){
+},{"167":167}],227:[function(_dereq_,module,exports){
 /** Used to lookup unminified function names. */
 var realNames = {};
 
 module.exports = realNames;
 
-},{}],221:[function(_dereq_,module,exports){
-var arrayCopy = _dereq_(139),
-    isIndex = _dereq_(209);
+},{}],228:[function(_dereq_,module,exports){
+var arrayCopy = _dereq_(145),
+    isIndex = _dereq_(216);
 
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeMin = Math.min;
@@ -16181,7 +16146,7 @@ function reorder(array, indexes) {
 
 module.exports = reorder;
 
-},{"139":139,"209":209}],222:[function(_dereq_,module,exports){
+},{"145":145,"216":216}],229:[function(_dereq_,module,exports){
 /** Used as the internal argument placeholder. */
 var PLACEHOLDER = '__lodash_placeholder__';
 
@@ -16211,9 +16176,9 @@ function replaceHolders(array, placeholder) {
 
 module.exports = replaceHolders;
 
-},{}],223:[function(_dereq_,module,exports){
-var baseSetData = _dereq_(177),
-    now = _dereq_(131);
+},{}],230:[function(_dereq_,module,exports){
+var baseSetData = _dereq_(183),
+    now = _dereq_(137);
 
 /** Used to detect when a function becomes hot. */
 var HOT_COUNT = 150,
@@ -16254,12 +16219,12 @@ var setData = (function() {
 
 module.exports = setData;
 
-},{"131":131,"177":177}],224:[function(_dereq_,module,exports){
-var isArguments = _dereq_(229),
-    isArray = _dereq_(230),
-    isIndex = _dereq_(209),
-    isLength = _dereq_(213),
-    keysIn = _dereq_(241);
+},{"137":137,"183":183}],231:[function(_dereq_,module,exports){
+var isArguments = _dereq_(236),
+    isArray = _dereq_(237),
+    isIndex = _dereq_(216),
+    isLength = _dereq_(220),
+    keysIn = _dereq_(248);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -16297,7 +16262,7 @@ function shimKeys(object) {
 
 module.exports = shimKeys;
 
-},{"209":209,"213":213,"229":229,"230":230,"241":241}],225:[function(_dereq_,module,exports){
+},{"216":216,"220":220,"236":236,"237":237,"248":248}],232:[function(_dereq_,module,exports){
 /**
  * An implementation of `_.uniq` optimized for sorted arrays without support
  * for callback shorthands and `this` binding.
@@ -16328,8 +16293,8 @@ function sortedUniq(array, iteratee) {
 
 module.exports = sortedUniq;
 
-},{}],226:[function(_dereq_,module,exports){
-var isObject = _dereq_(234);
+},{}],233:[function(_dereq_,module,exports){
+var isObject = _dereq_(241);
 
 /**
  * Converts `value` to an object if it's not one.
@@ -16344,9 +16309,9 @@ function toObject(value) {
 
 module.exports = toObject;
 
-},{"234":234}],227:[function(_dereq_,module,exports){
-var baseToString = _dereq_(179),
-    isArray = _dereq_(230);
+},{"241":241}],234:[function(_dereq_,module,exports){
+var baseToString = _dereq_(186),
+    isArray = _dereq_(237);
 
 /** Used to match property names within property paths. */
 var rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\n\\]|\\.)*?)\2)\]/g;
@@ -16374,10 +16339,10 @@ function toPath(value) {
 
 module.exports = toPath;
 
-},{"179":179,"230":230}],228:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(136),
-    LodashWrapper = _dereq_(137),
-    arrayCopy = _dereq_(139);
+},{"186":186,"237":237}],235:[function(_dereq_,module,exports){
+var LazyWrapper = _dereq_(142),
+    LodashWrapper = _dereq_(143),
+    arrayCopy = _dereq_(145);
 
 /**
  * Creates a clone of `wrapper`.
@@ -16394,9 +16359,9 @@ function wrapperClone(wrapper) {
 
 module.exports = wrapperClone;
 
-},{"136":136,"137":137,"139":139}],229:[function(_dereq_,module,exports){
-var isArrayLike = _dereq_(208),
-    isObjectLike = _dereq_(214);
+},{"142":142,"143":143,"145":145}],236:[function(_dereq_,module,exports){
+var isArrayLike = _dereq_(215),
+    isObjectLike = _dereq_(221);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -16430,10 +16395,10 @@ function isArguments(value) {
 
 module.exports = isArguments;
 
-},{"208":208,"214":214}],230:[function(_dereq_,module,exports){
-var getNative = _dereq_(206),
-    isLength = _dereq_(213),
-    isObjectLike = _dereq_(214);
+},{"215":215,"221":221}],237:[function(_dereq_,module,exports){
+var getNative = _dereq_(213),
+    isLength = _dereq_(220),
+    isObjectLike = _dereq_(221);
 
 /** `Object#toString` result references. */
 var arrayTag = '[object Array]';
@@ -16472,8 +16437,8 @@ var isArray = nativeIsArray || function(value) {
 
 module.exports = isArray;
 
-},{"206":206,"213":213,"214":214}],231:[function(_dereq_,module,exports){
-var isObject = _dereq_(234);
+},{"213":213,"220":220,"221":221}],238:[function(_dereq_,module,exports){
+var isObject = _dereq_(241);
 
 /** `Object#toString` result references. */
 var funcTag = '[object Function]';
@@ -16512,9 +16477,9 @@ function isFunction(value) {
 
 module.exports = isFunction;
 
-},{"234":234}],232:[function(_dereq_,module,exports){
-var isFunction = _dereq_(231),
-    isObjectLike = _dereq_(214);
+},{"241":241}],239:[function(_dereq_,module,exports){
+var isFunction = _dereq_(238),
+    isObjectLike = _dereq_(221);
 
 /** Used to detect host constructors (Safari > 5). */
 var reIsHostCtor = /^\[object .+?Constructor\]$/;
@@ -16562,8 +16527,8 @@ function isNative(value) {
 
 module.exports = isNative;
 
-},{"214":214,"231":231}],233:[function(_dereq_,module,exports){
-var isObjectLike = _dereq_(214);
+},{"221":221,"238":238}],240:[function(_dereq_,module,exports){
+var isObjectLike = _dereq_(221);
 
 /** `Object#toString` result references. */
 var numberTag = '[object Number]';
@@ -16605,7 +16570,7 @@ function isNumber(value) {
 
 module.exports = isNumber;
 
-},{"214":214}],234:[function(_dereq_,module,exports){
+},{"221":221}],241:[function(_dereq_,module,exports){
 /**
  * Checks if `value` is the [language type](https://es5.github.io/#x8) of `Object`.
  * (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
@@ -16635,10 +16600,10 @@ function isObject(value) {
 
 module.exports = isObject;
 
-},{}],235:[function(_dereq_,module,exports){
-var baseForIn = _dereq_(161),
-    isArguments = _dereq_(229),
-    isObjectLike = _dereq_(214);
+},{}],242:[function(_dereq_,module,exports){
+var baseForIn = _dereq_(167),
+    isArguments = _dereq_(236),
+    isObjectLike = _dereq_(221);
 
 /** `Object#toString` result references. */
 var objectTag = '[object Object]';
@@ -16708,8 +16673,8 @@ function isPlainObject(value) {
 
 module.exports = isPlainObject;
 
-},{"161":161,"214":214,"229":229}],236:[function(_dereq_,module,exports){
-var isObjectLike = _dereq_(214);
+},{"167":167,"221":221,"236":236}],243:[function(_dereq_,module,exports){
+var isObjectLike = _dereq_(221);
 
 /** `Object#toString` result references. */
 var stringTag = '[object String]';
@@ -16745,9 +16710,9 @@ function isString(value) {
 
 module.exports = isString;
 
-},{"214":214}],237:[function(_dereq_,module,exports){
-var isLength = _dereq_(213),
-    isObjectLike = _dereq_(214);
+},{"221":221}],244:[function(_dereq_,module,exports){
+var isLength = _dereq_(220),
+    isObjectLike = _dereq_(221);
 
 /** `Object#toString` result references. */
 var argsTag = '[object Arguments]',
@@ -16821,9 +16786,9 @@ function isTypedArray(value) {
 
 module.exports = isTypedArray;
 
-},{"213":213,"214":214}],238:[function(_dereq_,module,exports){
-var baseCopy = _dereq_(150),
-    keysIn = _dereq_(241);
+},{"220":220,"221":221}],245:[function(_dereq_,module,exports){
+var baseCopy = _dereq_(156),
+    keysIn = _dereq_(248);
 
 /**
  * Converts `value` to a plain object flattening inherited enumerable
@@ -16854,10 +16819,10 @@ function toPlainObject(value) {
 
 module.exports = toPlainObject;
 
-},{"150":150,"241":241}],239:[function(_dereq_,module,exports){
-var assignWith = _dereq_(147),
-    baseAssign = _dereq_(148),
-    createAssigner = _dereq_(187);
+},{"156":156,"248":248}],246:[function(_dereq_,module,exports){
+var assignWith = _dereq_(153),
+    baseAssign = _dereq_(154),
+    createAssigner = _dereq_(194);
 
 /**
  * Assigns own enumerable properties of source object(s) to the destination
@@ -16899,11 +16864,11 @@ var assign = createAssigner(function(object, source, customizer) {
 
 module.exports = assign;
 
-},{"147":147,"148":148,"187":187}],240:[function(_dereq_,module,exports){
-var getNative = _dereq_(206),
-    isArrayLike = _dereq_(208),
-    isObject = _dereq_(234),
-    shimKeys = _dereq_(224);
+},{"153":153,"154":154,"194":194}],247:[function(_dereq_,module,exports){
+var getNative = _dereq_(213),
+    isArrayLike = _dereq_(215),
+    isObject = _dereq_(241),
+    shimKeys = _dereq_(231);
 
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeKeys = getNative(Object, 'keys');
@@ -16946,12 +16911,12 @@ var keys = !nativeKeys ? shimKeys : function(object) {
 
 module.exports = keys;
 
-},{"206":206,"208":208,"224":224,"234":234}],241:[function(_dereq_,module,exports){
-var isArguments = _dereq_(229),
-    isArray = _dereq_(230),
-    isIndex = _dereq_(209),
-    isLength = _dereq_(213),
-    isObject = _dereq_(234);
+},{"213":213,"215":215,"231":231,"241":241}],248:[function(_dereq_,module,exports){
+var isArguments = _dereq_(236),
+    isArray = _dereq_(237),
+    isIndex = _dereq_(216),
+    isLength = _dereq_(220),
+    isObject = _dereq_(241);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -17012,9 +16977,9 @@ function keysIn(object) {
 
 module.exports = keysIn;
 
-},{"209":209,"213":213,"229":229,"230":230,"234":234}],242:[function(_dereq_,module,exports){
-var baseMerge = _dereq_(172),
-    createAssigner = _dereq_(187);
+},{"216":216,"220":220,"236":236,"237":237,"241":241}],249:[function(_dereq_,module,exports){
+var baseMerge = _dereq_(178),
+    createAssigner = _dereq_(194);
 
 /**
  * Recursively merges own enumerable properties of the source object(s), that
@@ -17068,15 +17033,15 @@ var merge = createAssigner(baseMerge);
 
 module.exports = merge;
 
-},{"172":172,"187":187}],243:[function(_dereq_,module,exports){
-var arrayMap = _dereq_(143),
-    baseDifference = _dereq_(153),
-    baseFlatten = _dereq_(159),
-    bindCallback = _dereq_(181),
-    keysIn = _dereq_(241),
-    pickByArray = _dereq_(218),
-    pickByCallback = _dereq_(219),
-    restParam = _dereq_(135);
+},{"178":178,"194":194}],250:[function(_dereq_,module,exports){
+var arrayMap = _dereq_(149),
+    baseDifference = _dereq_(159),
+    baseFlatten = _dereq_(165),
+    bindCallback = _dereq_(188),
+    keysIn = _dereq_(248),
+    pickByArray = _dereq_(225),
+    pickByCallback = _dereq_(226),
+    restParam = _dereq_(141);
 
 /**
  * The opposite of `_.pick`; this method creates an object composed of the
@@ -17117,9 +17082,9 @@ var omit = restParam(function(object, props) {
 
 module.exports = omit;
 
-},{"135":135,"143":143,"153":153,"159":159,"181":181,"218":218,"219":219,"241":241}],244:[function(_dereq_,module,exports){
-var keys = _dereq_(240),
-    toObject = _dereq_(226);
+},{"141":141,"149":149,"159":159,"165":165,"188":188,"225":225,"226":226,"248":248}],251:[function(_dereq_,module,exports){
+var keys = _dereq_(247),
+    toObject = _dereq_(233);
 
 /**
  * Creates a two dimensional array of the key-value pairs for `object`,
@@ -17152,12 +17117,12 @@ function pairs(object) {
 
 module.exports = pairs;
 
-},{"226":226,"240":240}],245:[function(_dereq_,module,exports){
-var baseFlatten = _dereq_(159),
-    bindCallback = _dereq_(181),
-    pickByArray = _dereq_(218),
-    pickByCallback = _dereq_(219),
-    restParam = _dereq_(135);
+},{"233":233,"247":247}],252:[function(_dereq_,module,exports){
+var baseFlatten = _dereq_(165),
+    bindCallback = _dereq_(188),
+    pickByArray = _dereq_(225),
+    pickByCallback = _dereq_(226),
+    restParam = _dereq_(141);
 
 /**
  * Creates an object composed of the picked `object` properties. Property
@@ -17196,7 +17161,7 @@ var pick = restParam(function(object, props) {
 
 module.exports = pick;
 
-},{"135":135,"159":159,"181":181,"218":218,"219":219}],246:[function(_dereq_,module,exports){
+},{"141":141,"165":165,"188":188,"225":225,"226":226}],253:[function(_dereq_,module,exports){
 /**
  * This method returns the first argument provided to it.
  *
@@ -17218,7 +17183,7 @@ function identity(value) {
 
 module.exports = identity;
 
-},{}],247:[function(_dereq_,module,exports){
+},{}],254:[function(_dereq_,module,exports){
 /**
  * A no-operation function that returns `undefined` regardless of the
  * arguments it receives.
@@ -17239,10 +17204,10 @@ function noop() {
 
 module.exports = noop;
 
-},{}],248:[function(_dereq_,module,exports){
-var baseProperty = _dereq_(174),
-    basePropertyDeep = _dereq_(175),
-    isKey = _dereq_(211);
+},{}],255:[function(_dereq_,module,exports){
+var baseProperty = _dereq_(180),
+    basePropertyDeep = _dereq_(181),
+    isKey = _dereq_(218);
 
 /**
  * Creates a function that returns the property value at `path` on a
@@ -17272,7 +17237,7 @@ function property(path) {
 
 module.exports = property;
 
-},{"174":174,"175":175,"211":211}],249:[function(_dereq_,module,exports){
+},{"180":180,"181":181,"218":218}],256:[function(_dereq_,module,exports){
 /**
  * Set attribute `name` to `val`, or get attr `name`.
  *
@@ -17298,9 +17263,9 @@ module.exports = function(el, name, val) {
 
   return el;
 };
-},{}],250:[function(_dereq_,module,exports){
-module.exports = _dereq_(57);
-},{"57":57}],251:[function(_dereq_,module,exports){
+},{}],257:[function(_dereq_,module,exports){
+module.exports = _dereq_(64);
+},{"64":64}],258:[function(_dereq_,module,exports){
 module.exports = function(el) {
 
   var c;
@@ -17312,19 +17277,19 @@ module.exports = function(el) {
 
   return el;
 };
-},{}],252:[function(_dereq_,module,exports){
-module.exports = _dereq_(59);
-},{"59":59}],253:[function(_dereq_,module,exports){
-module.exports = _dereq_(116);
-},{"116":116}],254:[function(_dereq_,module,exports){
-module.exports = _dereq_(60);
-},{"60":60}],255:[function(_dereq_,module,exports){
-module.exports = _dereq_(63);
-},{"63":63}],256:[function(_dereq_,module,exports){
+},{}],259:[function(_dereq_,module,exports){
+module.exports = _dereq_(66);
+},{"66":66}],260:[function(_dereq_,module,exports){
+module.exports = _dereq_(121);
+},{"121":121}],261:[function(_dereq_,module,exports){
+module.exports = _dereq_(67);
+},{"67":67}],262:[function(_dereq_,module,exports){
+module.exports = _dereq_(70);
+},{"70":70}],263:[function(_dereq_,module,exports){
 module.exports = function(el) {
   el.parentNode && el.parentNode.removeChild(el);
 };
-},{}],257:[function(_dereq_,module,exports){
+},{}],264:[function(_dereq_,module,exports){
 'use strict';
 
 function capitalize(string) {
@@ -17373,23 +17338,23 @@ module.exports.serializeAsType = function(element) {
 module.exports.serializeAsProperty = function(element) {
   return serializeFormat(element) === 'property';
 };
-},{}],258:[function(_dereq_,module,exports){
+},{}],265:[function(_dereq_,module,exports){
 'use strict';
 
-var reduce = _dereq_(130),
-    forEach = _dereq_(127),
-    find = _dereq_(126),
-    assign = _dereq_(239),
-    defer = _dereq_(134);
+var reduce = _dereq_(135),
+    forEach = _dereq_(132),
+    find = _dereq_(131),
+    assign = _dereq_(246),
+    defer = _dereq_(140);
 
-var Stack = _dereq_(299),
-    SaxParser = _dereq_(272).parser,
-    Moddle = _dereq_(260),
-    parseNameNs = _dereq_(265).parseName,
-    Types = _dereq_(268),
+var Stack = _dereq_(315),
+    SaxParser = _dereq_(279).parser,
+    Moddle = _dereq_(267),
+    parseNameNs = _dereq_(272).parseName,
+    Types = _dereq_(275),
     coerceType = Types.coerceType,
     isSimpleType = Types.isSimple,
-    common = _dereq_(257),
+    common = _dereq_(264),
     XSI_TYPE = common.XSI_TYPE,
     XSI_URI = common.DEFAULT_NS_MAP.xsi,
     serializeAsType = common.serializeAsType,
@@ -18103,18 +18068,18 @@ XMLReader.prototype.handler = function(name) {
 
 module.exports = XMLReader;
 module.exports.ElementHandler = ElementHandler;
-},{"126":126,"127":127,"130":130,"134":134,"239":239,"257":257,"260":260,"265":265,"268":268,"272":272,"299":299}],259:[function(_dereq_,module,exports){
+},{"131":131,"132":132,"135":135,"140":140,"246":246,"264":264,"267":267,"272":272,"275":275,"279":279,"315":315}],266:[function(_dereq_,module,exports){
 'use strict';
 
-var map = _dereq_(129),
-    forEach = _dereq_(127),
-    isString = _dereq_(236),
-    filter = _dereq_(125),
-    assign = _dereq_(239);
+var map = _dereq_(134),
+    forEach = _dereq_(132),
+    isString = _dereq_(243),
+    filter = _dereq_(130),
+    assign = _dereq_(246);
 
-var Types = _dereq_(268),
-    parseNameNs = _dereq_(265).parseName,
-    common = _dereq_(257),
+var Types = _dereq_(275),
+    parseNameNs = _dereq_(272).parseName,
+    common = _dereq_(264),
     nameToAlias = common.nameToAlias,
     serializeAsType = common.serializeAsType,
     serializeAsProperty = common.serializeAsProperty;
@@ -18787,9 +18752,9 @@ function XMLWriter(options) {
 
 module.exports = XMLWriter;
 
-},{"125":125,"127":127,"129":129,"236":236,"239":239,"257":257,"265":265,"268":268}],260:[function(_dereq_,module,exports){
-module.exports = _dereq_(264);
-},{"264":264}],261:[function(_dereq_,module,exports){
+},{"130":130,"132":132,"134":134,"243":243,"246":246,"264":264,"272":272,"275":275}],267:[function(_dereq_,module,exports){
+module.exports = _dereq_(271);
+},{"271":271}],268:[function(_dereq_,module,exports){
 'use strict';
 
 function Base() { }
@@ -18804,14 +18769,14 @@ Base.prototype.set = function(name, value) {
 
 
 module.exports = Base;
-},{}],262:[function(_dereq_,module,exports){
+},{}],269:[function(_dereq_,module,exports){
 'use strict';
 
-var pick = _dereq_(245),
-    assign = _dereq_(239),
-    forEach = _dereq_(127);
+var pick = _dereq_(252),
+    assign = _dereq_(246),
+    forEach = _dereq_(132);
 
-var parseNameNs = _dereq_(265).parseName;
+var parseNameNs = _dereq_(272).parseName;
 
 
 function DescriptorBuilder(nameNs) {
@@ -19029,12 +18994,12 @@ DescriptorBuilder.prototype.addTrait = function(t, inherited) {
   allTypes.push(t);
 };
 
-},{"127":127,"239":239,"245":245,"265":265}],263:[function(_dereq_,module,exports){
+},{"132":132,"246":246,"252":252,"272":272}],270:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(127);
+var forEach = _dereq_(132);
 
-var Base = _dereq_(261);
+var Base = _dereq_(268);
 
 
 function Factory(model, properties) {
@@ -19087,20 +19052,20 @@ Factory.prototype.createType = function(descriptor) {
 
   return ModdleElement;
 };
-},{"127":127,"261":261}],264:[function(_dereq_,module,exports){
+},{"132":132,"268":268}],271:[function(_dereq_,module,exports){
 'use strict';
 
-var isString = _dereq_(236),
-    isObject = _dereq_(234),
-    forEach = _dereq_(127),
-    find = _dereq_(126);
+var isString = _dereq_(243),
+    isObject = _dereq_(241),
+    forEach = _dereq_(132),
+    find = _dereq_(131);
 
 
-var Factory = _dereq_(263),
-    Registry = _dereq_(267),
-    Properties = _dereq_(266);
+var Factory = _dereq_(270),
+    Registry = _dereq_(274),
+    Properties = _dereq_(273);
 
-var parseNameNs = _dereq_(265).parseName;
+var parseNameNs = _dereq_(272).parseName;
 
 
 //// Moddle implementation /////////////////////////////////////////////////
@@ -19306,7 +19271,7 @@ Moddle.prototype.getPropertyDescriptor = function(element, property) {
   return this.getElementDescriptor(element).propertiesByName[property];
 };
 
-},{"126":126,"127":127,"234":234,"236":236,"263":263,"265":265,"266":266,"267":267}],265:[function(_dereq_,module,exports){
+},{"131":131,"132":132,"241":241,"243":243,"270":270,"272":272,"273":273,"274":274}],272:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -19343,7 +19308,7 @@ module.exports.parseName = function(name, defaultPrefix) {
     localName: localName
   };
 };
-},{}],266:[function(_dereq_,module,exports){
+},{}],273:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -19462,16 +19427,16 @@ function defineProperty(target, property, value) {
     configurable: true
   });
 }
-},{}],267:[function(_dereq_,module,exports){
+},{}],274:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(239),
-    forEach = _dereq_(127);
+var assign = _dereq_(246),
+    forEach = _dereq_(132);
 
-var Types = _dereq_(268),
-    DescriptorBuilder = _dereq_(262);
+var Types = _dereq_(275),
+    DescriptorBuilder = _dereq_(269);
 
-var parseNameNs = _dereq_(265).parseName,
+var parseNameNs = _dereq_(272).parseName,
     isBuiltInType = Types.isBuiltIn;
 
 
@@ -19647,7 +19612,7 @@ Registry.prototype.getEffectiveDescriptor = function(name) {
 Registry.prototype.definePackage = function(target, pkg) {
   this.properties.define(target, '$pkg', { value: pkg });
 };
-},{"127":127,"239":239,"262":262,"265":265,"268":268}],268:[function(_dereq_,module,exports){
+},{"132":132,"246":246,"269":269,"272":272,"275":275}],275:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -19698,11 +19663,11 @@ module.exports.isBuiltIn = function(type) {
 module.exports.isSimple = function(type) {
   return !!TYPE_CONVERTERS[type];
 };
-},{}],269:[function(_dereq_,module,exports){
-module.exports = _dereq_(271);
+},{}],276:[function(_dereq_,module,exports){
+module.exports = _dereq_(278);
 
-module.exports.Collection = _dereq_(270);
-},{"270":270,"271":271}],270:[function(_dereq_,module,exports){
+module.exports.Collection = _dereq_(277);
+},{"277":277,"278":278}],277:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -19799,10 +19764,10 @@ function isExtended(collection) {
 module.exports.extend = extend;
 
 module.exports.isExtended = isExtended;
-},{}],271:[function(_dereq_,module,exports){
+},{}],278:[function(_dereq_,module,exports){
 'use strict';
 
-var Collection = _dereq_(270);
+var Collection = _dereq_(277);
 
 function hasOwnProperty(e, property) {
   return Object.prototype.hasOwnProperty.call(e, property.name || property);
@@ -19991,7 +19956,7 @@ module.exports = Refs;
  * @property {boolean} [collection=false]
  * @property {boolean} [enumerable=false]
  */
-},{"270":270}],272:[function(_dereq_,module,exports){
+},{"277":277}],279:[function(_dereq_,module,exports){
 (function (Buffer){
 // wrapper for non-node envs
 ;(function (sax) {
@@ -21406,6666 +21371,13 @@ if (!String.fromCodePoint) {
 
 }).call(this,undefined)
 
-},{"undefined":undefined}],273:[function(_dereq_,module,exports){
-// Snap.svg 0.3.0
-// 
-// Copyright (c) 2013 – 2014 Adobe Systems Incorporated. All rights reserved.
-// 
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-// 
-// http://www.apache.org/licenses/LICENSE-2.0
-// 
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// 
-// build: 2014-09-08
+},{"undefined":undefined}],280:[function(_dereq_,module,exports){
+module.exports = _dereq_(281);
 
-(function (glob, factory) {
-    // AMD support
-    if (typeof define === "function" && define.amd) {
-        // Define as an anonymous module
-        define(["eve"], function( eve ) {
-            return factory(glob, eve);
-        });
-    } else if (typeof exports !== 'undefined') {
-        // Next for Node.js or CommonJS
-        var eve = _dereq_(117);
-        module.exports = factory(glob, eve);
-    } else {
-        // Browser globals (glob is window)
-        // Snap adds itself to window
-        factory(glob, glob.eve);
-    }
-}(window || this, function (window, eve) {
-
-// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
-// 
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-// 
-// http://www.apache.org/licenses/LICENSE-2.0
-// 
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-var mina = (function (eve) {
-    var animations = {},
-    requestAnimFrame = window.requestAnimationFrame       ||
-                       window.webkitRequestAnimationFrame ||
-                       window.mozRequestAnimationFrame    ||
-                       window.oRequestAnimationFrame      ||
-                       window.msRequestAnimationFrame     ||
-                       function (callback) {
-                           setTimeout(callback, 16);
-                       },
-    isArray = Array.isArray || function (a) {
-        return a instanceof Array ||
-            Object.prototype.toString.call(a) == "[object Array]";
-    },
-    idgen = 0,
-    idprefix = "M" + (+new Date).toString(36),
-    ID = function () {
-        return idprefix + (idgen++).toString(36);
-    },
-    diff = function (a, b, A, B) {
-        if (isArray(a)) {
-            res = [];
-            for (var i = 0, ii = a.length; i < ii; i++) {
-                res[i] = diff(a[i], b, A[i], B);
-            }
-            return res;
-        }
-        var dif = (A - a) / (B - b);
-        return function (bb) {
-            return a + dif * (bb - b);
-        };
-    },
-    timer = Date.now || function () {
-        return +new Date;
-    },
-    sta = function (val) {
-        var a = this;
-        if (val == null) {
-            return a.s;
-        }
-        var ds = a.s - val;
-        a.b += a.dur * ds;
-        a.B += a.dur * ds;
-        a.s = val;
-    },
-    speed = function (val) {
-        var a = this;
-        if (val == null) {
-            return a.spd;
-        }
-        a.spd = val;
-    },
-    duration = function (val) {
-        var a = this;
-        if (val == null) {
-            return a.dur;
-        }
-        a.s = a.s * val / a.dur;
-        a.dur = val;
-    },
-    stopit = function () {
-        var a = this;
-        delete animations[a.id];
-        a.update();
-        eve("mina.stop." + a.id, a);
-    },
-    pause = function () {
-        var a = this;
-        if (a.pdif) {
-            return;
-        }
-        delete animations[a.id];
-        a.update();
-        a.pdif = a.get() - a.b;
-    },
-    resume = function () {
-        var a = this;
-        if (!a.pdif) {
-            return;
-        }
-        a.b = a.get() - a.pdif;
-        delete a.pdif;
-        animations[a.id] = a;
-    },
-    update = function () {
-        var a = this,
-            res;
-        if (isArray(a.start)) {
-            res = [];
-            for (var j = 0, jj = a.start.length; j < jj; j++) {
-                res[j] = +a.start[j] +
-                    (a.end[j] - a.start[j]) * a.easing(a.s);
-            }
-        } else {
-            res = +a.start + (a.end - a.start) * a.easing(a.s);
-        }
-        a.set(res);
-    },
-    frame = function () {
-        var len = 0;
-        for (var i in animations) if (animations.hasOwnProperty(i)) {
-            var a = animations[i],
-                b = a.get(),
-                res;
-            len++;
-            a.s = (b - a.b) / (a.dur / a.spd);
-            if (a.s >= 1) {
-                delete animations[i];
-                a.s = 1;
-                len--;
-                (function (a) {
-                    setTimeout(function () {
-                        eve("mina.finish." + a.id, a);
-                    });
-                }(a));
-            }
-            a.update();
-        }
-        len && requestAnimFrame(frame);
-    },
-    /*\
-     * mina
-     [ method ]
-     **
-     * Generic animation of numbers
-     **
-     - a (number) start _slave_ number
-     - A (number) end _slave_ number
-     - b (number) start _master_ number (start time in general case)
-     - B (number) end _master_ number (end time in gereal case)
-     - get (function) getter of _master_ number (see @mina.time)
-     - set (function) setter of _slave_ number
-     - easing (function) #optional easing function, default is @mina.linear
-     = (object) animation descriptor
-     o {
-     o         id (string) animation id,
-     o         start (number) start _slave_ number,
-     o         end (number) end _slave_ number,
-     o         b (number) start _master_ number,
-     o         s (number) animation status (0..1),
-     o         dur (number) animation duration,
-     o         spd (number) animation speed,
-     o         get (function) getter of _master_ number (see @mina.time),
-     o         set (function) setter of _slave_ number,
-     o         easing (function) easing function, default is @mina.linear,
-     o         status (function) status getter/setter,
-     o         speed (function) speed getter/setter,
-     o         duration (function) duration getter/setter,
-     o         stop (function) animation stopper
-     o         pause (function) pauses the animation
-     o         resume (function) resumes the animation
-     o         update (function) calles setter with the right value of the animation
-     o }
-    \*/
-    mina = function (a, A, b, B, get, set, easing) {
-        var anim = {
-            id: ID(),
-            start: a,
-            end: A,
-            b: b,
-            s: 0,
-            dur: B - b,
-            spd: 1,
-            get: get,
-            set: set,
-            easing: easing || mina.linear,
-            status: sta,
-            speed: speed,
-            duration: duration,
-            stop: stopit,
-            pause: pause,
-            resume: resume,
-            update: update
-        };
-        animations[anim.id] = anim;
-        var len = 0, i;
-        for (i in animations) if (animations.hasOwnProperty(i)) {
-            len++;
-            if (len == 2) {
-                break;
-            }
-        }
-        len == 1 && requestAnimFrame(frame);
-        return anim;
-    };
-    /*\
-     * mina.time
-     [ method ]
-     **
-     * Returns the current time. Equivalent to:
-     | function () {
-     |     return (new Date).getTime();
-     | }
-    \*/
-    mina.time = timer;
-    /*\
-     * mina.getById
-     [ method ]
-     **
-     * Returns an animation by its id
-     - id (string) animation's id
-     = (object) See @mina
-    \*/
-    mina.getById = function (id) {
-        return animations[id] || null;
-    };
-
-    /*\
-     * mina.linear
-     [ method ]
-     **
-     * Default linear easing
-     - n (number) input 0..1
-     = (number) output 0..1
-    \*/
-    mina.linear = function (n) {
-        return n;
-    };
-    /*\
-     * mina.easeout
-     [ method ]
-     **
-     * Easeout easing
-     - n (number) input 0..1
-     = (number) output 0..1
-    \*/
-    mina.easeout = function (n) {
-        return Math.pow(n, 1.7);
-    };
-    /*\
-     * mina.easein
-     [ method ]
-     **
-     * Easein easing
-     - n (number) input 0..1
-     = (number) output 0..1
-    \*/
-    mina.easein = function (n) {
-        return Math.pow(n, .48);
-    };
-    /*\
-     * mina.easeinout
-     [ method ]
-     **
-     * Easeinout easing
-     - n (number) input 0..1
-     = (number) output 0..1
-    \*/
-    mina.easeinout = function (n) {
-        if (n == 1) {
-            return 1;
-        }
-        if (n == 0) {
-            return 0;
-        }
-        var q = .48 - n / 1.04,
-            Q = Math.sqrt(.1734 + q * q),
-            x = Q - q,
-            X = Math.pow(Math.abs(x), 1 / 3) * (x < 0 ? -1 : 1),
-            y = -Q - q,
-            Y = Math.pow(Math.abs(y), 1 / 3) * (y < 0 ? -1 : 1),
-            t = X + Y + .5;
-        return (1 - t) * 3 * t * t + t * t * t;
-    };
-    /*\
-     * mina.backin
-     [ method ]
-     **
-     * Backin easing
-     - n (number) input 0..1
-     = (number) output 0..1
-    \*/
-    mina.backin = function (n) {
-        if (n == 1) {
-            return 1;
-        }
-        var s = 1.70158;
-        return n * n * ((s + 1) * n - s);
-    };
-    /*\
-     * mina.backout
-     [ method ]
-     **
-     * Backout easing
-     - n (number) input 0..1
-     = (number) output 0..1
-    \*/
-    mina.backout = function (n) {
-        if (n == 0) {
-            return 0;
-        }
-        n = n - 1;
-        var s = 1.70158;
-        return n * n * ((s + 1) * n + s) + 1;
-    };
-    /*\
-     * mina.elastic
-     [ method ]
-     **
-     * Elastic easing
-     - n (number) input 0..1
-     = (number) output 0..1
-    \*/
-    mina.elastic = function (n) {
-        if (n == !!n) {
-            return n;
-        }
-        return Math.pow(2, -10 * n) * Math.sin((n - .075) *
-            (2 * Math.PI) / .3) + 1;
-    };
-    /*\
-     * mina.bounce
-     [ method ]
-     **
-     * Bounce easing
-     - n (number) input 0..1
-     = (number) output 0..1
-    \*/
-    mina.bounce = function (n) {
-        var s = 7.5625,
-            p = 2.75,
-            l;
-        if (n < (1 / p)) {
-            l = s * n * n;
-        } else {
-            if (n < (2 / p)) {
-                n -= (1.5 / p);
-                l = s * n * n + .75;
-            } else {
-                if (n < (2.5 / p)) {
-                    n -= (2.25 / p);
-                    l = s * n * n + .9375;
-                } else {
-                    n -= (2.625 / p);
-                    l = s * n * n + .984375;
-                }
-            }
-        }
-        return l;
-    };
-    window.mina = mina;
-    return mina;
-})(typeof eve == "undefined" ? function () {} : eve);
-// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-var Snap = (function(root) {
-Snap.version = "0.3.0";
-/*\
- * Snap
- [ method ]
- **
- * Creates a drawing surface or wraps existing SVG element.
- **
- - width (number|string) width of surface
- - height (number|string) height of surface
- * or
- - DOM (SVGElement) element to be wrapped into Snap structure
- * or
- - array (array) array of elements (will return set of elements)
- * or
- - query (string) CSS query selector
- = (object) @Element
-\*/
-function Snap(w, h) {
-    if (w) {
-        if (w.tagName) {
-            return wrap(w);
-        }
-        if (is(w, "array") && Snap.set) {
-            return Snap.set.apply(Snap, w);
-        }
-        if (w instanceof Element) {
-            return w;
-        }
-        if (h == null) {
-            w = glob.doc.querySelector(w);
-            return wrap(w);
-        }
-    }
-    w = w == null ? "100%" : w;
-    h = h == null ? "100%" : h;
-    return new Paper(w, h);
-}
-Snap.toString = function () {
-    return "Snap v" + this.version;
-};
-Snap._ = {};
-var glob = {
-    win: root.window,
-    doc: root.window.document
-};
-Snap._.glob = glob;
-var has = "hasOwnProperty",
-    Str = String,
-    toFloat = parseFloat,
-    toInt = parseInt,
-    math = Math,
-    mmax = math.max,
-    mmin = math.min,
-    abs = math.abs,
-    pow = math.pow,
-    PI = math.PI,
-    round = math.round,
-    E = "",
-    S = " ",
-    objectToString = Object.prototype.toString,
-    ISURL = /^url\(['"]?([^\)]+?)['"]?\)$/i,
-    colourRegExp = /^\s*((#[a-f\d]{6})|(#[a-f\d]{3})|rgba?\(\s*([\d\.]+%?\s*,\s*[\d\.]+%?\s*,\s*[\d\.]+%?(?:\s*,\s*[\d\.]+%?)?)\s*\)|hsba?\(\s*([\d\.]+(?:deg|\xb0|%)?\s*,\s*[\d\.]+%?\s*,\s*[\d\.]+(?:%?\s*,\s*[\d\.]+)?%?)\s*\)|hsla?\(\s*([\d\.]+(?:deg|\xb0|%)?\s*,\s*[\d\.]+%?\s*,\s*[\d\.]+(?:%?\s*,\s*[\d\.]+)?%?)\s*\))\s*$/i,
-    bezierrg = /^(?:cubic-)?bezier\(([^,]+),([^,]+),([^,]+),([^\)]+)\)/,
-    reURLValue = /^url\(#?([^)]+)\)$/,
-    separator = Snap._.separator = /[,\s]+/,
-    whitespace = /[\s]/g,
-    commaSpaces = /[\s]*,[\s]*/,
-    hsrg = {hs: 1, rg: 1},
-    pathCommand = /([a-z])[\s,]*((-?\d*\.?\d*(?:e[\-+]?\d+)?[\s]*,?[\s]*)+)/ig,
-    tCommand = /([rstm])[\s,]*((-?\d*\.?\d*(?:e[\-+]?\d+)?[\s]*,?[\s]*)+)/ig,
-    pathValues = /(-?\d*\.?\d*(?:e[\-+]?\\d+)?)[\s]*,?[\s]*/ig,
-    idgen = 0,
-    idprefix = "S" + (+new Date).toString(36),
-    ID = function (el) {
-        return (el && el.type ? el.type : E) + idprefix + (idgen++).toString(36);
-    },
-    xlink = "http://www.w3.org/1999/xlink",
-    xmlns = "http://www.w3.org/2000/svg",
-    hub = {},
-    URL = Snap.url = function (url) {
-        return "url('#" + url + "')";
-    };
-
-function $(el, attr) {
-    if (attr) {
-        if (el == "#text") {
-            el = glob.doc.createTextNode(attr.text || "");
-        }
-        if (typeof el == "string") {
-            el = $(el);
-        }
-        if (typeof attr == "string") {
-            if (attr.substring(0, 6) == "xlink:") {
-                return el.getAttributeNS(xlink, attr.substring(6));
-            }
-            if (attr.substring(0, 4) == "xml:") {
-                return el.getAttributeNS(xmlns, attr.substring(4));
-            }
-            return el.getAttribute(attr);
-        }
-        for (var key in attr) if (attr[has](key)) {
-            var val = Str(attr[key]);
-            if (val) {
-                if (key.substring(0, 6) == "xlink:") {
-                    el.setAttributeNS(xlink, key.substring(6), val);
-                } else if (key.substring(0, 4) == "xml:") {
-                    el.setAttributeNS(xmlns, key.substring(4), val);
-                } else {
-                    el.setAttribute(key, val);
-                }
-            } else {
-                el.removeAttribute(key);
-            }
-        }
-    } else {
-        el = glob.doc.createElementNS(xmlns, el);
-    }
-    return el;
-}
-Snap._.$ = $;
-Snap._.id = ID;
-function getAttrs(el) {
-    var attrs = el.attributes,
-        name,
-        out = {};
-    for (var i = 0; i < attrs.length; i++) {
-        if (attrs[i].namespaceURI == xlink) {
-            name = "xlink:";
-        } else {
-            name = "";
-        }
-        name += attrs[i].name;
-        out[name] = attrs[i].textContent;
-    }
-    return out;
-}
-function is(o, type) {
-    type = Str.prototype.toLowerCase.call(type);
-    if (type == "finite") {
-        return isFinite(o);
-    }
-    if (type == "array" &&
-        (o instanceof Array || Array.isArray && Array.isArray(o))) {
-        return true;
-    }
-    return  (type == "null" && o === null) ||
-            (type == typeof o && o !== null) ||
-            (type == "object" && o === Object(o)) ||
-            objectToString.call(o).slice(8, -1).toLowerCase() == type;
-}
-/*\
- * Snap.format
- [ method ]
- **
- * Replaces construction of type `{<name>}` to the corresponding argument
- **
- - token (string) string to format
- - json (object) object which properties are used as a replacement
- = (string) formatted string
- > Usage
- | // this draws a rectangular shape equivalent to "M10,20h40v50h-40z"
- | paper.path(Snap.format("M{x},{y}h{dim.width}v{dim.height}h{dim['negative width']}z", {
- |     x: 10,
- |     y: 20,
- |     dim: {
- |         width: 40,
- |         height: 50,
- |         "negative width": -40
- |     }
- | }));
-\*/
-Snap.format = (function () {
-    var tokenRegex = /\{([^\}]+)\}/g,
-        objNotationRegex = /(?:(?:^|\.)(.+?)(?=\[|\.|$|\()|\[('|")(.+?)\2\])(\(\))?/g, // matches .xxxxx or ["xxxxx"] to run over object properties
-        replacer = function (all, key, obj) {
-            var res = obj;
-            key.replace(objNotationRegex, function (all, name, quote, quotedName, isFunc) {
-                name = name || quotedName;
-                if (res) {
-                    if (name in res) {
-                        res = res[name];
-                    }
-                    typeof res == "function" && isFunc && (res = res());
-                }
-            });
-            res = (res == null || res == obj ? all : res) + "";
-            return res;
-        };
-    return function (str, obj) {
-        return Str(str).replace(tokenRegex, function (all, key) {
-            return replacer(all, key, obj);
-        });
-    };
-})();
-function clone(obj) {
-    if (typeof obj == "function" || Object(obj) !== obj) {
-        return obj;
-    }
-    var res = new obj.constructor;
-    for (var key in obj) if (obj[has](key)) {
-        res[key] = clone(obj[key]);
-    }
-    return res;
-}
-Snap._.clone = clone;
-function repush(array, item) {
-    for (var i = 0, ii = array.length; i < ii; i++) if (array[i] === item) {
-        return array.push(array.splice(i, 1)[0]);
-    }
-}
-function cacher(f, scope, postprocessor) {
-    function newf() {
-        var arg = Array.prototype.slice.call(arguments, 0),
-            args = arg.join("\u2400"),
-            cache = newf.cache = newf.cache || {},
-            count = newf.count = newf.count || [];
-        if (cache[has](args)) {
-            repush(count, args);
-            return postprocessor ? postprocessor(cache[args]) : cache[args];
-        }
-        count.length >= 1e3 && delete cache[count.shift()];
-        count.push(args);
-        cache[args] = f.apply(scope, arg);
-        return postprocessor ? postprocessor(cache[args]) : cache[args];
-    }
-    return newf;
-}
-Snap._.cacher = cacher;
-function angle(x1, y1, x2, y2, x3, y3) {
-    if (x3 == null) {
-        var x = x1 - x2,
-            y = y1 - y2;
-        if (!x && !y) {
-            return 0;
-        }
-        return (180 + math.atan2(-y, -x) * 180 / PI + 360) % 360;
-    } else {
-        return angle(x1, y1, x3, y3) - angle(x2, y2, x3, y3);
-    }
-}
-function rad(deg) {
-    return deg % 360 * PI / 180;
-}
-function deg(rad) {
-    return rad * 180 / PI % 360;
-}
-function x_y() {
-    return this.x + S + this.y;
-}
-function x_y_w_h() {
-    return this.x + S + this.y + S + this.width + " \xd7 " + this.height;
-}
-
-/*\
- * Snap.rad
- [ method ]
- **
- * Transform angle to radians
- - deg (number) angle in degrees
- = (number) angle in radians
-\*/
-Snap.rad = rad;
-/*\
- * Snap.deg
- [ method ]
- **
- * Transform angle to degrees
- - rad (number) angle in radians
- = (number) angle in degrees
-\*/
-Snap.deg = deg;
-/*\
- * Snap.angle
- [ method ]
- **
- * Returns an angle between two or three points
- > Parameters
- - x1 (number) x coord of first point
- - y1 (number) y coord of first point
- - x2 (number) x coord of second point
- - y2 (number) y coord of second point
- - x3 (number) #optional x coord of third point
- - y3 (number) #optional y coord of third point
- = (number) angle in degrees
-\*/
-Snap.angle = angle;
-/*\
- * Snap.is
- [ method ]
- **
- * Handy replacement for the `typeof` operator
- - o (…) any object or primitive
- - type (string) name of the type, e.g., `string`, `function`, `number`, etc.
- = (boolean) `true` if given value is of given type
-\*/
-Snap.is = is;
-/*\
- * Snap.snapTo
- [ method ]
- **
- * Snaps given value to given grid
- - values (array|number) given array of values or step of the grid
- - value (number) value to adjust
- - tolerance (number) #optional maximum distance to the target value that would trigger the snap. Default is `10`.
- = (number) adjusted value
-\*/
-Snap.snapTo = function (values, value, tolerance) {
-    tolerance = is(tolerance, "finite") ? tolerance : 10;
-    if (is(values, "array")) {
-        var i = values.length;
-        while (i--) if (abs(values[i] - value) <= tolerance) {
-            return values[i];
-        }
-    } else {
-        values = +values;
-        var rem = value % values;
-        if (rem < tolerance) {
-            return value - rem;
-        }
-        if (rem > values - tolerance) {
-            return value - rem + values;
-        }
-    }
-    return value;
-};
-// Colour
-/*\
- * Snap.getRGB
- [ method ]
- **
- * Parses color string as RGB object
- - color (string) color string in one of the following formats:
- # <ul>
- #     <li>Color name (<code>red</code>, <code>green</code>, <code>cornflowerblue</code>, etc)</li>
- #     <li>#••• — shortened HTML color: (<code>#000</code>, <code>#fc0</code>, etc.)</li>
- #     <li>#•••••• — full length HTML color: (<code>#000000</code>, <code>#bd2300</code>)</li>
- #     <li>rgb(•••, •••, •••) — red, green and blue channels values: (<code>rgb(200,&nbsp;100,&nbsp;0)</code>)</li>
- #     <li>rgba(•••, •••, •••, •••) — also with opacity</li>
- #     <li>rgb(•••%, •••%, •••%) — same as above, but in %: (<code>rgb(100%,&nbsp;175%,&nbsp;0%)</code>)</li>
- #     <li>rgba(•••%, •••%, •••%, •••%) — also with opacity</li>
- #     <li>hsb(•••, •••, •••) — hue, saturation and brightness values: (<code>hsb(0.5,&nbsp;0.25,&nbsp;1)</code>)</li>
- #     <li>hsba(•••, •••, •••, •••) — also with opacity</li>
- #     <li>hsb(•••%, •••%, •••%) — same as above, but in %</li>
- #     <li>hsba(•••%, •••%, •••%, •••%) — also with opacity</li>
- #     <li>hsl(•••, •••, •••) — hue, saturation and luminosity values: (<code>hsb(0.5,&nbsp;0.25,&nbsp;0.5)</code>)</li>
- #     <li>hsla(•••, •••, •••, •••) — also with opacity</li>
- #     <li>hsl(•••%, •••%, •••%) — same as above, but in %</li>
- #     <li>hsla(•••%, •••%, •••%, •••%) — also with opacity</li>
- # </ul>
- * Note that `%` can be used any time: `rgb(20%, 255, 50%)`.
- = (object) RGB object in the following format:
- o {
- o     r (number) red,
- o     g (number) green,
- o     b (number) blue,
- o     hex (string) color in HTML/CSS format: #••••••,
- o     error (boolean) true if string can't be parsed
- o }
-\*/
-Snap.getRGB = cacher(function (colour) {
-    if (!colour || !!((colour = Str(colour)).indexOf("-") + 1)) {
-        return {r: -1, g: -1, b: -1, hex: "none", error: 1, toString: rgbtoString};
-    }
-    if (colour == "none") {
-        return {r: -1, g: -1, b: -1, hex: "none", toString: rgbtoString};
-    }
-    !(hsrg[has](colour.toLowerCase().substring(0, 2)) || colour.charAt() == "#") && (colour = toHex(colour));
-    if (!colour) {
-        return {r: -1, g: -1, b: -1, hex: "none", error: 1, toString: rgbtoString};
-    }
-    var res,
-        red,
-        green,
-        blue,
-        opacity,
-        t,
-        values,
-        rgb = colour.match(colourRegExp);
-    if (rgb) {
-        if (rgb[2]) {
-            blue = toInt(rgb[2].substring(5), 16);
-            green = toInt(rgb[2].substring(3, 5), 16);
-            red = toInt(rgb[2].substring(1, 3), 16);
-        }
-        if (rgb[3]) {
-            blue = toInt((t = rgb[3].charAt(3)) + t, 16);
-            green = toInt((t = rgb[3].charAt(2)) + t, 16);
-            red = toInt((t = rgb[3].charAt(1)) + t, 16);
-        }
-        if (rgb[4]) {
-            values = rgb[4].split(commaSpaces);
-            red = toFloat(values[0]);
-            values[0].slice(-1) == "%" && (red *= 2.55);
-            green = toFloat(values[1]);
-            values[1].slice(-1) == "%" && (green *= 2.55);
-            blue = toFloat(values[2]);
-            values[2].slice(-1) == "%" && (blue *= 2.55);
-            rgb[1].toLowerCase().slice(0, 4) == "rgba" && (opacity = toFloat(values[3]));
-            values[3] && values[3].slice(-1) == "%" && (opacity /= 100);
-        }
-        if (rgb[5]) {
-            values = rgb[5].split(commaSpaces);
-            red = toFloat(values[0]);
-            values[0].slice(-1) == "%" && (red /= 100);
-            green = toFloat(values[1]);
-            values[1].slice(-1) == "%" && (green /= 100);
-            blue = toFloat(values[2]);
-            values[2].slice(-1) == "%" && (blue /= 100);
-            (values[0].slice(-3) == "deg" || values[0].slice(-1) == "\xb0") && (red /= 360);
-            rgb[1].toLowerCase().slice(0, 4) == "hsba" && (opacity = toFloat(values[3]));
-            values[3] && values[3].slice(-1) == "%" && (opacity /= 100);
-            return Snap.hsb2rgb(red, green, blue, opacity);
-        }
-        if (rgb[6]) {
-            values = rgb[6].split(commaSpaces);
-            red = toFloat(values[0]);
-            values[0].slice(-1) == "%" && (red /= 100);
-            green = toFloat(values[1]);
-            values[1].slice(-1) == "%" && (green /= 100);
-            blue = toFloat(values[2]);
-            values[2].slice(-1) == "%" && (blue /= 100);
-            (values[0].slice(-3) == "deg" || values[0].slice(-1) == "\xb0") && (red /= 360);
-            rgb[1].toLowerCase().slice(0, 4) == "hsla" && (opacity = toFloat(values[3]));
-            values[3] && values[3].slice(-1) == "%" && (opacity /= 100);
-            return Snap.hsl2rgb(red, green, blue, opacity);
-        }
-        red = mmin(math.round(red), 255);
-        green = mmin(math.round(green), 255);
-        blue = mmin(math.round(blue), 255);
-        opacity = mmin(mmax(opacity, 0), 1);
-        rgb = {r: red, g: green, b: blue, toString: rgbtoString};
-        rgb.hex = "#" + (16777216 | blue | (green << 8) | (red << 16)).toString(16).slice(1);
-        rgb.opacity = is(opacity, "finite") ? opacity : 1;
-        return rgb;
-    }
-    return {r: -1, g: -1, b: -1, hex: "none", error: 1, toString: rgbtoString};
-}, Snap);
-// SIERRA It seems odd that the following 3 conversion methods are not expressed as .this2that(), like the others.
-/*\
- * Snap.hsb
- [ method ]
- **
- * Converts HSB values to a hex representation of the color
- - h (number) hue
- - s (number) saturation
- - b (number) value or brightness
- = (string) hex representation of the color
-\*/
-Snap.hsb = cacher(function (h, s, b) {
-    return Snap.hsb2rgb(h, s, b).hex;
-});
-/*\
- * Snap.hsl
- [ method ]
- **
- * Converts HSL values to a hex representation of the color
- - h (number) hue
- - s (number) saturation
- - l (number) luminosity
- = (string) hex representation of the color
-\*/
-Snap.hsl = cacher(function (h, s, l) {
-    return Snap.hsl2rgb(h, s, l).hex;
-});
-/*\
- * Snap.rgb
- [ method ]
- **
- * Converts RGB values to a hex representation of the color
- - r (number) red
- - g (number) green
- - b (number) blue
- = (string) hex representation of the color
-\*/
-Snap.rgb = cacher(function (r, g, b, o) {
-    if (is(o, "finite")) {
-        var round = math.round;
-        return "rgba(" + [round(r), round(g), round(b), +o.toFixed(2)] + ")";
-    }
-    return "#" + (16777216 | b | (g << 8) | (r << 16)).toString(16).slice(1);
-});
-var toHex = function (color) {
-    var i = glob.doc.getElementsByTagName("head")[0] || glob.doc.getElementsByTagName("svg")[0],
-        red = "rgb(255, 0, 0)";
-    toHex = cacher(function (color) {
-        if (color.toLowerCase() == "red") {
-            return red;
-        }
-        i.style.color = red;
-        i.style.color = color;
-        var out = glob.doc.defaultView.getComputedStyle(i, E).getPropertyValue("color");
-        return out == red ? null : out;
-    });
-    return toHex(color);
-},
-hsbtoString = function () {
-    return "hsb(" + [this.h, this.s, this.b] + ")";
-},
-hsltoString = function () {
-    return "hsl(" + [this.h, this.s, this.l] + ")";
-},
-rgbtoString = function () {
-    return this.opacity == 1 || this.opacity == null ?
-            this.hex :
-            "rgba(" + [this.r, this.g, this.b, this.opacity] + ")";
-},
-prepareRGB = function (r, g, b) {
-    if (g == null && is(r, "object") && "r" in r && "g" in r && "b" in r) {
-        b = r.b;
-        g = r.g;
-        r = r.r;
-    }
-    if (g == null && is(r, string)) {
-        var clr = Snap.getRGB(r);
-        r = clr.r;
-        g = clr.g;
-        b = clr.b;
-    }
-    if (r > 1 || g > 1 || b > 1) {
-        r /= 255;
-        g /= 255;
-        b /= 255;
-    }
-
-    return [r, g, b];
-},
-packageRGB = function (r, g, b, o) {
-    r = math.round(r * 255);
-    g = math.round(g * 255);
-    b = math.round(b * 255);
-    var rgb = {
-        r: r,
-        g: g,
-        b: b,
-        opacity: is(o, "finite") ? o : 1,
-        hex: Snap.rgb(r, g, b),
-        toString: rgbtoString
-    };
-    is(o, "finite") && (rgb.opacity = o);
-    return rgb;
-};
-// SIERRA Clarify if Snap does not support consolidated HSLA/RGBA colors. E.g., can you specify a semi-transparent value for Snap.filter.shadow()?
-/*\
- * Snap.color
- [ method ]
- **
- * Parses the color string and returns an object featuring the color's component values
- - clr (string) color string in one of the supported formats (see @Snap.getRGB)
- = (object) Combined RGB/HSB object in the following format:
- o {
- o     r (number) red,
- o     g (number) green,
- o     b (number) blue,
- o     hex (string) color in HTML/CSS format: #••••••,
- o     error (boolean) `true` if string can't be parsed,
- o     h (number) hue,
- o     s (number) saturation,
- o     v (number) value (brightness),
- o     l (number) lightness
- o }
-\*/
-Snap.color = function (clr) {
-    var rgb;
-    if (is(clr, "object") && "h" in clr && "s" in clr && "b" in clr) {
-        rgb = Snap.hsb2rgb(clr);
-        clr.r = rgb.r;
-        clr.g = rgb.g;
-        clr.b = rgb.b;
-        clr.opacity = 1;
-        clr.hex = rgb.hex;
-    } else if (is(clr, "object") && "h" in clr && "s" in clr && "l" in clr) {
-        rgb = Snap.hsl2rgb(clr);
-        clr.r = rgb.r;
-        clr.g = rgb.g;
-        clr.b = rgb.b;
-        clr.opacity = 1;
-        clr.hex = rgb.hex;
-    } else {
-        if (is(clr, "string")) {
-            clr = Snap.getRGB(clr);
-        }
-        if (is(clr, "object") && "r" in clr && "g" in clr && "b" in clr && !("error" in clr)) {
-            rgb = Snap.rgb2hsl(clr);
-            clr.h = rgb.h;
-            clr.s = rgb.s;
-            clr.l = rgb.l;
-            rgb = Snap.rgb2hsb(clr);
-            clr.v = rgb.b;
-        } else {
-            clr = {hex: "none"};
-            clr.r = clr.g = clr.b = clr.h = clr.s = clr.v = clr.l = -1;
-            clr.error = 1;
-        }
-    }
-    clr.toString = rgbtoString;
-    return clr;
-};
-/*\
- * Snap.hsb2rgb
- [ method ]
- **
- * Converts HSB values to an RGB object
- - h (number) hue
- - s (number) saturation
- - v (number) value or brightness
- = (object) RGB object in the following format:
- o {
- o     r (number) red,
- o     g (number) green,
- o     b (number) blue,
- o     hex (string) color in HTML/CSS format: #••••••
- o }
-\*/
-Snap.hsb2rgb = function (h, s, v, o) {
-    if (is(h, "object") && "h" in h && "s" in h && "b" in h) {
-        v = h.b;
-        s = h.s;
-        h = h.h;
-        o = h.o;
-    }
-    h *= 360;
-    var R, G, B, X, C;
-    h = (h % 360) / 60;
-    C = v * s;
-    X = C * (1 - abs(h % 2 - 1));
-    R = G = B = v - C;
-
-    h = ~~h;
-    R += [C, X, 0, 0, X, C][h];
-    G += [X, C, C, X, 0, 0][h];
-    B += [0, 0, X, C, C, X][h];
-    return packageRGB(R, G, B, o);
-};
-/*\
- * Snap.hsl2rgb
- [ method ]
- **
- * Converts HSL values to an RGB object
- - h (number) hue
- - s (number) saturation
- - l (number) luminosity
- = (object) RGB object in the following format:
- o {
- o     r (number) red,
- o     g (number) green,
- o     b (number) blue,
- o     hex (string) color in HTML/CSS format: #••••••
- o }
-\*/
-Snap.hsl2rgb = function (h, s, l, o) {
-    if (is(h, "object") && "h" in h && "s" in h && "l" in h) {
-        l = h.l;
-        s = h.s;
-        h = h.h;
-    }
-    if (h > 1 || s > 1 || l > 1) {
-        h /= 360;
-        s /= 100;
-        l /= 100;
-    }
-    h *= 360;
-    var R, G, B, X, C;
-    h = (h % 360) / 60;
-    C = 2 * s * (l < .5 ? l : 1 - l);
-    X = C * (1 - abs(h % 2 - 1));
-    R = G = B = l - C / 2;
-
-    h = ~~h;
-    R += [C, X, 0, 0, X, C][h];
-    G += [X, C, C, X, 0, 0][h];
-    B += [0, 0, X, C, C, X][h];
-    return packageRGB(R, G, B, o);
-};
-/*\
- * Snap.rgb2hsb
- [ method ]
- **
- * Converts RGB values to an HSB object
- - r (number) red
- - g (number) green
- - b (number) blue
- = (object) HSB object in the following format:
- o {
- o     h (number) hue,
- o     s (number) saturation,
- o     b (number) brightness
- o }
-\*/
-Snap.rgb2hsb = function (r, g, b) {
-    b = prepareRGB(r, g, b);
-    r = b[0];
-    g = b[1];
-    b = b[2];
-
-    var H, S, V, C;
-    V = mmax(r, g, b);
-    C = V - mmin(r, g, b);
-    H = (C == 0 ? null :
-         V == r ? (g - b) / C :
-         V == g ? (b - r) / C + 2 :
-                  (r - g) / C + 4
-        );
-    H = ((H + 360) % 6) * 60 / 360;
-    S = C == 0 ? 0 : C / V;
-    return {h: H, s: S, b: V, toString: hsbtoString};
-};
-/*\
- * Snap.rgb2hsl
- [ method ]
- **
- * Converts RGB values to an HSL object
- - r (number) red
- - g (number) green
- - b (number) blue
- = (object) HSL object in the following format:
- o {
- o     h (number) hue,
- o     s (number) saturation,
- o     l (number) luminosity
- o }
-\*/
-Snap.rgb2hsl = function (r, g, b) {
-    b = prepareRGB(r, g, b);
-    r = b[0];
-    g = b[1];
-    b = b[2];
-
-    var H, S, L, M, m, C;
-    M = mmax(r, g, b);
-    m = mmin(r, g, b);
-    C = M - m;
-    H = (C == 0 ? null :
-         M == r ? (g - b) / C :
-         M == g ? (b - r) / C + 2 :
-                  (r - g) / C + 4);
-    H = ((H + 360) % 6) * 60 / 360;
-    L = (M + m) / 2;
-    S = (C == 0 ? 0 :
-         L < .5 ? C / (2 * L) :
-                  C / (2 - 2 * L));
-    return {h: H, s: S, l: L, toString: hsltoString};
-};
-
-// Transformations
-// SIERRA Snap.parsePathString(): By _array of arrays,_ I assume you mean a format like this for two separate segments? [ ["M10,10","L90,90"], ["M90,10","L10,90"] ] Otherwise how is each command structured?
-/*\
- * Snap.parsePathString
- [ method ]
- **
- * Utility method
- **
- * Parses given path string into an array of arrays of path segments
- - pathString (string|array) path string or array of segments (in the last case it is returned straight away)
- = (array) array of segments
-\*/
-Snap.parsePathString = function (pathString) {
-    if (!pathString) {
-        return null;
-    }
-    var pth = Snap.path(pathString);
-    if (pth.arr) {
-        return Snap.path.clone(pth.arr);
-    }
-
-    var paramCounts = {a: 7, c: 6, o: 2, h: 1, l: 2, m: 2, r: 4, q: 4, s: 4, t: 2, v: 1, u: 3, z: 0},
-        data = [];
-    if (is(pathString, "array") && is(pathString[0], "array")) { // rough assumption
-        data = Snap.path.clone(pathString);
-    }
-    if (!data.length) {
-        Str(pathString).replace(pathCommand, function (a, b, c) {
-            var params = [],
-                name = b.toLowerCase();
-            c.replace(pathValues, function (a, b) {
-                b && params.push(+b);
-            });
-            if (name == "m" && params.length > 2) {
-                data.push([b].concat(params.splice(0, 2)));
-                name = "l";
-                b = b == "m" ? "l" : "L";
-            }
-            if (name == "o" && params.length == 1) {
-                data.push([b, params[0]]);
-            }
-            if (name == "r") {
-                data.push([b].concat(params));
-            } else while (params.length >= paramCounts[name]) {
-                data.push([b].concat(params.splice(0, paramCounts[name])));
-                if (!paramCounts[name]) {
-                    break;
-                }
-            }
-        });
-    }
-    data.toString = Snap.path.toString;
-    pth.arr = Snap.path.clone(data);
-    return data;
-};
-/*\
- * Snap.parseTransformString
- [ method ]
- **
- * Utility method
- **
- * Parses given transform string into an array of transformations
- - TString (string|array) transform string or array of transformations (in the last case it is returned straight away)
- = (array) array of transformations
-\*/
-var parseTransformString = Snap.parseTransformString = function (TString) {
-    if (!TString) {
-        return null;
-    }
-    var paramCounts = {r: 3, s: 4, t: 2, m: 6},
-        data = [];
-    if (is(TString, "array") && is(TString[0], "array")) { // rough assumption
-        data = Snap.path.clone(TString);
-    }
-    if (!data.length) {
-        Str(TString).replace(tCommand, function (a, b, c) {
-            var params = [],
-                name = b.toLowerCase();
-            c.replace(pathValues, function (a, b) {
-                b && params.push(+b);
-            });
-            data.push([b].concat(params));
-        });
-    }
-    data.toString = Snap.path.toString;
-    return data;
-};
-function svgTransform2string(tstr) {
-    var res = [];
-    tstr = tstr.replace(/(?:^|\s)(\w+)\(([^)]+)\)/g, function (all, name, params) {
-        params = params.split(/\s*,\s*|\s+/);
-        if (name == "rotate" && params.length == 1) {
-            params.push(0, 0);
-        }
-        if (name == "scale") {
-            if (params.length > 2) {
-                params = params.slice(0, 2);
-            } else if (params.length == 2) {
-                params.push(0, 0);
-            }
-            if (params.length == 1) {
-                params.push(params[0], 0, 0);
-            }
-        }
-        if (name == "skewX") {
-            res.push(["m", 1, 0, math.tan(rad(params[0])), 1, 0, 0]);
-        } else if (name == "skewY") {
-            res.push(["m", 1, math.tan(rad(params[0])), 0, 1, 0, 0]);
-        } else {
-            res.push([name.charAt(0)].concat(params));
-        }
-        return all;
-    });
-    return res;
-}
-Snap._.svgTransform2string = svgTransform2string;
-Snap._.rgTransform = /^[a-z][\s]*-?\.?\d/i;
-function transform2matrix(tstr, bbox) {
-    var tdata = parseTransformString(tstr),
-        m = new Snap.Matrix;
-    if (tdata) {
-        for (var i = 0, ii = tdata.length; i < ii; i++) {
-            var t = tdata[i],
-                tlen = t.length,
-                command = Str(t[0]).toLowerCase(),
-                absolute = t[0] != command,
-                inver = absolute ? m.invert() : 0,
-                x1,
-                y1,
-                x2,
-                y2,
-                bb;
-            if (command == "t" && tlen == 2){
-                m.translate(t[1], 0);
-            } else if (command == "t" && tlen == 3) {
-                if (absolute) {
-                    x1 = inver.x(0, 0);
-                    y1 = inver.y(0, 0);
-                    x2 = inver.x(t[1], t[2]);
-                    y2 = inver.y(t[1], t[2]);
-                    m.translate(x2 - x1, y2 - y1);
-                } else {
-                    m.translate(t[1], t[2]);
-                }
-            } else if (command == "r") {
-                if (tlen == 2) {
-                    bb = bb || bbox;
-                    m.rotate(t[1], bb.x + bb.width / 2, bb.y + bb.height / 2);
-                } else if (tlen == 4) {
-                    if (absolute) {
-                        x2 = inver.x(t[2], t[3]);
-                        y2 = inver.y(t[2], t[3]);
-                        m.rotate(t[1], x2, y2);
-                    } else {
-                        m.rotate(t[1], t[2], t[3]);
-                    }
-                }
-            } else if (command == "s") {
-                if (tlen == 2 || tlen == 3) {
-                    bb = bb || bbox;
-                    m.scale(t[1], t[tlen - 1], bb.x + bb.width / 2, bb.y + bb.height / 2);
-                } else if (tlen == 4) {
-                    if (absolute) {
-                        x2 = inver.x(t[2], t[3]);
-                        y2 = inver.y(t[2], t[3]);
-                        m.scale(t[1], t[1], x2, y2);
-                    } else {
-                        m.scale(t[1], t[1], t[2], t[3]);
-                    }
-                } else if (tlen == 5) {
-                    if (absolute) {
-                        x2 = inver.x(t[3], t[4]);
-                        y2 = inver.y(t[3], t[4]);
-                        m.scale(t[1], t[2], x2, y2);
-                    } else {
-                        m.scale(t[1], t[2], t[3], t[4]);
-                    }
-                }
-            } else if (command == "m" && tlen == 7) {
-                m.add(t[1], t[2], t[3], t[4], t[5], t[6]);
-            }
-        }
-    }
-    return m;
-}
-Snap._.transform2matrix = transform2matrix;
-Snap._unit2px = unit2px;
-var contains = glob.doc.contains || glob.doc.compareDocumentPosition ?
-    function (a, b) {
-        var adown = a.nodeType == 9 ? a.documentElement : a,
-            bup = b && b.parentNode;
-            return a == bup || !!(bup && bup.nodeType == 1 && (
-                adown.contains ?
-                    adown.contains(bup) :
-                    a.compareDocumentPosition && a.compareDocumentPosition(bup) & 16
-            ));
-    } :
-    function (a, b) {
-        if (b) {
-            while (b) {
-                b = b.parentNode;
-                if (b == a) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    };
-function getSomeDefs(el) {
-    var p = (el.node.ownerSVGElement && wrap(el.node.ownerSVGElement)) ||
-            (el.node.parentNode && wrap(el.node.parentNode)) ||
-            Snap.select("svg") ||
-            Snap(0, 0),
-        pdefs = p.select("defs"),
-        defs  = pdefs == null ? false : pdefs.node;
-    if (!defs) {
-        defs = make("defs", p.node).node;
-    }
-    return defs;
-}
-function getSomeSVG(el) {
-    return el.node.ownerSVGElement && wrap(el.node.ownerSVGElement) || Snap.select("svg");
-}
-Snap._.getSomeDefs = getSomeDefs;
-Snap._.getSomeSVG = getSomeSVG;
-function unit2px(el, name, value) {
-    var svg = getSomeSVG(el).node,
-        out = {},
-        mgr = svg.querySelector(".svg---mgr");
-    if (!mgr) {
-        mgr = $("rect");
-        $(mgr, {x: -9e9, y: -9e9, width: 10, height: 10, "class": "svg---mgr", fill: "none"});
-        svg.appendChild(mgr);
-    }
-    function getW(val) {
-        if (val == null) {
-            return E;
-        }
-        if (val == +val) {
-            return val;
-        }
-        $(mgr, {width: val});
-        try {
-            return mgr.getBBox().width;
-        } catch (e) {
-            return 0;
-        }
-    }
-    function getH(val) {
-        if (val == null) {
-            return E;
-        }
-        if (val == +val) {
-            return val;
-        }
-        $(mgr, {height: val});
-        try {
-            return mgr.getBBox().height;
-        } catch (e) {
-            return 0;
-        }
-    }
-    function set(nam, f) {
-        if (name == null) {
-            out[nam] = f(el.attr(nam) || 0);
-        } else if (nam == name) {
-            out = f(value == null ? el.attr(nam) || 0 : value);
-        }
-    }
-    switch (el.type) {
-        case "rect":
-            set("rx", getW);
-            set("ry", getH);
-        case "image":
-            set("width", getW);
-            set("height", getH);
-        case "text":
-            set("x", getW);
-            set("y", getH);
-        break;
-        case "circle":
-            set("cx", getW);
-            set("cy", getH);
-            set("r", getW);
-        break;
-        case "ellipse":
-            set("cx", getW);
-            set("cy", getH);
-            set("rx", getW);
-            set("ry", getH);
-        break;
-        case "line":
-            set("x1", getW);
-            set("x2", getW);
-            set("y1", getH);
-            set("y2", getH);
-        break;
-        case "marker":
-            set("refX", getW);
-            set("markerWidth", getW);
-            set("refY", getH);
-            set("markerHeight", getH);
-        break;
-        case "radialGradient":
-            set("fx", getW);
-            set("fy", getH);
-        break;
-        case "tspan":
-            set("dx", getW);
-            set("dy", getH);
-        break;
-        default:
-            set(name, getW);
-    }
-    svg.removeChild(mgr);
-    return out;
-}
-/*\
- * Snap.select
- [ method ]
- **
- * Wraps a DOM element specified by CSS selector as @Element
- - query (string) CSS selector of the element
- = (Element) the current element
-\*/
-Snap.select = function (query) {
-    query = Str(query).replace(/([^\\]):/g, "$1\\:");
-    return wrap(glob.doc.querySelector(query));
-};
-/*\
- * Snap.selectAll
- [ method ]
- **
- * Wraps DOM elements specified by CSS selector as set or array of @Element
- - query (string) CSS selector of the element
- = (Element) the current element
-\*/
-Snap.selectAll = function (query) {
-    var nodelist = glob.doc.querySelectorAll(query),
-        set = (Snap.set || Array)();
-    for (var i = 0; i < nodelist.length; i++) {
-        set.push(wrap(nodelist[i]));
-    }
-    return set;
-};
-
-function add2group(list) {
-    if (!is(list, "array")) {
-        list = Array.prototype.slice.call(arguments, 0);
-    }
-    var i = 0,
-        j = 0,
-        node = this.node;
-    while (this[i]) delete this[i++];
-    for (i = 0; i < list.length; i++) {
-        if (list[i].type == "set") {
-            list[i].forEach(function (el) {
-                node.appendChild(el.node);
-            });
-        } else {
-            node.appendChild(list[i].node);
-        }
-    }
-    var children = node.childNodes;
-    for (i = 0; i < children.length; i++) {
-        this[j++] = wrap(children[i]);
-    }
-    return this;
-}
-// Hub garbage collector every 10s
-setInterval(function () {
-    for (var key in hub) if (hub[has](key)) {
-        var el = hub[key],
-            node = el.node;
-        if (el.type != "svg" && !node.ownerSVGElement || el.type == "svg" && (!node.parentNode || "ownerSVGElement" in node.parentNode && !node.ownerSVGElement)) {
-            delete hub[key];
-        }
-    }
-}, 1e4);
-function Element(el) {
-    if (el.snap in hub) {
-        return hub[el.snap];
-    }
-    var svg;
-    try {
-        svg = el.ownerSVGElement;
-    } catch(e) {}
-    /*\
-     * Element.node
-     [ property (object) ]
-     **
-     * Gives you a reference to the DOM object, so you can assign event handlers or just mess around.
-     > Usage
-     | // draw a circle at coordinate 10,10 with radius of 10
-     | var c = paper.circle(10, 10, 10);
-     | c.node.onclick = function () {
-     |     c.attr("fill", "red");
-     | };
-    \*/
-    this.node = el;
-    if (svg) {
-        this.paper = new Paper(svg);
-    }
-    /*\
-     * Element.type
-     [ property (string) ]
-     **
-     * SVG tag name of the given element.
-    \*/
-    this.type = el.tagName;
-    var id = this.id = ID(this);
-    this.anims = {};
-    this._ = {
-        transform: []
-    };
-    el.snap = id;
-    hub[id] = this;
-    if (this.type == "g") {
-        this.add = add2group;
-    }
-    if (this.type in {g: 1, mask: 1, pattern: 1, symbol: 1}) {
-        for (var method in Paper.prototype) if (Paper.prototype[has](method)) {
-            this[method] = Paper.prototype[method];
-        }
-    }
-}
-   /*\
-     * Element.attr
-     [ method ]
-     **
-     * Gets or sets given attributes of the element.
-     **
-     - params (object) contains key-value pairs of attributes you want to set
-     * or
-     - param (string) name of the attribute
-     = (Element) the current element
-     * or
-     = (string) value of attribute
-     > Usage
-     | el.attr({
-     |     fill: "#fc0",
-     |     stroke: "#000",
-     |     strokeWidth: 2, // CamelCase...
-     |     "fill-opacity": 0.5, // or dash-separated names
-     |     width: "*=2" // prefixed values
-     | });
-     | console.log(el.attr("fill")); // #fc0
-     * Prefixed values in format `"+=10"` supported. All four operations
-     * (`+`, `-`, `*` and `/`) could be used. Optionally you can use units for `+`
-     * and `-`: `"+=2em"`.
-    \*/
-    Element.prototype.attr = function (params, value) {
-        var el = this,
-            node = el.node;
-        if (!params) {
-            return el;
-        }
-        if (is(params, "string")) {
-            if (arguments.length > 1) {
-                var json = {};
-                json[params] = value;
-                params = json;
-            } else {
-                return eve("snap.util.getattr." + params, el).firstDefined();
-            }
-        }
-        for (var att in params) {
-            if (params[has](att)) {
-                eve("snap.util.attr." + att, el, params[att]);
-            }
-        }
-        return el;
-    };
-/*\
- * Snap.parse
- [ method ]
- **
- * Parses SVG fragment and converts it into a @Fragment
- **
- - svg (string) SVG string
- = (Fragment) the @Fragment
-\*/
-Snap.parse = function (svg) {
-    var f = glob.doc.createDocumentFragment(),
-        full = true,
-        div = glob.doc.createElement("div");
-    svg = Str(svg);
-    if (!svg.match(/^\s*<\s*svg(?:\s|>)/)) {
-        svg = "<svg>" + svg + "</svg>";
-        full = false;
-    }
-    div.innerHTML = svg;
-    svg = div.getElementsByTagName("svg")[0];
-    if (svg) {
-        if (full) {
-            f = svg;
-        } else {
-            while (svg.firstChild) {
-                f.appendChild(svg.firstChild);
-            }
-            div.innerHTML = E;
-        }
-    }
-    return new Fragment(f);
-};
-function Fragment(frag) {
-    this.node = frag;
-}
-// SIERRA Snap.fragment() could especially use a code example
-/*\
- * Snap.fragment
- [ method ]
- **
- * Creates a DOM fragment from a given list of elements or strings
- **
- - varargs (…) SVG string
- = (Fragment) the @Fragment
-\*/
-Snap.fragment = function () {
-    var args = Array.prototype.slice.call(arguments, 0),
-        f = glob.doc.createDocumentFragment();
-    for (var i = 0, ii = args.length; i < ii; i++) {
-        var item = args[i];
-        if (item.node && item.node.nodeType) {
-            f.appendChild(item.node);
-        }
-        if (item.nodeType) {
-            f.appendChild(item);
-        }
-        if (typeof item == "string") {
-            f.appendChild(Snap.parse(item).node);
-        }
-    }
-    return new Fragment(f);
-};
-
-function make(name, parent) {
-    var res = $(name);
-    parent.appendChild(res);
-    var el = wrap(res);
-    return el;
-}
-function Paper(w, h) {
-    var res,
-        desc,
-        defs,
-        proto = Paper.prototype;
-    if (w && w.tagName == "svg") {
-        if (w.snap in hub) {
-            return hub[w.snap];
-        }
-        var doc = w.ownerDocument;
-        res = new Element(w);
-        desc = w.getElementsByTagName("desc")[0];
-        defs = w.getElementsByTagName("defs")[0];
-        if (!desc) {
-            desc = $("desc");
-            desc.appendChild(doc.createTextNode("Created with Snap"));
-            res.node.appendChild(desc);
-        }
-        if (!defs) {
-            defs = $("defs");
-            res.node.appendChild(defs);
-        }
-        res.defs = defs;
-        for (var key in proto) if (proto[has](key)) {
-            res[key] = proto[key];
-        }
-        res.paper = res.root = res;
-    } else {
-        res = make("svg", glob.doc.body);
-        $(res.node, {
-            height: h,
-            version: 1.1,
-            width: w,
-            xmlns: xmlns
-        });
-    }
-    return res;
-}
-function wrap(dom) {
-    if (!dom) {
-        return dom;
-    }
-    if (dom instanceof Element || dom instanceof Fragment) {
-        return dom;
-    }
-    if (dom.tagName && dom.tagName.toLowerCase() == "svg") {
-        return new Paper(dom);
-    }
-    if (dom.tagName && dom.tagName.toLowerCase() == "object" && dom.type == "image/svg+xml") {
-        return new Paper(dom.contentDocument.getElementsByTagName("svg")[0]);
-    }
-    return new Element(dom);
-}
-
-Snap._.make = make;
-Snap._.wrap = wrap;
-/*\
- * Paper.el
- [ method ]
- **
- * Creates an element on paper with a given name and no attributes
- **
- - name (string) tag name
- - attr (object) attributes
- = (Element) the current element
- > Usage
- | var c = paper.circle(10, 10, 10); // is the same as...
- | var c = paper.el("circle").attr({
- |     cx: 10,
- |     cy: 10,
- |     r: 10
- | });
- | // and the same as
- | var c = paper.el("circle", {
- |     cx: 10,
- |     cy: 10,
- |     r: 10
- | });
-\*/
-Paper.prototype.el = function (name, attr) {
-    var el = make(name, this.node);
-    attr && el.attr(attr);
-    return el;
-};
-// default
-eve.on("snap.util.getattr", function () {
-    var att = eve.nt();
-    att = att.substring(att.lastIndexOf(".") + 1);
-    var css = att.replace(/[A-Z]/g, function (letter) {
-        return "-" + letter.toLowerCase();
-    });
-    if (cssAttr[has](css)) {
-        return this.node.ownerDocument.defaultView.getComputedStyle(this.node, null).getPropertyValue(css);
-    } else {
-        return $(this.node, att);
-    }
-});
-var cssAttr = {
-    "alignment-baseline": 0,
-    "baseline-shift": 0,
-    "clip": 0,
-    "clip-path": 0,
-    "clip-rule": 0,
-    "color": 0,
-    "color-interpolation": 0,
-    "color-interpolation-filters": 0,
-    "color-profile": 0,
-    "color-rendering": 0,
-    "cursor": 0,
-    "direction": 0,
-    "display": 0,
-    "dominant-baseline": 0,
-    "enable-background": 0,
-    "fill": 0,
-    "fill-opacity": 0,
-    "fill-rule": 0,
-    "filter": 0,
-    "flood-color": 0,
-    "flood-opacity": 0,
-    "font": 0,
-    "font-family": 0,
-    "font-size": 0,
-    "font-size-adjust": 0,
-    "font-stretch": 0,
-    "font-style": 0,
-    "font-variant": 0,
-    "font-weight": 0,
-    "glyph-orientation-horizontal": 0,
-    "glyph-orientation-vertical": 0,
-    "image-rendering": 0,
-    "kerning": 0,
-    "letter-spacing": 0,
-    "lighting-color": 0,
-    "marker": 0,
-    "marker-end": 0,
-    "marker-mid": 0,
-    "marker-start": 0,
-    "mask": 0,
-    "opacity": 0,
-    "overflow": 0,
-    "pointer-events": 0,
-    "shape-rendering": 0,
-    "stop-color": 0,
-    "stop-opacity": 0,
-    "stroke": 0,
-    "stroke-dasharray": 0,
-    "stroke-dashoffset": 0,
-    "stroke-linecap": 0,
-    "stroke-linejoin": 0,
-    "stroke-miterlimit": 0,
-    "stroke-opacity": 0,
-    "stroke-width": 0,
-    "text-anchor": 0,
-    "text-decoration": 0,
-    "text-rendering": 0,
-    "unicode-bidi": 0,
-    "visibility": 0,
-    "word-spacing": 0,
-    "writing-mode": 0
-};
-
-eve.on("snap.util.attr", function (value) {
-    var att = eve.nt(),
-        attr = {};
-    att = att.substring(att.lastIndexOf(".") + 1);
-    attr[att] = value;
-    var style = att.replace(/-(\w)/gi, function (all, letter) {
-            return letter.toUpperCase();
-        }),
-        css = att.replace(/[A-Z]/g, function (letter) {
-            return "-" + letter.toLowerCase();
-        });
-    if (cssAttr[has](css)) {
-        this.node.style[style] = value == null ? E : value;
-    } else {
-        $(this.node, attr);
-    }
-});
-(function (proto) {}(Paper.prototype));
-
-// simple ajax
-/*\
- * Snap.ajax
- [ method ]
- **
- * Simple implementation of Ajax
- **
- - url (string) URL
- - postData (object|string) data for post request
- - callback (function) callback
- - scope (object) #optional scope of callback
- * or
- - url (string) URL
- - callback (function) callback
- - scope (object) #optional scope of callback
- = (XMLHttpRequest) the XMLHttpRequest object, just in case
-\*/
-Snap.ajax = function (url, postData, callback, scope){
-    var req = new XMLHttpRequest,
-        id = ID();
-    if (req) {
-        if (is(postData, "function")) {
-            scope = callback;
-            callback = postData;
-            postData = null;
-        } else if (is(postData, "object")) {
-            var pd = [];
-            for (var key in postData) if (postData.hasOwnProperty(key)) {
-                pd.push(encodeURIComponent(key) + "=" + encodeURIComponent(postData[key]));
-            }
-            postData = pd.join("&");
-        }
-        req.open((postData ? "POST" : "GET"), url, true);
-        if (postData) {
-            req.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-            req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        }
-        if (callback) {
-            eve.once("snap.ajax." + id + ".0", callback);
-            eve.once("snap.ajax." + id + ".200", callback);
-            eve.once("snap.ajax." + id + ".304", callback);
-        }
-        req.onreadystatechange = function() {
-            if (req.readyState != 4) return;
-            eve("snap.ajax." + id + "." + req.status, scope, req);
-        };
-        if (req.readyState == 4) {
-            return req;
-        }
-        req.send(postData);
-        return req;
-    }
-};
-/*\
- * Snap.load
- [ method ]
- **
- * Loads external SVG file as a @Fragment (see @Snap.ajax for more advanced AJAX)
- **
- - url (string) URL
- - callback (function) callback
- - scope (object) #optional scope of callback
-\*/
-Snap.load = function (url, callback, scope) {
-    Snap.ajax(url, function (req) {
-        var f = Snap.parse(req.responseText);
-        scope ? callback.call(scope, f) : callback(f);
-    });
-};
-var getOffset = function (elem) {
-    var box = elem.getBoundingClientRect(),
-        doc = elem.ownerDocument,
-        body = doc.body,
-        docElem = doc.documentElement,
-        clientTop = docElem.clientTop || body.clientTop || 0, clientLeft = docElem.clientLeft || body.clientLeft || 0,
-        top  = box.top  + (g.win.pageYOffset || docElem.scrollTop || body.scrollTop ) - clientTop,
-        left = box.left + (g.win.pageXOffset || docElem.scrollLeft || body.scrollLeft) - clientLeft;
-    return {
-        y: top,
-        x: left
-    };
-};
-/*\
- * Snap.getElementByPoint
- [ method ]
- **
- * Returns you topmost element under given point.
- **
- = (object) Snap element object
- - x (number) x coordinate from the top left corner of the window
- - y (number) y coordinate from the top left corner of the window
- > Usage
- | Snap.getElementByPoint(mouseX, mouseY).attr({stroke: "#f00"});
-\*/
-Snap.getElementByPoint = function (x, y) {
-    var paper = this,
-        svg = paper.canvas,
-        target = glob.doc.elementFromPoint(x, y);
-    if (glob.win.opera && target.tagName == "svg") {
-        var so = getOffset(target),
-            sr = target.createSVGRect();
-        sr.x = x - so.x;
-        sr.y = y - so.y;
-        sr.width = sr.height = 1;
-        var hits = target.getIntersectionList(sr, null);
-        if (hits.length) {
-            target = hits[hits.length - 1];
-        }
-    }
-    if (!target) {
-        return null;
-    }
-    return wrap(target);
-};
-/*\
- * Snap.plugin
- [ method ]
- **
- * Let you write plugins. You pass in a function with four arguments, like this:
- | Snap.plugin(function (Snap, Element, Paper, global, Fragment) {
- |     Snap.newmethod = function () {};
- |     Element.prototype.newmethod = function () {};
- |     Paper.prototype.newmethod = function () {};
- | });
- * Inside the function you have access to all main objects (and their
- * prototypes). This allow you to extend anything you want.
- **
- - f (function) your plugin body
-\*/
-Snap.plugin = function (f) {
-    f(Snap, Element, Paper, glob, Fragment);
-};
-glob.win.Snap = Snap;
-return Snap;
-}(window || this));
-// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-Snap.plugin(function (Snap, Element, Paper, glob, Fragment) {
-    var elproto = Element.prototype,
-        is = Snap.is,
-        Str = String,
-        unit2px = Snap._unit2px,
-        $ = Snap._.$,
-        make = Snap._.make,
-        getSomeDefs = Snap._.getSomeDefs,
-        has = "hasOwnProperty",
-        wrap = Snap._.wrap;
-    /*\
-     * Element.getBBox
-     [ method ]
-     **
-     * Returns the bounding box descriptor for the given element
-     **
-     = (object) bounding box descriptor:
-     o {
-     o     cx: (number) x of the center,
-     o     cy: (number) x of the center,
-     o     h: (number) height,
-     o     height: (number) height,
-     o     path: (string) path command for the box,
-     o     r0: (number) radius of a circle that fully encloses the box,
-     o     r1: (number) radius of the smallest circle that can be enclosed,
-     o     r2: (number) radius of the largest circle that can be enclosed,
-     o     vb: (string) box as a viewbox command,
-     o     w: (number) width,
-     o     width: (number) width,
-     o     x2: (number) x of the right side,
-     o     x: (number) x of the left side,
-     o     y2: (number) y of the bottom edge,
-     o     y: (number) y of the top edge
-     o }
-    \*/
-    elproto.getBBox = function (isWithoutTransform) {
-        if (!Snap.Matrix || !Snap.path) {
-            return this.node.getBBox();
-        }
-        var el = this,
-            m = new Snap.Matrix;
-        if (el.removed) {
-            return Snap._.box();
-        }
-        while (el.type == "use") {
-            if (!isWithoutTransform) {
-                m = m.add(el.transform().localMatrix.translate(el.attr("x") || 0, el.attr("y") || 0));
-            }
-            if (el.original) {
-                el = el.original;
-            } else {
-                var href = el.attr("xlink:href");
-                el = el.original = el.node.ownerDocument.getElementById(href.substring(href.indexOf("#") + 1));
-            }
-        }
-        var _ = el._,
-            pathfinder = Snap.path.get[el.type] || Snap.path.get.deflt;
-        try {
-            if (isWithoutTransform) {
-                _.bboxwt = pathfinder ? Snap.path.getBBox(el.realPath = pathfinder(el)) : Snap._.box(el.node.getBBox());
-                return Snap._.box(_.bboxwt);
-            } else {
-                el.realPath = pathfinder(el);
-                el.matrix = el.transform().localMatrix;
-                _.bbox = Snap.path.getBBox(Snap.path.map(el.realPath, m.add(el.matrix)));
-                return Snap._.box(_.bbox);
-            }
-        } catch (e) {
-            // Firefox doesn’t give you bbox of hidden element
-            return Snap._.box();
-        }
-    };
-    var propString = function () {
-        return this.string;
-    };
-    function extractTransform(el, tstr) {
-        if (tstr == null) {
-            var doReturn = true;
-            if (el.type == "linearGradient" || el.type == "radialGradient") {
-                tstr = el.node.getAttribute("gradientTransform");
-            } else if (el.type == "pattern") {
-                tstr = el.node.getAttribute("patternTransform");
-            } else {
-                tstr = el.node.getAttribute("transform");
-            }
-            if (!tstr) {
-                return new Snap.Matrix;
-            }
-            tstr = Snap._.svgTransform2string(tstr);
-        } else {
-            if (!Snap._.rgTransform.test(tstr)) {
-                tstr = Snap._.svgTransform2string(tstr);
-            } else {
-                tstr = Str(tstr).replace(/\.{3}|\u2026/g, el._.transform || E);
-            }
-            if (is(tstr, "array")) {
-                tstr = Snap.path ? Snap.path.toString.call(tstr) : Str(tstr);
-            }
-            el._.transform = tstr;
-        }
-        var m = Snap._.transform2matrix(tstr, el.getBBox(1));
-        if (doReturn) {
-            return m;
-        } else {
-            el.matrix = m;
-        }
-    }
-    /*\
-     * Element.transform
-     [ method ]
-     **
-     * Gets or sets transformation of the element
-     **
-     - tstr (string) transform string in Snap or SVG format
-     = (Element) the current element
-     * or
-     = (object) transformation descriptor:
-     o {
-     o     string (string) transform string,
-     o     globalMatrix (Matrix) matrix of all transformations applied to element or its parents,
-     o     localMatrix (Matrix) matrix of transformations applied only to the element,
-     o     diffMatrix (Matrix) matrix of difference between global and local transformations,
-     o     global (string) global transformation as string,
-     o     local (string) local transformation as string,
-     o     toString (function) returns `string` property
-     o }
-    \*/
-    elproto.transform = function (tstr) {
-        var _ = this._;
-        if (tstr == null) {
-            var papa = this,
-                global = new Snap.Matrix(this.node.getCTM()),
-                local = extractTransform(this),
-                ms = [local],
-                m = new Snap.Matrix,
-                i,
-                localString = local.toTransformString(),
-                string = Str(local) == Str(this.matrix) ?
-                            Str(_.transform) : localString;
-            while (papa.type != "svg" && (papa = papa.parent())) {
-                ms.push(extractTransform(papa));
-            }
-            i = ms.length;
-            while (i--) {
-                m.add(ms[i]);
-            }
-            return {
-                string: string,
-                globalMatrix: global,
-                totalMatrix: m,
-                localMatrix: local,
-                diffMatrix: global.clone().add(local.invert()),
-                global: global.toTransformString(),
-                total: m.toTransformString(),
-                local: localString,
-                toString: propString
-            };
-        }
-        if (tstr instanceof Snap.Matrix) {
-            this.matrix = tstr;
-            this._.transform = tstr.toTransformString();
-        } else {
-            extractTransform(this, tstr);
-        }
-
-        if (this.node) {
-            if (this.type == "linearGradient" || this.type == "radialGradient") {
-                $(this.node, {gradientTransform: this.matrix});
-            } else if (this.type == "pattern") {
-                $(this.node, {patternTransform: this.matrix});
-            } else {
-                $(this.node, {transform: this.matrix});
-            }
-        }
-
-        return this;
-    };
-    /*\
-     * Element.parent
-     [ method ]
-     **
-     * Returns the element's parent
-     **
-     = (Element) the parent element
-    \*/
-    elproto.parent = function () {
-        return wrap(this.node.parentNode);
-    };
-    /*\
-     * Element.append
-     [ method ]
-     **
-     * Appends the given element to current one
-     **
-     - el (Element|Set) element to append
-     = (Element) the parent element
-    \*/
-    /*\
-     * Element.add
-     [ method ]
-     **
-     * See @Element.append
-    \*/
-    elproto.append = elproto.add = function (el) {
-        if (el) {
-            if (el.type == "set") {
-                var it = this;
-                el.forEach(function (el) {
-                    it.add(el);
-                });
-                return this;
-            }
-            el = wrap(el);
-            this.node.appendChild(el.node);
-            el.paper = this.paper;
-        }
-        return this;
-    };
-    /*\
-     * Element.appendTo
-     [ method ]
-     **
-     * Appends the current element to the given one
-     **
-     - el (Element) parent element to append to
-     = (Element) the child element
-    \*/
-    elproto.appendTo = function (el) {
-        if (el) {
-            el = wrap(el);
-            el.append(this);
-        }
-        return this;
-    };
-    /*\
-     * Element.prepend
-     [ method ]
-     **
-     * Prepends the given element to the current one
-     **
-     - el (Element) element to prepend
-     = (Element) the parent element
-    \*/
-    elproto.prepend = function (el) {
-        if (el) {
-            if (el.type == "set") {
-                var it = this,
-                    first;
-                el.forEach(function (el) {
-                    if (first) {
-                        first.after(el);
-                    } else {
-                        it.prepend(el);
-                    }
-                    first = el;
-                });
-                return this;
-            }
-            el = wrap(el);
-            var parent = el.parent();
-            this.node.insertBefore(el.node, this.node.firstChild);
-            this.add && this.add();
-            el.paper = this.paper;
-            this.parent() && this.parent().add();
-            parent && parent.add();
-        }
-        return this;
-    };
-    /*\
-     * Element.prependTo
-     [ method ]
-     **
-     * Prepends the current element to the given one
-     **
-     - el (Element) parent element to prepend to
-     = (Element) the child element
-    \*/
-    elproto.prependTo = function (el) {
-        el = wrap(el);
-        el.prepend(this);
-        return this;
-    };
-    /*\
-     * Element.before
-     [ method ]
-     **
-     * Inserts given element before the current one
-     **
-     - el (Element) element to insert
-     = (Element) the parent element
-    \*/
-    elproto.before = function (el) {
-        if (el.type == "set") {
-            var it = this;
-            el.forEach(function (el) {
-                var parent = el.parent();
-                it.node.parentNode.insertBefore(el.node, it.node);
-                parent && parent.add();
-            });
-            this.parent().add();
-            return this;
-        }
-        el = wrap(el);
-        var parent = el.parent();
-        this.node.parentNode.insertBefore(el.node, this.node);
-        this.parent() && this.parent().add();
-        parent && parent.add();
-        el.paper = this.paper;
-        return this;
-    };
-    /*\
-     * Element.after
-     [ method ]
-     **
-     * Inserts given element after the current one
-     **
-     - el (Element) element to insert
-     = (Element) the parent element
-    \*/
-    elproto.after = function (el) {
-        el = wrap(el);
-        var parent = el.parent();
-        if (this.node.nextSibling) {
-            this.node.parentNode.insertBefore(el.node, this.node.nextSibling);
-        } else {
-            this.node.parentNode.appendChild(el.node);
-        }
-        this.parent() && this.parent().add();
-        parent && parent.add();
-        el.paper = this.paper;
-        return this;
-    };
-    /*\
-     * Element.insertBefore
-     [ method ]
-     **
-     * Inserts the element after the given one
-     **
-     - el (Element) element next to whom insert to
-     = (Element) the parent element
-    \*/
-    elproto.insertBefore = function (el) {
-        el = wrap(el);
-        var parent = this.parent();
-        el.node.parentNode.insertBefore(this.node, el.node);
-        this.paper = el.paper;
-        parent && parent.add();
-        el.parent() && el.parent().add();
-        return this;
-    };
-    /*\
-     * Element.insertAfter
-     [ method ]
-     **
-     * Inserts the element after the given one
-     **
-     - el (Element) element next to whom insert to
-     = (Element) the parent element
-    \*/
-    elproto.insertAfter = function (el) {
-        el = wrap(el);
-        var parent = this.parent();
-        el.node.parentNode.insertBefore(this.node, el.node.nextSibling);
-        this.paper = el.paper;
-        parent && parent.add();
-        el.parent() && el.parent().add();
-        return this;
-    };
-    /*\
-     * Element.remove
-     [ method ]
-     **
-     * Removes element from the DOM
-     = (Element) the detached element
-    \*/
-    elproto.remove = function () {
-        var parent = this.parent();
-        this.node.parentNode && this.node.parentNode.removeChild(this.node);
-        delete this.paper;
-        this.removed = true;
-        parent && parent.add();
-        return this;
-    };
-    /*\
-     * Element.select
-     [ method ]
-     **
-     * Gathers the nested @Element matching the given set of CSS selectors
-     **
-     - query (string) CSS selector
-     = (Element) result of query selection
-    \*/
-    elproto.select = function (query) {
-        query = Str(query).replace(/([^\\]):/g, "$1\\:");
-        return wrap(this.node.querySelector(query));
-    };
-    /*\
-     * Element.selectAll
-     [ method ]
-     **
-     * Gathers nested @Element objects matching the given set of CSS selectors
-     **
-     - query (string) CSS selector
-     = (Set|array) result of query selection
-    \*/
-    elproto.selectAll = function (query) {
-        var nodelist = this.node.querySelectorAll(query),
-            set = (Snap.set || Array)();
-        for (var i = 0; i < nodelist.length; i++) {
-            set.push(wrap(nodelist[i]));
-        }
-        return set;
-    };
-    /*\
-     * Element.asPX
-     [ method ]
-     **
-     * Returns given attribute of the element as a `px` value (not %, em, etc.)
-     **
-     - attr (string) attribute name
-     - value (string) #optional attribute value
-     = (Element) result of query selection
-    \*/
-    elproto.asPX = function (attr, value) {
-        if (value == null) {
-            value = this.attr(attr);
-        }
-        return +unit2px(this, attr, value);
-    };
-    // SIERRA Element.use(): I suggest adding a note about how to access the original element the returned <use> instantiates. It's a part of SVG with which ordinary web developers may be least familiar.
-    /*\
-     * Element.use
-     [ method ]
-     **
-     * Creates a `<use>` element linked to the current element
-     **
-     = (Element) the `<use>` element
-    \*/
-    elproto.use = function () {
-        var use,
-            id = this.node.id;
-        if (!id) {
-            id = this.id;
-            $(this.node, {
-                id: id
-            });
-        }
-        if (this.type == "linearGradient" || this.type == "radialGradient" ||
-            this.type == "pattern") {
-            use = make(this.type, this.node.parentNode);
-        } else {
-            use = make("use", this.node.parentNode);
-        }
-        $(use.node, {
-            "xlink:href": "#" + id
-        });
-        use.original = this;
-        return use;
-    };
-    function fixids(el) {
-        var els = el.selectAll("*"),
-            it,
-            url = /^\s*url\(("|'|)(.*)\1\)\s*$/,
-            ids = [],
-            uses = {};
-        function urltest(it, name) {
-            var val = $(it.node, name);
-            val = val && val.match(url);
-            val = val && val[2];
-            if (val && val.charAt() == "#") {
-                val = val.substring(1);
-            } else {
-                return;
-            }
-            if (val) {
-                uses[val] = (uses[val] || []).concat(function (id) {
-                    var attr = {};
-                    attr[name] = URL(id);
-                    $(it.node, attr);
-                });
-            }
-        }
-        function linktest(it) {
-            var val = $(it.node, "xlink:href");
-            if (val && val.charAt() == "#") {
-                val = val.substring(1);
-            } else {
-                return;
-            }
-            if (val) {
-                uses[val] = (uses[val] || []).concat(function (id) {
-                    it.attr("xlink:href", "#" + id);
-                });
-            }
-        }
-        for (var i = 0, ii = els.length; i < ii; i++) {
-            it = els[i];
-            urltest(it, "fill");
-            urltest(it, "stroke");
-            urltest(it, "filter");
-            urltest(it, "mask");
-            urltest(it, "clip-path");
-            linktest(it);
-            var oldid = $(it.node, "id");
-            if (oldid) {
-                $(it.node, {id: it.id});
-                ids.push({
-                    old: oldid,
-                    id: it.id
-                });
-            }
-        }
-        for (i = 0, ii = ids.length; i < ii; i++) {
-            var fs = uses[ids[i].old];
-            if (fs) {
-                for (var j = 0, jj = fs.length; j < jj; j++) {
-                    fs[j](ids[i].id);
-                }
-            }
-        }
-    }
-    /*\
-     * Element.clone
-     [ method ]
-     **
-     * Creates a clone of the element and inserts it after the element
-     **
-     = (Element) the clone
-    \*/
-    elproto.clone = function () {
-        var clone = wrap(this.node.cloneNode(true));
-        if ($(clone.node, "id")) {
-            $(clone.node, {id: clone.id});
-        }
-        fixids(clone);
-        clone.insertAfter(this);
-        return clone;
-    };
-    /*\
-     * Element.toDefs
-     [ method ]
-     **
-     * Moves element to the shared `<defs>` area
-     **
-     = (Element) the element
-    \*/
-    elproto.toDefs = function () {
-        var defs = getSomeDefs(this);
-        defs.appendChild(this.node);
-        return this;
-    };
-    /*\
-     * Element.toPattern
-     [ method ]
-     **
-     * Creates a `<pattern>` element from the current element
-     **
-     * To create a pattern you have to specify the pattern rect:
-     - x (string|number)
-     - y (string|number)
-     - width (string|number)
-     - height (string|number)
-     = (Element) the `<pattern>` element
-     * You can use pattern later on as an argument for `fill` attribute:
-     | var p = paper.path("M10-5-10,15M15,0,0,15M0-5-20,15").attr({
-     |         fill: "none",
-     |         stroke: "#bada55",
-     |         strokeWidth: 5
-     |     }).pattern(0, 0, 10, 10),
-     |     c = paper.circle(200, 200, 100);
-     | c.attr({
-     |     fill: p
-     | });
-    \*/
-    elproto.pattern = elproto.toPattern = function (x, y, width, height) {
-        var p = make("pattern", getSomeDefs(this));
-        if (x == null) {
-            x = this.getBBox();
-        }
-        if (is(x, "object") && "x" in x) {
-            y = x.y;
-            width = x.width;
-            height = x.height;
-            x = x.x;
-        }
-        $(p.node, {
-            x: x,
-            y: y,
-            width: width,
-            height: height,
-            patternUnits: "userSpaceOnUse",
-            id: p.id,
-            viewBox: [x, y, width, height].join(" ")
-        });
-        p.node.appendChild(this.node);
-        return p;
-    };
-// SIERRA Element.marker(): clarify what a reference point is. E.g., helps you offset the object from its edge such as when centering it over a path.
-// SIERRA Element.marker(): I suggest the method should accept default reference point values.  Perhaps centered with (refX = width/2) and (refY = height/2)? Also, couldn't it assume the element's current _width_ and _height_? And please specify what _x_ and _y_ mean: offsets? If so, from where?  Couldn't they also be assigned default values?
-    /*\
-     * Element.marker
-     [ method ]
-     **
-     * Creates a `<marker>` element from the current element
-     **
-     * To create a marker you have to specify the bounding rect and reference point:
-     - x (number)
-     - y (number)
-     - width (number)
-     - height (number)
-     - refX (number)
-     - refY (number)
-     = (Element) the `<marker>` element
-     * You can specify the marker later as an argument for `marker-start`, `marker-end`, `marker-mid`, and `marker` attributes. The `marker` attribute places the marker at every point along the path, and `marker-mid` places them at every point except the start and end.
-    \*/
-    // TODO add usage for markers
-    elproto.marker = function (x, y, width, height, refX, refY) {
-        var p = make("marker", getSomeDefs(this));
-        if (x == null) {
-            x = this.getBBox();
-        }
-        if (is(x, "object") && "x" in x) {
-            y = x.y;
-            width = x.width;
-            height = x.height;
-            refX = x.refX || x.cx;
-            refY = x.refY || x.cy;
-            x = x.x;
-        }
-        $(p.node, {
-            viewBox: [x, y, width, height].join(" "),
-            markerWidth: width,
-            markerHeight: height,
-            orient: "auto",
-            refX: refX || 0,
-            refY: refY || 0,
-            id: p.id
-        });
-        p.node.appendChild(this.node);
-        return p;
-    };
-    // animation
-    function slice(from, to, f) {
-        return function (arr) {
-            var res = arr.slice(from, to);
-            if (res.length == 1) {
-                res = res[0];
-            }
-            return f ? f(res) : res;
-        };
-    }
-    var Animation = function (attr, ms, easing, callback) {
-        if (typeof easing == "function" && !easing.length) {
-            callback = easing;
-            easing = mina.linear;
-        }
-        this.attr = attr;
-        this.dur = ms;
-        easing && (this.easing = easing);
-        callback && (this.callback = callback);
-    };
-    Snap._.Animation = Animation;
-    /*\
-     * Snap.animation
-     [ method ]
-     **
-     * Creates an animation object
-     **
-     - attr (object) attributes of final destination
-     - duration (number) duration of the animation, in milliseconds
-     - easing (function) #optional one of easing functions of @mina or custom one
-     - callback (function) #optional callback function that fires when animation ends
-     = (object) animation object
-    \*/
-    Snap.animation = function (attr, ms, easing, callback) {
-        return new Animation(attr, ms, easing, callback);
-    };
-    /*\
-     * Element.inAnim
-     [ method ]
-     **
-     * Returns a set of animations that may be able to manipulate the current element
-     **
-     = (object) in format:
-     o {
-     o     anim (object) animation object,
-     o     mina (object) @mina object,
-     o     curStatus (number) 0..1 — status of the animation: 0 — just started, 1 — just finished,
-     o     status (function) gets or sets the status of the animation,
-     o     stop (function) stops the animation
-     o }
-    \*/
-    elproto.inAnim = function () {
-        var el = this,
-            res = [];
-        for (var id in el.anims) if (el.anims[has](id)) {
-            (function (a) {
-                res.push({
-                    anim: new Animation(a._attrs, a.dur, a.easing, a._callback),
-                    mina: a,
-                    curStatus: a.status(),
-                    status: function (val) {
-                        return a.status(val);
-                    },
-                    stop: function () {
-                        a.stop();
-                    }
-                });
-            }(el.anims[id]));
-        }
-        return res;
-    };
-    /*\
-     * Snap.animate
-     [ method ]
-     **
-     * Runs generic animation of one number into another with a caring function
-     **
-     - from (number|array) number or array of numbers
-     - to (number|array) number or array of numbers
-     - setter (function) caring function that accepts one number argument
-     - duration (number) duration, in milliseconds
-     - easing (function) #optional easing function from @mina or custom
-     - callback (function) #optional callback function to execute when animation ends
-     = (object) animation object in @mina format
-     o {
-     o     id (string) animation id, consider it read-only,
-     o     duration (function) gets or sets the duration of the animation,
-     o     easing (function) easing,
-     o     speed (function) gets or sets the speed of the animation,
-     o     status (function) gets or sets the status of the animation,
-     o     stop (function) stops the animation
-     o }
-     | var rect = Snap().rect(0, 0, 10, 10);
-     | Snap.animate(0, 10, function (val) {
-     |     rect.attr({
-     |         x: val
-     |     });
-     | }, 1000);
-     | // in given context is equivalent to
-     | rect.animate({x: 10}, 1000);
-    \*/
-    Snap.animate = function (from, to, setter, ms, easing, callback) {
-        if (typeof easing == "function" && !easing.length) {
-            callback = easing;
-            easing = mina.linear;
-        }
-        var now = mina.time(),
-            anim = mina(from, to, now, now + ms, mina.time, setter, easing);
-        callback && eve.once("mina.finish." + anim.id, callback);
-        return anim;
-    };
-    /*\
-     * Element.stop
-     [ method ]
-     **
-     * Stops all the animations for the current element
-     **
-     = (Element) the current element
-    \*/
-    elproto.stop = function () {
-        var anims = this.inAnim();
-        for (var i = 0, ii = anims.length; i < ii; i++) {
-            anims[i].stop();
-        }
-        return this;
-    };
-    /*\
-     * Element.animate
-     [ method ]
-     **
-     * Animates the given attributes of the element
-     **
-     - attrs (object) key-value pairs of destination attributes
-     - duration (number) duration of the animation in milliseconds
-     - easing (function) #optional easing function from @mina or custom
-     - callback (function) #optional callback function that executes when the animation ends
-     = (Element) the current element
-    \*/
-    elproto.animate = function (attrs, ms, easing, callback) {
-        if (typeof easing == "function" && !easing.length) {
-            callback = easing;
-            easing = mina.linear;
-        }
-        if (attrs instanceof Animation) {
-            callback = attrs.callback;
-            easing = attrs.easing;
-            ms = easing.dur;
-            attrs = attrs.attr;
-        }
-        var fkeys = [], tkeys = [], keys = {}, from, to, f, eq,
-            el = this;
-        for (var key in attrs) if (attrs[has](key)) {
-            if (el.equal) {
-                eq = el.equal(key, Str(attrs[key]));
-                from = eq.from;
-                to = eq.to;
-                f = eq.f;
-            } else {
-                from = +el.attr(key);
-                to = +attrs[key];
-            }
-            var len = is(from, "array") ? from.length : 1;
-            keys[key] = slice(fkeys.length, fkeys.length + len, f);
-            fkeys = fkeys.concat(from);
-            tkeys = tkeys.concat(to);
-        }
-        var now = mina.time(),
-            anim = mina(fkeys, tkeys, now, now + ms, mina.time, function (val) {
-                var attr = {};
-                for (var key in keys) if (keys[has](key)) {
-                    attr[key] = keys[key](val);
-                }
-                el.attr(attr);
-            }, easing);
-        el.anims[anim.id] = anim;
-        anim._attrs = attrs;
-        anim._callback = callback;
-        eve("snap.animcreated." + el.id, anim);
-        eve.once("mina.finish." + anim.id, function () {
-            delete el.anims[anim.id];
-            callback && callback.call(el);
-        });
-        eve.once("mina.stop." + anim.id, function () {
-            delete el.anims[anim.id];
-        });
-        return el;
-    };
-    var eldata = {};
-    /*\
-     * Element.data
-     [ method ]
-     **
-     * Adds or retrieves given value associated with given key. (Don’t confuse
-     * with `data-` attributes)
-     *
-     * See also @Element.removeData
-     - key (string) key to store data
-     - value (any) #optional value to store
-     = (object) @Element
-     * or, if value is not specified:
-     = (any) value
-     > Usage
-     | for (var i = 0, i < 5, i++) {
-     |     paper.circle(10 + 15 * i, 10, 10)
-     |          .attr({fill: "#000"})
-     |          .data("i", i)
-     |          .click(function () {
-     |             alert(this.data("i"));
-     |          });
-     | }
-    \*/
-    elproto.data = function (key, value) {
-        var data = eldata[this.id] = eldata[this.id] || {};
-        if (arguments.length == 0){
-            eve("snap.data.get." + this.id, this, data, null);
-            return data;
-        }
-        if (arguments.length == 1) {
-            if (Snap.is(key, "object")) {
-                for (var i in key) if (key[has](i)) {
-                    this.data(i, key[i]);
-                }
-                return this;
-            }
-            eve("snap.data.get." + this.id, this, data[key], key);
-            return data[key];
-        }
-        data[key] = value;
-        eve("snap.data.set." + this.id, this, value, key);
-        return this;
-    };
-    /*\
-     * Element.removeData
-     [ method ]
-     **
-     * Removes value associated with an element by given key.
-     * If key is not provided, removes all the data of the element.
-     - key (string) #optional key
-     = (object) @Element
-    \*/
-    elproto.removeData = function (key) {
-        if (key == null) {
-            eldata[this.id] = {};
-        } else {
-            eldata[this.id] && delete eldata[this.id][key];
-        }
-        return this;
-    };
-    /*\
-     * Element.outerSVG
-     [ method ]
-     **
-     * Returns SVG code for the element, equivalent to HTML's `outerHTML`.
-     *
-     * See also @Element.innerSVG
-     = (string) SVG code for the element
-    \*/
-    /*\
-     * Element.toString
-     [ method ]
-     **
-     * See @Element.outerSVG
-    \*/
-    elproto.outerSVG = elproto.toString = toString(1);
-    /*\
-     * Element.innerSVG
-     [ method ]
-     **
-     * Returns SVG code for the element's contents, equivalent to HTML's `innerHTML`
-     = (string) SVG code for the element
-    \*/
-    elproto.innerSVG = toString();
-    function toString(type) {
-        return function () {
-            var res = type ? "<" + this.type : "",
-                attr = this.node.attributes,
-                chld = this.node.childNodes;
-            if (type) {
-                for (var i = 0, ii = attr.length; i < ii; i++) {
-                    res += " " + attr[i].name + '="' +
-                            attr[i].value.replace(/"/g, '\\"') + '"';
-                }
-            }
-            if (chld.length) {
-                type && (res += ">");
-                for (i = 0, ii = chld.length; i < ii; i++) {
-                    if (chld[i].nodeType == 3) {
-                        res += chld[i].nodeValue;
-                    } else if (chld[i].nodeType == 1) {
-                        res += wrap(chld[i]).toString();
-                    }
-                }
-                type && (res += "</" + this.type + ">");
-            } else {
-                type && (res += "/>");
-            }
-            return res;
-        };
-    }
-    elproto.toDataURL = function () {
-        if (window && window.btoa) {
-            var bb = this.getBBox(),
-                svg = Snap.format('<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="{width}" height="{height}" viewBox="{x} {y} {width} {height}">{contents}</svg>', {
-                x: +bb.x.toFixed(3),
-                y: +bb.y.toFixed(3),
-                width: +bb.width.toFixed(3),
-                height: +bb.height.toFixed(3),
-                contents: this.outerSVG()
-            });
-            return "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg)));
-        }
-    };
-    /*\
-     * Fragment.select
-     [ method ]
-     **
-     * See @Element.select
-    \*/
-    Fragment.prototype.select = elproto.select;
-    /*\
-     * Fragment.selectAll
-     [ method ]
-     **
-     * See @Element.selectAll
-    \*/
-    Fragment.prototype.selectAll = elproto.selectAll;
-});
-
-// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
-// 
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-// 
-// http://www.apache.org/licenses/LICENSE-2.0
-// 
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-Snap.plugin(function (Snap, Element, Paper, glob, Fragment) {
-    var objectToString = Object.prototype.toString,
-        Str = String,
-        math = Math,
-        E = "";
-    function Matrix(a, b, c, d, e, f) {
-        if (b == null && objectToString.call(a) == "[object SVGMatrix]") {
-            this.a = a.a;
-            this.b = a.b;
-            this.c = a.c;
-            this.d = a.d;
-            this.e = a.e;
-            this.f = a.f;
-            return;
-        }
-        if (a != null) {
-            this.a = +a;
-            this.b = +b;
-            this.c = +c;
-            this.d = +d;
-            this.e = +e;
-            this.f = +f;
-        } else {
-            this.a = 1;
-            this.b = 0;
-            this.c = 0;
-            this.d = 1;
-            this.e = 0;
-            this.f = 0;
-        }
-    }
-    (function (matrixproto) {
-        /*\
-         * Matrix.add
-         [ method ]
-         **
-         * Adds the given matrix to existing one
-         - a (number)
-         - b (number)
-         - c (number)
-         - d (number)
-         - e (number)
-         - f (number)
-         * or
-         - matrix (object) @Matrix
-        \*/
-        matrixproto.add = function (a, b, c, d, e, f) {
-            var out = [[], [], []],
-                m = [[this.a, this.c, this.e], [this.b, this.d, this.f], [0, 0, 1]],
-                matrix = [[a, c, e], [b, d, f], [0, 0, 1]],
-                x, y, z, res;
-
-            if (a && a instanceof Matrix) {
-                matrix = [[a.a, a.c, a.e], [a.b, a.d, a.f], [0, 0, 1]];
-            }
-
-            for (x = 0; x < 3; x++) {
-                for (y = 0; y < 3; y++) {
-                    res = 0;
-                    for (z = 0; z < 3; z++) {
-                        res += m[x][z] * matrix[z][y];
-                    }
-                    out[x][y] = res;
-                }
-            }
-            this.a = out[0][0];
-            this.b = out[1][0];
-            this.c = out[0][1];
-            this.d = out[1][1];
-            this.e = out[0][2];
-            this.f = out[1][2];
-            return this;
-        };
-        /*\
-         * Matrix.invert
-         [ method ]
-         **
-         * Returns an inverted version of the matrix
-         = (object) @Matrix
-        \*/
-        matrixproto.invert = function () {
-            var me = this,
-                x = me.a * me.d - me.b * me.c;
-            return new Matrix(me.d / x, -me.b / x, -me.c / x, me.a / x, (me.c * me.f - me.d * me.e) / x, (me.b * me.e - me.a * me.f) / x);
-        };
-        /*\
-         * Matrix.clone
-         [ method ]
-         **
-         * Returns a copy of the matrix
-         = (object) @Matrix
-        \*/
-        matrixproto.clone = function () {
-            return new Matrix(this.a, this.b, this.c, this.d, this.e, this.f);
-        };
-        /*\
-         * Matrix.translate
-         [ method ]
-         **
-         * Translate the matrix
-         - x (number) horizontal offset distance
-         - y (number) vertical offset distance
-        \*/
-        matrixproto.translate = function (x, y) {
-            return this.add(1, 0, 0, 1, x, y);
-        };
-        /*\
-         * Matrix.scale
-         [ method ]
-         **
-         * Scales the matrix
-         - x (number) amount to be scaled, with `1` resulting in no change
-         - y (number) #optional amount to scale along the vertical axis. (Otherwise `x` applies to both axes.)
-         - cx (number) #optional horizontal origin point from which to scale
-         - cy (number) #optional vertical origin point from which to scale
-         * Default cx, cy is the middle point of the element.
-        \*/
-        matrixproto.scale = function (x, y, cx, cy) {
-            y == null && (y = x);
-            (cx || cy) && this.add(1, 0, 0, 1, cx, cy);
-            this.add(x, 0, 0, y, 0, 0);
-            (cx || cy) && this.add(1, 0, 0, 1, -cx, -cy);
-            return this;
-        };
-        /*\
-         * Matrix.rotate
-         [ method ]
-         **
-         * Rotates the matrix
-         - a (number) angle of rotation, in degrees
-         - x (number) horizontal origin point from which to rotate
-         - y (number) vertical origin point from which to rotate
-        \*/
-        matrixproto.rotate = function (a, x, y) {
-            a = Snap.rad(a);
-            x = x || 0;
-            y = y || 0;
-            var cos = +math.cos(a).toFixed(9),
-                sin = +math.sin(a).toFixed(9);
-            this.add(cos, sin, -sin, cos, x, y);
-            return this.add(1, 0, 0, 1, -x, -y);
-        };
-        /*\
-         * Matrix.x
-         [ method ]
-         **
-         * Returns x coordinate for given point after transformation described by the matrix. See also @Matrix.y
-         - x (number)
-         - y (number)
-         = (number) x
-        \*/
-        matrixproto.x = function (x, y) {
-            return x * this.a + y * this.c + this.e;
-        };
-        /*\
-         * Matrix.y
-         [ method ]
-         **
-         * Returns y coordinate for given point after transformation described by the matrix. See also @Matrix.x
-         - x (number)
-         - y (number)
-         = (number) y
-        \*/
-        matrixproto.y = function (x, y) {
-            return x * this.b + y * this.d + this.f;
-        };
-        matrixproto.get = function (i) {
-            return +this[Str.fromCharCode(97 + i)].toFixed(4);
-        };
-        matrixproto.toString = function () {
-            return "matrix(" + [this.get(0), this.get(1), this.get(2), this.get(3), this.get(4), this.get(5)].join() + ")";
-        };
-        matrixproto.offset = function () {
-            return [this.e.toFixed(4), this.f.toFixed(4)];
-        };
-        function norm(a) {
-            return a[0] * a[0] + a[1] * a[1];
-        }
-        function normalize(a) {
-            var mag = math.sqrt(norm(a));
-            a[0] && (a[0] /= mag);
-            a[1] && (a[1] /= mag);
-        }
-        /*\
-         * Matrix.determinant
-         [ method ]
-         **
-         * Finds determinant of the given matrix.
-         = (number) determinant
-        \*/
-        matrixproto.determinant = function () {
-            return this.a * this.d - this.b * this.c;
-        };
-        /*\
-         * Matrix.split
-         [ method ]
-         **
-         * Splits matrix into primitive transformations
-         = (object) in format:
-         o dx (number) translation by x
-         o dy (number) translation by y
-         o scalex (number) scale by x
-         o scaley (number) scale by y
-         o shear (number) shear
-         o rotate (number) rotation in deg
-         o isSimple (boolean) could it be represented via simple transformations
-        \*/
-        matrixproto.split = function () {
-            var out = {};
-            // translation
-            out.dx = this.e;
-            out.dy = this.f;
-
-            // scale and shear
-            var row = [[this.a, this.c], [this.b, this.d]];
-            out.scalex = math.sqrt(norm(row[0]));
-            normalize(row[0]);
-
-            out.shear = row[0][0] * row[1][0] + row[0][1] * row[1][1];
-            row[1] = [row[1][0] - row[0][0] * out.shear, row[1][1] - row[0][1] * out.shear];
-
-            out.scaley = math.sqrt(norm(row[1]));
-            normalize(row[1]);
-            out.shear /= out.scaley;
-
-            if (this.determinant() < 0) {
-                out.scalex = -out.scalex;
-            }
-
-            // rotation
-            var sin = -row[0][1],
-                cos = row[1][1];
-            if (cos < 0) {
-                out.rotate = Snap.deg(math.acos(cos));
-                if (sin < 0) {
-                    out.rotate = 360 - out.rotate;
-                }
-            } else {
-                out.rotate = Snap.deg(math.asin(sin));
-            }
-
-            out.isSimple = !+out.shear.toFixed(9) && (out.scalex.toFixed(9) == out.scaley.toFixed(9) || !out.rotate);
-            out.isSuperSimple = !+out.shear.toFixed(9) && out.scalex.toFixed(9) == out.scaley.toFixed(9) && !out.rotate;
-            out.noRotation = !+out.shear.toFixed(9) && !out.rotate;
-            return out;
-        };
-        /*\
-         * Matrix.toTransformString
-         [ method ]
-         **
-         * Returns transform string that represents given matrix
-         = (string) transform string
-        \*/
-        matrixproto.toTransformString = function (shorter) {
-            var s = shorter || this.split();
-            if (!+s.shear.toFixed(9)) {
-                s.scalex = +s.scalex.toFixed(4);
-                s.scaley = +s.scaley.toFixed(4);
-                s.rotate = +s.rotate.toFixed(4);
-                return  (s.dx || s.dy ? "t" + [+s.dx.toFixed(4), +s.dy.toFixed(4)] : E) + 
-                        (s.scalex != 1 || s.scaley != 1 ? "s" + [s.scalex, s.scaley, 0, 0] : E) +
-                        (s.rotate ? "r" + [+s.rotate.toFixed(4), 0, 0] : E);
-            } else {
-                return "m" + [this.get(0), this.get(1), this.get(2), this.get(3), this.get(4), this.get(5)];
-            }
-        };
-    })(Matrix.prototype);
-    /*\
-     * Snap.Matrix
-     [ method ]
-     **
-     * Matrix constructor, extend on your own risk.
-     * To create matrices use @Snap.matrix.
-    \*/
-    Snap.Matrix = Matrix;
-    /*\
-     * Snap.matrix
-     [ method ]
-     **
-     * Utility method
-     **
-     * Returns a matrix based on the given parameters
-     - a (number)
-     - b (number)
-     - c (number)
-     - d (number)
-     - e (number)
-     - f (number)
-     * or
-     - svgMatrix (SVGMatrix)
-     = (object) @Matrix
-    \*/
-    Snap.matrix = function (a, b, c, d, e, f) {
-        return new Matrix(a, b, c, d, e, f);
-    };
-});
-// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
-// 
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-// 
-// http://www.apache.org/licenses/LICENSE-2.0
-// 
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-Snap.plugin(function (Snap, Element, Paper, glob, Fragment) {
-    var has = "hasOwnProperty",
-        make = Snap._.make,
-        wrap = Snap._.wrap,
-        is = Snap.is,
-        getSomeDefs = Snap._.getSomeDefs,
-        reURLValue = /^url\(#?([^)]+)\)$/,
-        $ = Snap._.$,
-        URL = Snap.url,
-        Str = String,
-        separator = Snap._.separator,
-        E = "";
-    // Attributes event handlers
-    eve.on("snap.util.attr.mask", function (value) {
-        if (value instanceof Element || value instanceof Fragment) {
-            eve.stop();
-            if (value instanceof Fragment && value.node.childNodes.length == 1) {
-                value = value.node.firstChild;
-                getSomeDefs(this).appendChild(value);
-                value = wrap(value);
-            }
-            if (value.type == "mask") {
-                var mask = value;
-            } else {
-                mask = make("mask", getSomeDefs(this));
-                mask.node.appendChild(value.node);
-            }
-            !mask.node.id && $(mask.node, {
-                id: mask.id
-            });
-            $(this.node, {
-                mask: URL(mask.id)
-            });
-        }
-    });
-    (function (clipIt) {
-        eve.on("snap.util.attr.clip", clipIt);
-        eve.on("snap.util.attr.clip-path", clipIt);
-        eve.on("snap.util.attr.clipPath", clipIt);
-    }(function (value) {
-        if (value instanceof Element || value instanceof Fragment) {
-            eve.stop();
-            if (value.type == "clipPath") {
-                var clip = value;
-            } else {
-                clip = make("clipPath", getSomeDefs(this));
-                clip.node.appendChild(value.node);
-                !clip.node.id && $(clip.node, {
-                    id: clip.id
-                });
-            }
-            $(this.node, {
-                "clip-path": URL(clip.node.id || clip.id)
-            });
-        }
-    }));
-    function fillStroke(name) {
-        return function (value) {
-            eve.stop();
-            if (value instanceof Fragment && value.node.childNodes.length == 1 &&
-                (value.node.firstChild.tagName == "radialGradient" ||
-                value.node.firstChild.tagName == "linearGradient" ||
-                value.node.firstChild.tagName == "pattern")) {
-                value = value.node.firstChild;
-                getSomeDefs(this).appendChild(value);
-                value = wrap(value);
-            }
-            if (value instanceof Element) {
-                if (value.type == "radialGradient" || value.type == "linearGradient"
-                   || value.type == "pattern") {
-                    if (!value.node.id) {
-                        $(value.node, {
-                            id: value.id
-                        });
-                    }
-                    var fill = URL(value.node.id);
-                } else {
-                    fill = value.attr(name);
-                }
-            } else {
-                fill = Snap.color(value);
-                if (fill.error) {
-                    var grad = Snap(getSomeDefs(this).ownerSVGElement).gradient(value);
-                    if (grad) {
-                        if (!grad.node.id) {
-                            $(grad.node, {
-                                id: grad.id
-                            });
-                        }
-                        fill = URL(grad.node.id);
-                    } else {
-                        fill = value;
-                    }
-                } else {
-                    fill = Str(fill);
-                }
-            }
-            var attrs = {};
-            attrs[name] = fill;
-            $(this.node, attrs);
-            this.node.style[name] = E;
-        };
-    }
-    eve.on("snap.util.attr.fill", fillStroke("fill"));
-    eve.on("snap.util.attr.stroke", fillStroke("stroke"));
-    var gradrg = /^([lr])(?:\(([^)]*)\))?(.*)$/i;
-    eve.on("snap.util.grad.parse", function parseGrad(string) {
-        string = Str(string);
-        var tokens = string.match(gradrg);
-        if (!tokens) {
-            return null;
-        }
-        var type = tokens[1],
-            params = tokens[2],
-            stops = tokens[3];
-        params = params.split(/\s*,\s*/).map(function (el) {
-            return +el == el ? +el : el;
-        });
-        if (params.length == 1 && params[0] == 0) {
-            params = [];
-        }
-        stops = stops.split("-");
-        stops = stops.map(function (el) {
-            el = el.split(":");
-            var out = {
-                color: el[0]
-            };
-            if (el[1]) {
-                out.offset = parseFloat(el[1]);
-            }
-            return out;
-        });
-        return {
-            type: type,
-            params: params,
-            stops: stops
-        };
-    });
-
-    eve.on("snap.util.attr.d", function (value) {
-        eve.stop();
-        if (is(value, "array") && is(value[0], "array")) {
-            value = Snap.path.toString.call(value);
-        }
-        value = Str(value);
-        if (value.match(/[ruo]/i)) {
-            value = Snap.path.toAbsolute(value);
-        }
-        $(this.node, {d: value});
-    })(-1);
-    eve.on("snap.util.attr.#text", function (value) {
-        eve.stop();
-        value = Str(value);
-        var txt = glob.doc.createTextNode(value);
-        while (this.node.firstChild) {
-            this.node.removeChild(this.node.firstChild);
-        }
-        this.node.appendChild(txt);
-    })(-1);
-    eve.on("snap.util.attr.path", function (value) {
-        eve.stop();
-        this.attr({d: value});
-    })(-1);
-    eve.on("snap.util.attr.class", function (value) {
-        eve.stop();
-        this.node.className.baseVal = value;
-    })(-1);
-    eve.on("snap.util.attr.viewBox", function (value) {
-        var vb;
-        if (is(value, "object") && "x" in value) {
-            vb = [value.x, value.y, value.width, value.height].join(" ");
-        } else if (is(value, "array")) {
-            vb = value.join(" ");
-        } else {
-            vb = value;
-        }
-        $(this.node, {
-            viewBox: vb
-        });
-        eve.stop();
-    })(-1);
-    eve.on("snap.util.attr.transform", function (value) {
-        this.transform(value);
-        eve.stop();
-    })(-1);
-    eve.on("snap.util.attr.r", function (value) {
-        if (this.type == "rect") {
-            eve.stop();
-            $(this.node, {
-                rx: value,
-                ry: value
-            });
-        }
-    })(-1);
-    eve.on("snap.util.attr.textpath", function (value) {
-        eve.stop();
-        if (this.type == "text") {
-            var id, tp, node;
-            if (!value && this.textPath) {
-                tp = this.textPath;
-                while (tp.node.firstChild) {
-                    this.node.appendChild(tp.node.firstChild);
-                }
-                tp.remove();
-                delete this.textPath;
-                return;
-            }
-            if (is(value, "string")) {
-                var defs = getSomeDefs(this),
-                    path = wrap(defs.parentNode).path(value);
-                defs.appendChild(path.node);
-                id = path.id;
-                path.attr({id: id});
-            } else {
-                value = wrap(value);
-                if (value instanceof Element) {
-                    id = value.attr("id");
-                    if (!id) {
-                        id = value.id;
-                        value.attr({id: id});
-                    }
-                }
-            }
-            if (id) {
-                tp = this.textPath;
-                node = this.node;
-                if (tp) {
-                    tp.attr({"xlink:href": "#" + id});
-                } else {
-                    tp = $("textPath", {
-                        "xlink:href": "#" + id
-                    });
-                    while (node.firstChild) {
-                        tp.appendChild(node.firstChild);
-                    }
-                    node.appendChild(tp);
-                    this.textPath = wrap(tp);
-                }
-            }
-        }
-    })(-1);
-    eve.on("snap.util.attr.text", function (value) {
-        if (this.type == "text") {
-            var i = 0,
-                node = this.node,
-                tuner = function (chunk) {
-                    var out = $("tspan");
-                    if (is(chunk, "array")) {
-                        for (var i = 0; i < chunk.length; i++) {
-                            out.appendChild(tuner(chunk[i]));
-                        }
-                    } else {
-                        out.appendChild(glob.doc.createTextNode(chunk));
-                    }
-                    out.normalize && out.normalize();
-                    return out;
-                };
-            while (node.firstChild) {
-                node.removeChild(node.firstChild);
-            }
-            var tuned = tuner(value);
-            while (tuned.firstChild) {
-                node.appendChild(tuned.firstChild);
-            }
-        }
-        eve.stop();
-    })(-1);
-    function setFontSize(value) {
-        eve.stop();
-        if (value == +value) {
-            value += "px";
-        }
-        this.node.style.fontSize = value;
-    }
-    eve.on("snap.util.attr.fontSize", setFontSize)(-1);
-    eve.on("snap.util.attr.font-size", setFontSize)(-1);
-
-
-    eve.on("snap.util.getattr.transform", function () {
-        eve.stop();
-        return this.transform();
-    })(-1);
-    eve.on("snap.util.getattr.textpath", function () {
-        eve.stop();
-        return this.textPath;
-    })(-1);
-    // Markers
-    (function () {
-        function getter(end) {
-            return function () {
-                eve.stop();
-                var style = glob.doc.defaultView.getComputedStyle(this.node, null).getPropertyValue("marker-" + end);
-                if (style == "none") {
-                    return style;
-                } else {
-                    return Snap(glob.doc.getElementById(style.match(reURLValue)[1]));
-                }
-            };
-        }
-        function setter(end) {
-            return function (value) {
-                eve.stop();
-                var name = "marker" + end.charAt(0).toUpperCase() + end.substring(1);
-                if (value == "" || !value) {
-                    this.node.style[name] = "none";
-                    return;
-                }
-                if (value.type == "marker") {
-                    var id = value.node.id;
-                    if (!id) {
-                        $(value.node, {id: value.id});
-                    }
-                    this.node.style[name] = URL(id);
-                    return;
-                }
-            };
-        }
-        eve.on("snap.util.getattr.marker-end", getter("end"))(-1);
-        eve.on("snap.util.getattr.markerEnd", getter("end"))(-1);
-        eve.on("snap.util.getattr.marker-start", getter("start"))(-1);
-        eve.on("snap.util.getattr.markerStart", getter("start"))(-1);
-        eve.on("snap.util.getattr.marker-mid", getter("mid"))(-1);
-        eve.on("snap.util.getattr.markerMid", getter("mid"))(-1);
-        eve.on("snap.util.attr.marker-end", setter("end"))(-1);
-        eve.on("snap.util.attr.markerEnd", setter("end"))(-1);
-        eve.on("snap.util.attr.marker-start", setter("start"))(-1);
-        eve.on("snap.util.attr.markerStart", setter("start"))(-1);
-        eve.on("snap.util.attr.marker-mid", setter("mid"))(-1);
-        eve.on("snap.util.attr.markerMid", setter("mid"))(-1);
-    }());
-    eve.on("snap.util.getattr.r", function () {
-        if (this.type == "rect" && $(this.node, "rx") == $(this.node, "ry")) {
-            eve.stop();
-            return $(this.node, "rx");
-        }
-    })(-1);
-    function textExtract(node) {
-        var out = [];
-        var children = node.childNodes;
-        for (var i = 0, ii = children.length; i < ii; i++) {
-            var chi = children[i];
-            if (chi.nodeType == 3) {
-                out.push(chi.nodeValue);
-            }
-            if (chi.tagName == "tspan") {
-                if (chi.childNodes.length == 1 && chi.firstChild.nodeType == 3) {
-                    out.push(chi.firstChild.nodeValue);
-                } else {
-                    out.push(textExtract(chi));
-                }
-            }
-        }
-        return out;
-    }
-    eve.on("snap.util.getattr.text", function () {
-        if (this.type == "text" || this.type == "tspan") {
-            eve.stop();
-            var out = textExtract(this.node);
-            return out.length == 1 ? out[0] : out;
-        }
-    })(-1);
-    eve.on("snap.util.getattr.#text", function () {
-        return this.node.textContent;
-    })(-1);
-    eve.on("snap.util.getattr.viewBox", function () {
-        eve.stop();
-        var vb = $(this.node, "viewBox");
-        if (vb) {
-            vb = vb.split(separator);
-            return Snap._.box(+vb[0], +vb[1], +vb[2], +vb[3]);
-        } else {
-            return;
-        }
-    })(-1);
-    eve.on("snap.util.getattr.points", function () {
-        var p = $(this.node, "points");
-        eve.stop();
-        if (p) {
-            return p.split(separator);
-        } else {
-            return;
-        }
-    })(-1);
-    eve.on("snap.util.getattr.path", function () {
-        var p = $(this.node, "d");
-        eve.stop();
-        return p;
-    })(-1);
-    eve.on("snap.util.getattr.class", function () {
-        return this.node.className.baseVal;
-    })(-1);
-    function getFontSize() {
-        eve.stop();
-        return this.node.style.fontSize;
-    }
-    eve.on("snap.util.getattr.fontSize", getFontSize)(-1);
-    eve.on("snap.util.getattr.font-size", getFontSize)(-1);
-});
-
-// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
-// 
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-// 
-// http://www.apache.org/licenses/LICENSE-2.0
-// 
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-Snap.plugin(function (Snap, Element, Paper, glob, Fragment) {
-    var proto = Paper.prototype,
-        is = Snap.is;
-    /*\
-     * Paper.rect
-     [ method ]
-     *
-     * Draws a rectangle
-     **
-     - x (number) x coordinate of the top left corner
-     - y (number) y coordinate of the top left corner
-     - width (number) width
-     - height (number) height
-     - rx (number) #optional horizontal radius for rounded corners, default is 0
-     - ry (number) #optional vertical radius for rounded corners, default is rx or 0
-     = (object) the `rect` element
-     **
-     > Usage
-     | // regular rectangle
-     | var c = paper.rect(10, 10, 50, 50);
-     | // rectangle with rounded corners
-     | var c = paper.rect(40, 40, 50, 50, 10);
-    \*/
-    proto.rect = function (x, y, w, h, rx, ry) {
-        var attr;
-        if (ry == null) {
-            ry = rx;
-        }
-        if (is(x, "object") && x == "[object Object]") {
-            attr = x;
-        } else if (x != null) {
-            attr = {
-                x: x,
-                y: y,
-                width: w,
-                height: h
-            };
-            if (rx != null) {
-                attr.rx = rx;
-                attr.ry = ry;
-            }
-        }
-        return this.el("rect", attr);
-    };
-    /*\
-     * Paper.circle
-     [ method ]
-     **
-     * Draws a circle
-     **
-     - x (number) x coordinate of the centre
-     - y (number) y coordinate of the centre
-     - r (number) radius
-     = (object) the `circle` element
-     **
-     > Usage
-     | var c = paper.circle(50, 50, 40);
-    \*/
-    proto.circle = function (cx, cy, r) {
-        var attr;
-        if (is(cx, "object") && cx == "[object Object]") {
-            attr = cx;
-        } else if (cx != null) {
-            attr = {
-                cx: cx,
-                cy: cy,
-                r: r
-            };
-        }
-        return this.el("circle", attr);
-    };
-
-    var preload = (function () {
-        function onerror() {
-            this.parentNode.removeChild(this);
-        }
-        return function (src, f) {
-            var img = glob.doc.createElement("img"),
-                body = glob.doc.body;
-            img.style.cssText = "position:absolute;left:-9999em;top:-9999em";
-            img.onload = function () {
-                f.call(img);
-                img.onload = img.onerror = null;
-                body.removeChild(img);
-            };
-            img.onerror = onerror;
-            body.appendChild(img);
-            img.src = src;
-        };
-    }());
-
-    /*\
-     * Paper.image
-     [ method ]
-     **
-     * Places an image on the surface
-     **
-     - src (string) URI of the source image
-     - x (number) x offset position
-     - y (number) y offset position
-     - width (number) width of the image
-     - height (number) height of the image
-     = (object) the `image` element
-     * or
-     = (object) Snap element object with type `image`
-     **
-     > Usage
-     | var c = paper.image("apple.png", 10, 10, 80, 80);
-    \*/
-    proto.image = function (src, x, y, width, height) {
-        var el = this.el("image");
-        if (is(src, "object") && "src" in src) {
-            el.attr(src);
-        } else if (src != null) {
-            var set = {
-                "xlink:href": src,
-                preserveAspectRatio: "none"
-            };
-            if (x != null && y != null) {
-                set.x = x;
-                set.y = y;
-            }
-            if (width != null && height != null) {
-                set.width = width;
-                set.height = height;
-            } else {
-                preload(src, function () {
-                    Snap._.$(el.node, {
-                        width: this.offsetWidth,
-                        height: this.offsetHeight
-                    });
-                });
-            }
-            Snap._.$(el.node, set);
-        }
-        return el;
-    };
-    /*\
-     * Paper.ellipse
-     [ method ]
-     **
-     * Draws an ellipse
-     **
-     - x (number) x coordinate of the centre
-     - y (number) y coordinate of the centre
-     - rx (number) horizontal radius
-     - ry (number) vertical radius
-     = (object) the `ellipse` element
-     **
-     > Usage
-     | var c = paper.ellipse(50, 50, 40, 20);
-    \*/
-    proto.ellipse = function (cx, cy, rx, ry) {
-        var attr;
-        if (is(cx, "object") && cx == "[object Object]") {
-            attr = cx;
-        } else if (cx != null) {
-            attr ={
-                cx: cx,
-                cy: cy,
-                rx: rx,
-                ry: ry
-            };
-        }
-        return this.el("ellipse", attr);
-    };
-    // SIERRA Paper.path(): Unclear from the link what a Catmull-Rom curveto is, and why it would make life any easier.
-    /*\
-     * Paper.path
-     [ method ]
-     **
-     * Creates a `<path>` element using the given string as the path's definition
-     - pathString (string) #optional path string in SVG format
-     * Path string consists of one-letter commands, followed by comma seprarated arguments in numerical form. Example:
-     | "M10,20L30,40"
-     * This example features two commands: `M`, with arguments `(10, 20)` and `L` with arguments `(30, 40)`. Uppercase letter commands express coordinates in absolute terms, while lowercase commands express them in relative terms from the most recently declared coordinates.
-     *
-     # <p>Here is short list of commands available, for more details see <a href="http://www.w3.org/TR/SVG/paths.html#PathData" title="Details of a path's data attribute's format are described in the SVG specification.">SVG path string format</a> or <a href="https://developer.mozilla.org/en/SVG/Tutorial/Paths">article about path strings at MDN</a>.</p>
-     # <table><thead><tr><th>Command</th><th>Name</th><th>Parameters</th></tr></thead><tbody>
-     # <tr><td>M</td><td>moveto</td><td>(x y)+</td></tr>
-     # <tr><td>Z</td><td>closepath</td><td>(none)</td></tr>
-     # <tr><td>L</td><td>lineto</td><td>(x y)+</td></tr>
-     # <tr><td>H</td><td>horizontal lineto</td><td>x+</td></tr>
-     # <tr><td>V</td><td>vertical lineto</td><td>y+</td></tr>
-     # <tr><td>C</td><td>curveto</td><td>(x1 y1 x2 y2 x y)+</td></tr>
-     # <tr><td>S</td><td>smooth curveto</td><td>(x2 y2 x y)+</td></tr>
-     # <tr><td>Q</td><td>quadratic Bézier curveto</td><td>(x1 y1 x y)+</td></tr>
-     # <tr><td>T</td><td>smooth quadratic Bézier curveto</td><td>(x y)+</td></tr>
-     # <tr><td>A</td><td>elliptical arc</td><td>(rx ry x-axis-rotation large-arc-flag sweep-flag x y)+</td></tr>
-     # <tr><td>R</td><td><a href="http://en.wikipedia.org/wiki/Catmull–Rom_spline#Catmull.E2.80.93Rom_spline">Catmull-Rom curveto</a>*</td><td>x1 y1 (x y)+</td></tr></tbody></table>
-     * * _Catmull-Rom curveto_ is a not standard SVG command and added to make life easier.
-     * Note: there is a special case when a path consists of only three commands: `M10,10R…z`. In this case the path connects back to its starting point.
-     > Usage
-     | var c = paper.path("M10 10L90 90");
-     | // draw a diagonal line:
-     | // move to 10,10, line to 90,90
-    \*/
-    proto.path = function (d) {
-        var attr;
-        if (is(d, "object") && !is(d, "array")) {
-            attr = d;
-        } else if (d) {
-            attr = {d: d};
-        }
-        return this.el("path", attr);
-    };
-    /*\
-     * Paper.g
-     [ method ]
-     **
-     * Creates a group element
-     **
-     - varargs (…) #optional elements to nest within the group
-     = (object) the `g` element
-     **
-     > Usage
-     | var c1 = paper.circle(),
-     |     c2 = paper.rect(),
-     |     g = paper.g(c2, c1); // note that the order of elements is different
-     * or
-     | var c1 = paper.circle(),
-     |     c2 = paper.rect(),
-     |     g = paper.g();
-     | g.add(c2, c1);
-    \*/
-    /*\
-     * Paper.group
-     [ method ]
-     **
-     * See @Paper.g
-    \*/
-    proto.group = proto.g = function (first) {
-        var attr,
-            el = this.el("g");
-        if (arguments.length == 1 && first && !first.type) {
-            el.attr(first);
-        } else if (arguments.length) {
-            el.add(Array.prototype.slice.call(arguments, 0));
-        }
-        return el;
-    };
-    /*\
-     * Paper.svg
-     [ method ]
-     **
-     * Creates a nested SVG element.
-     - x (number) @optional X of the element
-     - y (number) @optional Y of the element
-     - width (number) @optional width of the element
-     - height (number) @optional height of the element
-     - vbx (number) @optional viewbox X
-     - vby (number) @optional viewbox Y
-     - vbw (number) @optional viewbox width
-     - vbh (number) @optional viewbox height
-     **
-     = (object) the `svg` element
-     **
-    \*/
-    proto.svg = function (x, y, width, height, vbx, vby, vbw, vbh) {
-        var attrs = {};
-        if (is(x, "object") && y == null) {
-            attrs = x;
-        } else {
-            if (x != null) {
-                attrs.x = x;
-            }
-            if (y != null) {
-                attrs.y = y;
-            }
-            if (width != null) {
-                attrs.width = width;
-            }
-            if (height != null) {
-                attrs.height = height;
-            }
-            if (vbx != null && vby != null && vbw != null && vbh != null) {
-                attrs.viewBox = [vbx, vby, vbw, vbh];
-            }
-        }
-        return this.el("svg", attrs);
-    };
-    /*\
-     * Paper.mask
-     [ method ]
-     **
-     * Equivalent in behaviour to @Paper.g, except it’s a mask.
-     **
-     = (object) the `mask` element
-     **
-    \*/
-    proto.mask = function (first) {
-        var attr,
-            el = this.el("mask");
-        if (arguments.length == 1 && first && !first.type) {
-            el.attr(first);
-        } else if (arguments.length) {
-            el.add(Array.prototype.slice.call(arguments, 0));
-        }
-        return el;
-    };
-    /*\
-     * Paper.ptrn
-     [ method ]
-     **
-     * Equivalent in behaviour to @Paper.g, except it’s a pattern.
-     - x (number) @optional X of the element
-     - y (number) @optional Y of the element
-     - width (number) @optional width of the element
-     - height (number) @optional height of the element
-     - vbx (number) @optional viewbox X
-     - vby (number) @optional viewbox Y
-     - vbw (number) @optional viewbox width
-     - vbh (number) @optional viewbox height
-     **
-     = (object) the `pattern` element
-     **
-    \*/
-    proto.ptrn = function (x, y, width, height, vx, vy, vw, vh) {
-        if (is(x, "object")) {
-            var attr = x;
-        } else {
-            attr = {patternUnits: "userSpaceOnUse"};
-            if (x) {
-                attr.x = x;
-            }
-            if (y) {
-                attr.y = y;
-            }
-            if (width != null) {
-                attr.width = width;
-            }
-            if (height != null) {
-                attr.height = height;
-            }
-            if (vx != null && vy != null && vw != null && vh != null) {
-                attr.viewBox = [vx, vy, vw, vh];
-            }
-        }
-        return this.el("pattern", attr);
-    };
-    /*\
-     * Paper.use
-     [ method ]
-     **
-     * Creates a <use> element.
-     - id (string) @optional id of element to link
-     * or
-     - id (Element) @optional element to link
-     **
-     = (object) the `use` element
-     **
-    \*/
-    proto.use = function (id) {
-        if (id != null) {
-            if (id instanceof Element) {
-                if (!id.attr("id")) {
-                    id.attr({id: Snap._.id(id)});
-                }
-                id = id.attr("id");
-            }
-            if (String(id).charAt() == "#") {
-                id = id.substring(1);
-            }
-            return this.el("use", {"xlink:href": "#" + id});
-        } else {
-            return Element.prototype.use.call(this);
-        }
-    };
-    /*\
-     * Paper.symbol
-     [ method ]
-     **
-     * Creates a <symbol> element.
-     - vbx (number) @optional viewbox X
-     - vby (number) @optional viewbox Y
-     - vbw (number) @optional viewbox width
-     - vbh (number) @optional viewbox height
-     = (object) the `symbol` element
-     **
-    \*/
-    proto.symbol = function (vx, vy, vw, vh) {
-        var attr = {};
-        if (vx != null && vy != null && vw != null && vh != null) {
-            attr.viewBox = [vx, vy, vw, vh];
-        }
-
-        return this.el("symbol", attr);
-    };
-    /*\
-     * Paper.text
-     [ method ]
-     **
-     * Draws a text string
-     **
-     - x (number) x coordinate position
-     - y (number) y coordinate position
-     - text (string|array) The text string to draw or array of strings to nest within separate `<tspan>` elements
-     = (object) the `text` element
-     **
-     > Usage
-     | var t1 = paper.text(50, 50, "Snap");
-     | var t2 = paper.text(50, 50, ["S","n","a","p"]);
-     | // Text path usage
-     | t1.attr({textpath: "M10,10L100,100"});
-     | // or
-     | var pth = paper.path("M10,10L100,100");
-     | t1.attr({textpath: pth});
-    \*/
-    proto.text = function (x, y, text) {
-        var attr = {};
-        if (is(x, "object")) {
-            attr = x;
-        } else if (x != null) {
-            attr = {
-                x: x,
-                y: y,
-                text: text || ""
-            };
-        }
-        return this.el("text", attr);
-    };
-    /*\
-     * Paper.line
-     [ method ]
-     **
-     * Draws a line
-     **
-     - x1 (number) x coordinate position of the start
-     - y1 (number) y coordinate position of the start
-     - x2 (number) x coordinate position of the end
-     - y2 (number) y coordinate position of the end
-     = (object) the `line` element
-     **
-     > Usage
-     | var t1 = paper.line(50, 50, 100, 100);
-    \*/
-    proto.line = function (x1, y1, x2, y2) {
-        var attr = {};
-        if (is(x1, "object")) {
-            attr = x1;
-        } else if (x1 != null) {
-            attr = {
-                x1: x1,
-                x2: x2,
-                y1: y1,
-                y2: y2
-            };
-        }
-        return this.el("line", attr);
-    };
-    /*\
-     * Paper.polyline
-     [ method ]
-     **
-     * Draws a polyline
-     **
-     - points (array) array of points
-     * or
-     - varargs (…) points
-     = (object) the `polyline` element
-     **
-     > Usage
-     | var p1 = paper.polyline([10, 10, 100, 100]);
-     | var p2 = paper.polyline(10, 10, 100, 100);
-    \*/
-    proto.polyline = function (points) {
-        if (arguments.length > 1) {
-            points = Array.prototype.slice.call(arguments, 0);
-        }
-        var attr = {};
-        if (is(points, "object") && !is(points, "array")) {
-            attr = points;
-        } else if (points != null) {
-            attr = {points: points};
-        }
-        return this.el("polyline", attr);
-    };
-    /*\
-     * Paper.polygon
-     [ method ]
-     **
-     * Draws a polygon. See @Paper.polyline
-    \*/
-    proto.polygon = function (points) {
-        if (arguments.length > 1) {
-            points = Array.prototype.slice.call(arguments, 0);
-        }
-        var attr = {};
-        if (is(points, "object") && !is(points, "array")) {
-            attr = points;
-        } else if (points != null) {
-            attr = {points: points};
-        }
-        return this.el("polygon", attr);
-    };
-    // gradients
-    (function () {
-        var $ = Snap._.$;
-        // gradients' helpers
-        function Gstops() {
-            return this.selectAll("stop");
-        }
-        function GaddStop(color, offset) {
-            var stop = $("stop"),
-                attr = {
-                    offset: +offset + "%"
-                };
-            color = Snap.color(color);
-            attr["stop-color"] = color.hex;
-            if (color.opacity < 1) {
-                attr["stop-opacity"] = color.opacity;
-            }
-            $(stop, attr);
-            this.node.appendChild(stop);
-            return this;
-        }
-        function GgetBBox() {
-            if (this.type == "linearGradient") {
-                var x1 = $(this.node, "x1") || 0,
-                    x2 = $(this.node, "x2") || 1,
-                    y1 = $(this.node, "y1") || 0,
-                    y2 = $(this.node, "y2") || 0;
-                return Snap._.box(x1, y1, math.abs(x2 - x1), math.abs(y2 - y1));
-            } else {
-                var cx = this.node.cx || .5,
-                    cy = this.node.cy || .5,
-                    r = this.node.r || 0;
-                return Snap._.box(cx - r, cy - r, r * 2, r * 2);
-            }
-        }
-        function gradient(defs, str) {
-            var grad = eve("snap.util.grad.parse", null, str).firstDefined(),
-                el;
-            if (!grad) {
-                return null;
-            }
-            grad.params.unshift(defs);
-            if (grad.type.toLowerCase() == "l") {
-                el = gradientLinear.apply(0, grad.params);
-            } else {
-                el = gradientRadial.apply(0, grad.params);
-            }
-            if (grad.type != grad.type.toLowerCase()) {
-                $(el.node, {
-                    gradientUnits: "userSpaceOnUse"
-                });
-            }
-            var stops = grad.stops,
-                len = stops.length,
-                start = 0,
-                j = 0;
-            function seed(i, end) {
-                var step = (end - start) / (i - j);
-                for (var k = j; k < i; k++) {
-                    stops[k].offset = +(+start + step * (k - j)).toFixed(2);
-                }
-                j = i;
-                start = end;
-            }
-            len--;
-            for (var i = 0; i < len; i++) if ("offset" in stops[i]) {
-                seed(i, stops[i].offset);
-            }
-            stops[len].offset = stops[len].offset || 100;
-            seed(len, stops[len].offset);
-            for (i = 0; i <= len; i++) {
-                var stop = stops[i];
-                el.addStop(stop.color, stop.offset);
-            }
-            return el;
-        }
-        function gradientLinear(defs, x1, y1, x2, y2) {
-            var el = Snap._.make("linearGradient", defs);
-            el.stops = Gstops;
-            el.addStop = GaddStop;
-            el.getBBox = GgetBBox;
-            if (x1 != null) {
-                $(el.node, {
-                    x1: x1,
-                    y1: y1,
-                    x2: x2,
-                    y2: y2
-                });
-            }
-            return el;
-        }
-        function gradientRadial(defs, cx, cy, r, fx, fy) {
-            var el = Snap._.make("radialGradient", defs);
-            el.stops = Gstops;
-            el.addStop = GaddStop;
-            el.getBBox = GgetBBox;
-            if (cx != null) {
-                $(el.node, {
-                    cx: cx,
-                    cy: cy,
-                    r: r
-                });
-            }
-            if (fx != null && fy != null) {
-                $(el.node, {
-                    fx: fx,
-                    fy: fy
-                });
-            }
-            return el;
-        }
-        /*\
-         * Paper.gradient
-         [ method ]
-         **
-         * Creates a gradient element
-         **
-         - gradient (string) gradient descriptor
-         > Gradient Descriptor
-         * The gradient descriptor is an expression formatted as
-         * follows: `<type>(<coords>)<colors>`.  The `<type>` can be
-         * either linear or radial.  The uppercase `L` or `R` letters
-         * indicate absolute coordinates offset from the SVG surface.
-         * Lowercase `l` or `r` letters indicate coordinates
-         * calculated relative to the element to which the gradient is
-         * applied.  Coordinates specify a linear gradient vector as
-         * `x1`, `y1`, `x2`, `y2`, or a radial gradient as `cx`, `cy`,
-         * `r` and optional `fx`, `fy` specifying a focal point away
-         * from the center of the circle. Specify `<colors>` as a list
-         * of dash-separated CSS color values.  Each color may be
-         * followed by a custom offset value, separated with a colon
-         * character.
-         > Examples
-         * Linear gradient, relative from top-left corner to bottom-right
-         * corner, from black through red to white:
-         | var g = paper.gradient("l(0, 0, 1, 1)#000-#f00-#fff");
-         * Linear gradient, absolute from (0, 0) to (100, 100), from black
-         * through red at 25% to white:
-         | var g = paper.gradient("L(0, 0, 100, 100)#000-#f00:25-#fff");
-         * Radial gradient, relative from the center of the element with radius
-         * half the width, from black to white:
-         | var g = paper.gradient("r(0.5, 0.5, 0.5)#000-#fff");
-         * To apply the gradient:
-         | paper.circle(50, 50, 40).attr({
-         |     fill: g
-         | });
-         = (object) the `gradient` element
-        \*/
-        proto.gradient = function (str) {
-            return gradient(this.defs, str);
-        };
-        proto.gradientLinear = function (x1, y1, x2, y2) {
-            return gradientLinear(this.defs, x1, y1, x2, y2);
-        };
-        proto.gradientRadial = function (cx, cy, r, fx, fy) {
-            return gradientRadial(this.defs, cx, cy, r, fx, fy);
-        };
-        /*\
-         * Paper.toString
-         [ method ]
-         **
-         * Returns SVG code for the @Paper
-         = (string) SVG code for the @Paper
-        \*/
-        proto.toString = function () {
-            var doc = this.node.ownerDocument,
-                f = doc.createDocumentFragment(),
-                d = doc.createElement("div"),
-                svg = this.node.cloneNode(true),
-                res;
-            f.appendChild(d);
-            d.appendChild(svg);
-            Snap._.$(svg, {xmlns: "http://www.w3.org/2000/svg"});
-            res = d.innerHTML;
-            f.removeChild(f.firstChild);
-            return res;
-        };
-        /*\
-         * Paper.toDataURL
-         [ method ]
-         **
-         * Returns SVG code for the @Paper as Data URI string.
-         = (string) Data URI string
-        \*/
-        proto.toDataURL = function () {
-            if (window && window.btoa) {
-                return "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(this)));
-            }
-        };
-        /*\
-         * Paper.clear
-         [ method ]
-         **
-         * Removes all child nodes of the paper, except <defs>.
-        \*/
-        proto.clear = function () {
-            var node = this.node.firstChild,
-                next;
-            while (node) {
-                next = node.nextSibling;
-                if (node.tagName != "defs") {
-                    node.parentNode.removeChild(node);
-                } else {
-                    proto.clear.call({node: node});
-                }
-                node = next;
-            }
-        };
-    }());
-});
-
-// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
-// 
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-// 
-// http://www.apache.org/licenses/LICENSE-2.0
-// 
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-Snap.plugin(function (Snap, Element, Paper, glob) {
-    var elproto = Element.prototype,
-        is = Snap.is,
-        clone = Snap._.clone,
-        has = "hasOwnProperty",
-        p2s = /,?([a-z]),?/gi,
-        toFloat = parseFloat,
-        math = Math,
-        PI = math.PI,
-        mmin = math.min,
-        mmax = math.max,
-        pow = math.pow,
-        abs = math.abs;
-    function paths(ps) {
-        var p = paths.ps = paths.ps || {};
-        if (p[ps]) {
-            p[ps].sleep = 100;
-        } else {
-            p[ps] = {
-                sleep: 100
-            };
-        }
-        setTimeout(function () {
-            for (var key in p) if (p[has](key) && key != ps) {
-                p[key].sleep--;
-                !p[key].sleep && delete p[key];
-            }
-        });
-        return p[ps];
-    }
-    function box(x, y, width, height) {
-        if (x == null) {
-            x = y = width = height = 0;
-        }
-        if (y == null) {
-            y = x.y;
-            width = x.width;
-            height = x.height;
-            x = x.x;
-        }
-        return {
-            x: x,
-            y: y,
-            width: width,
-            w: width,
-            height: height,
-            h: height,
-            x2: x + width,
-            y2: y + height,
-            cx: x + width / 2,
-            cy: y + height / 2,
-            r1: math.min(width, height) / 2,
-            r2: math.max(width, height) / 2,
-            r0: math.sqrt(width * width + height * height) / 2,
-            path: rectPath(x, y, width, height),
-            vb: [x, y, width, height].join(" ")
-        };
-    }
-    function toString() {
-        return this.join(",").replace(p2s, "$1");
-    }
-    function pathClone(pathArray) {
-        var res = clone(pathArray);
-        res.toString = toString;
-        return res;
-    }
-    function getPointAtSegmentLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, length) {
-        if (length == null) {
-            return bezlen(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y);
-        } else {
-            return findDotsAtSegment(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y,
-                getTotLen(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, length));
-        }
-    }
-    function getLengthFactory(istotal, subpath) {
-        function O(val) {
-            return +(+val).toFixed(3);
-        }
-        return Snap._.cacher(function (path, length, onlystart) {
-            if (path instanceof Element) {
-                path = path.attr("d");
-            }
-            path = path2curve(path);
-            var x, y, p, l, sp = "", subpaths = {}, point,
-                len = 0;
-            for (var i = 0, ii = path.length; i < ii; i++) {
-                p = path[i];
-                if (p[0] == "M") {
-                    x = +p[1];
-                    y = +p[2];
-                } else {
-                    l = getPointAtSegmentLength(x, y, p[1], p[2], p[3], p[4], p[5], p[6]);
-                    if (len + l > length) {
-                        if (subpath && !subpaths.start) {
-                            point = getPointAtSegmentLength(x, y, p[1], p[2], p[3], p[4], p[5], p[6], length - len);
-                            sp += [
-                                "C" + O(point.start.x),
-                                O(point.start.y),
-                                O(point.m.x),
-                                O(point.m.y),
-                                O(point.x),
-                                O(point.y)
-                            ];
-                            if (onlystart) {return sp;}
-                            subpaths.start = sp;
-                            sp = [
-                                "M" + O(point.x),
-                                O(point.y) + "C" + O(point.n.x),
-                                O(point.n.y),
-                                O(point.end.x),
-                                O(point.end.y),
-                                O(p[5]),
-                                O(p[6])
-                            ].join();
-                            len += l;
-                            x = +p[5];
-                            y = +p[6];
-                            continue;
-                        }
-                        if (!istotal && !subpath) {
-                            point = getPointAtSegmentLength(x, y, p[1], p[2], p[3], p[4], p[5], p[6], length - len);
-                            return point;
-                        }
-                    }
-                    len += l;
-                    x = +p[5];
-                    y = +p[6];
-                }
-                sp += p.shift() + p;
-            }
-            subpaths.end = sp;
-            point = istotal ? len : subpath ? subpaths : findDotsAtSegment(x, y, p[0], p[1], p[2], p[3], p[4], p[5], 1);
-            return point;
-        }, null, Snap._.clone);
-    }
-    var getTotalLength = getLengthFactory(1),
-        getPointAtLength = getLengthFactory(),
-        getSubpathsAtLength = getLengthFactory(0, 1);
-    function findDotsAtSegment(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t) {
-        var t1 = 1 - t,
-            t13 = pow(t1, 3),
-            t12 = pow(t1, 2),
-            t2 = t * t,
-            t3 = t2 * t,
-            x = t13 * p1x + t12 * 3 * t * c1x + t1 * 3 * t * t * c2x + t3 * p2x,
-            y = t13 * p1y + t12 * 3 * t * c1y + t1 * 3 * t * t * c2y + t3 * p2y,
-            mx = p1x + 2 * t * (c1x - p1x) + t2 * (c2x - 2 * c1x + p1x),
-            my = p1y + 2 * t * (c1y - p1y) + t2 * (c2y - 2 * c1y + p1y),
-            nx = c1x + 2 * t * (c2x - c1x) + t2 * (p2x - 2 * c2x + c1x),
-            ny = c1y + 2 * t * (c2y - c1y) + t2 * (p2y - 2 * c2y + c1y),
-            ax = t1 * p1x + t * c1x,
-            ay = t1 * p1y + t * c1y,
-            cx = t1 * c2x + t * p2x,
-            cy = t1 * c2y + t * p2y,
-            alpha = (90 - math.atan2(mx - nx, my - ny) * 180 / PI);
-        // (mx > nx || my < ny) && (alpha += 180);
-        return {
-            x: x,
-            y: y,
-            m: {x: mx, y: my},
-            n: {x: nx, y: ny},
-            start: {x: ax, y: ay},
-            end: {x: cx, y: cy},
-            alpha: alpha
-        };
-    }
-    function bezierBBox(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y) {
-        if (!Snap.is(p1x, "array")) {
-            p1x = [p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y];
-        }
-        var bbox = curveDim.apply(null, p1x);
-        return box(
-            bbox.min.x,
-            bbox.min.y,
-            bbox.max.x - bbox.min.x,
-            bbox.max.y - bbox.min.y
-        );
-    }
-    function isPointInsideBBox(bbox, x, y) {
-        return  x >= bbox.x &&
-                x <= bbox.x + bbox.width &&
-                y >= bbox.y &&
-                y <= bbox.y + bbox.height;
-    }
-    function isBBoxIntersect(bbox1, bbox2) {
-        bbox1 = box(bbox1);
-        bbox2 = box(bbox2);
-        return isPointInsideBBox(bbox2, bbox1.x, bbox1.y)
-            || isPointInsideBBox(bbox2, bbox1.x2, bbox1.y)
-            || isPointInsideBBox(bbox2, bbox1.x, bbox1.y2)
-            || isPointInsideBBox(bbox2, bbox1.x2, bbox1.y2)
-            || isPointInsideBBox(bbox1, bbox2.x, bbox2.y)
-            || isPointInsideBBox(bbox1, bbox2.x2, bbox2.y)
-            || isPointInsideBBox(bbox1, bbox2.x, bbox2.y2)
-            || isPointInsideBBox(bbox1, bbox2.x2, bbox2.y2)
-            || (bbox1.x < bbox2.x2 && bbox1.x > bbox2.x
-                || bbox2.x < bbox1.x2 && bbox2.x > bbox1.x)
-            && (bbox1.y < bbox2.y2 && bbox1.y > bbox2.y
-                || bbox2.y < bbox1.y2 && bbox2.y > bbox1.y);
-    }
-    function base3(t, p1, p2, p3, p4) {
-        var t1 = -3 * p1 + 9 * p2 - 9 * p3 + 3 * p4,
-            t2 = t * t1 + 6 * p1 - 12 * p2 + 6 * p3;
-        return t * t2 - 3 * p1 + 3 * p2;
-    }
-    function bezlen(x1, y1, x2, y2, x3, y3, x4, y4, z) {
-        if (z == null) {
-            z = 1;
-        }
-        z = z > 1 ? 1 : z < 0 ? 0 : z;
-        var z2 = z / 2,
-            n = 12,
-            Tvalues = [-.1252,.1252,-.3678,.3678,-.5873,.5873,-.7699,.7699,-.9041,.9041,-.9816,.9816],
-            Cvalues = [0.2491,0.2491,0.2335,0.2335,0.2032,0.2032,0.1601,0.1601,0.1069,0.1069,0.0472,0.0472],
-            sum = 0;
-        for (var i = 0; i < n; i++) {
-            var ct = z2 * Tvalues[i] + z2,
-                xbase = base3(ct, x1, x2, x3, x4),
-                ybase = base3(ct, y1, y2, y3, y4),
-                comb = xbase * xbase + ybase * ybase;
-            sum += Cvalues[i] * math.sqrt(comb);
-        }
-        return z2 * sum;
-    }
-    function getTotLen(x1, y1, x2, y2, x3, y3, x4, y4, ll) {
-        if (ll < 0 || bezlen(x1, y1, x2, y2, x3, y3, x4, y4) < ll) {
-            return;
-        }
-        var t = 1,
-            step = t / 2,
-            t2 = t - step,
-            l,
-            e = .01;
-        l = bezlen(x1, y1, x2, y2, x3, y3, x4, y4, t2);
-        while (abs(l - ll) > e) {
-            step /= 2;
-            t2 += (l < ll ? 1 : -1) * step;
-            l = bezlen(x1, y1, x2, y2, x3, y3, x4, y4, t2);
-        }
-        return t2;
-    }
-    function intersect(x1, y1, x2, y2, x3, y3, x4, y4) {
-        if (
-            mmax(x1, x2) < mmin(x3, x4) ||
-            mmin(x1, x2) > mmax(x3, x4) ||
-            mmax(y1, y2) < mmin(y3, y4) ||
-            mmin(y1, y2) > mmax(y3, y4)
-        ) {
-            return;
-        }
-        var nx = (x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4),
-            ny = (x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4),
-            denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
-
-        if (!denominator) {
-            return;
-        }
-        var px = nx / denominator,
-            py = ny / denominator,
-            px2 = +px.toFixed(2),
-            py2 = +py.toFixed(2);
-        if (
-            px2 < +mmin(x1, x2).toFixed(2) ||
-            px2 > +mmax(x1, x2).toFixed(2) ||
-            px2 < +mmin(x3, x4).toFixed(2) ||
-            px2 > +mmax(x3, x4).toFixed(2) ||
-            py2 < +mmin(y1, y2).toFixed(2) ||
-            py2 > +mmax(y1, y2).toFixed(2) ||
-            py2 < +mmin(y3, y4).toFixed(2) ||
-            py2 > +mmax(y3, y4).toFixed(2)
-        ) {
-            return;
-        }
-        return {x: px, y: py};
-    }
-    function inter(bez1, bez2) {
-        return interHelper(bez1, bez2);
-    }
-    function interCount(bez1, bez2) {
-        return interHelper(bez1, bez2, 1);
-    }
-    function interHelper(bez1, bez2, justCount) {
-        var bbox1 = bezierBBox(bez1),
-            bbox2 = bezierBBox(bez2);
-        if (!isBBoxIntersect(bbox1, bbox2)) {
-            return justCount ? 0 : [];
-        }
-        var l1 = bezlen.apply(0, bez1),
-            l2 = bezlen.apply(0, bez2),
-            n1 = ~~(l1 / 8),
-            n2 = ~~(l2 / 8),
-            dots1 = [],
-            dots2 = [],
-            xy = {},
-            res = justCount ? 0 : [];
-        for (var i = 0; i < n1 + 1; i++) {
-            var p = findDotsAtSegment.apply(0, bez1.concat(i / n1));
-            dots1.push({x: p.x, y: p.y, t: i / n1});
-        }
-        for (i = 0; i < n2 + 1; i++) {
-            p = findDotsAtSegment.apply(0, bez2.concat(i / n2));
-            dots2.push({x: p.x, y: p.y, t: i / n2});
-        }
-        for (i = 0; i < n1; i++) {
-            for (var j = 0; j < n2; j++) {
-                var di = dots1[i],
-                    di1 = dots1[i + 1],
-                    dj = dots2[j],
-                    dj1 = dots2[j + 1],
-                    ci = abs(di1.x - di.x) < .001 ? "y" : "x",
-                    cj = abs(dj1.x - dj.x) < .001 ? "y" : "x",
-                    is = intersect(di.x, di.y, di1.x, di1.y, dj.x, dj.y, dj1.x, dj1.y);
-                if (is) {
-                    if (xy[is.x.toFixed(4)] == is.y.toFixed(4)) {
-                        continue;
-                    }
-                    xy[is.x.toFixed(4)] = is.y.toFixed(4);
-                    var t1 = di.t + abs((is[ci] - di[ci]) / (di1[ci] - di[ci])) * (di1.t - di.t),
-                        t2 = dj.t + abs((is[cj] - dj[cj]) / (dj1[cj] - dj[cj])) * (dj1.t - dj.t);
-                    if (t1 >= 0 && t1 <= 1 && t2 >= 0 && t2 <= 1) {
-                        if (justCount) {
-                            res++;
-                        } else {
-                            res.push({
-                                x: is.x,
-                                y: is.y,
-                                t1: t1,
-                                t2: t2
-                            });
-                        }
-                    }
-                }
-            }
-        }
-        return res;
-    }
-    function pathIntersection(path1, path2) {
-        return interPathHelper(path1, path2);
-    }
-    function pathIntersectionNumber(path1, path2) {
-        return interPathHelper(path1, path2, 1);
-    }
-    function interPathHelper(path1, path2, justCount) {
-        path1 = path2curve(path1);
-        path2 = path2curve(path2);
-        var x1, y1, x2, y2, x1m, y1m, x2m, y2m, bez1, bez2,
-            res = justCount ? 0 : [];
-        for (var i = 0, ii = path1.length; i < ii; i++) {
-            var pi = path1[i];
-            if (pi[0] == "M") {
-                x1 = x1m = pi[1];
-                y1 = y1m = pi[2];
-            } else {
-                if (pi[0] == "C") {
-                    bez1 = [x1, y1].concat(pi.slice(1));
-                    x1 = bez1[6];
-                    y1 = bez1[7];
-                } else {
-                    bez1 = [x1, y1, x1, y1, x1m, y1m, x1m, y1m];
-                    x1 = x1m;
-                    y1 = y1m;
-                }
-                for (var j = 0, jj = path2.length; j < jj; j++) {
-                    var pj = path2[j];
-                    if (pj[0] == "M") {
-                        x2 = x2m = pj[1];
-                        y2 = y2m = pj[2];
-                    } else {
-                        if (pj[0] == "C") {
-                            bez2 = [x2, y2].concat(pj.slice(1));
-                            x2 = bez2[6];
-                            y2 = bez2[7];
-                        } else {
-                            bez2 = [x2, y2, x2, y2, x2m, y2m, x2m, y2m];
-                            x2 = x2m;
-                            y2 = y2m;
-                        }
-                        var intr = interHelper(bez1, bez2, justCount);
-                        if (justCount) {
-                            res += intr;
-                        } else {
-                            for (var k = 0, kk = intr.length; k < kk; k++) {
-                                intr[k].segment1 = i;
-                                intr[k].segment2 = j;
-                                intr[k].bez1 = bez1;
-                                intr[k].bez2 = bez2;
-                            }
-                            res = res.concat(intr);
-                        }
-                    }
-                }
-            }
-        }
-        return res;
-    }
-    function isPointInsidePath(path, x, y) {
-        var bbox = pathBBox(path);
-        return isPointInsideBBox(bbox, x, y) &&
-               interPathHelper(path, [["M", x, y], ["H", bbox.x2 + 10]], 1) % 2 == 1;
-    }
-    function pathBBox(path) {
-        var pth = paths(path);
-        if (pth.bbox) {
-            return clone(pth.bbox);
-        }
-        if (!path) {
-            return box();
-        }
-        path = path2curve(path);
-        var x = 0, 
-            y = 0,
-            X = [],
-            Y = [],
-            p;
-        for (var i = 0, ii = path.length; i < ii; i++) {
-            p = path[i];
-            if (p[0] == "M") {
-                x = p[1];
-                y = p[2];
-                X.push(x);
-                Y.push(y);
-            } else {
-                var dim = curveDim(x, y, p[1], p[2], p[3], p[4], p[5], p[6]);
-                X = X.concat(dim.min.x, dim.max.x);
-                Y = Y.concat(dim.min.y, dim.max.y);
-                x = p[5];
-                y = p[6];
-            }
-        }
-        var xmin = mmin.apply(0, X),
-            ymin = mmin.apply(0, Y),
-            xmax = mmax.apply(0, X),
-            ymax = mmax.apply(0, Y),
-            bb = box(xmin, ymin, xmax - xmin, ymax - ymin);
-        pth.bbox = clone(bb);
-        return bb;
-    }
-    function rectPath(x, y, w, h, r) {
-        if (r) {
-            return [
-                ["M", +x + (+r), y],
-                ["l", w - r * 2, 0],
-                ["a", r, r, 0, 0, 1, r, r],
-                ["l", 0, h - r * 2],
-                ["a", r, r, 0, 0, 1, -r, r],
-                ["l", r * 2 - w, 0],
-                ["a", r, r, 0, 0, 1, -r, -r],
-                ["l", 0, r * 2 - h],
-                ["a", r, r, 0, 0, 1, r, -r],
-                ["z"]
-            ];
-        }
-        var res = [["M", x, y], ["l", w, 0], ["l", 0, h], ["l", -w, 0], ["z"]];
-        res.toString = toString;
-        return res;
-    }
-    function ellipsePath(x, y, rx, ry, a) {
-        if (a == null && ry == null) {
-            ry = rx;
-        }
-        x = +x;
-        y = +y;
-        rx = +rx;
-        ry = +ry;
-        if (a != null) {
-            var rad = Math.PI / 180,
-                x1 = x + rx * Math.cos(-ry * rad),
-                x2 = x + rx * Math.cos(-a * rad),
-                y1 = y + rx * Math.sin(-ry * rad),
-                y2 = y + rx * Math.sin(-a * rad),
-                res = [["M", x1, y1], ["A", rx, rx, 0, +(a - ry > 180), 0, x2, y2]];
-        } else {
-            res = [
-                ["M", x, y],
-                ["m", 0, -ry],
-                ["a", rx, ry, 0, 1, 1, 0, 2 * ry],
-                ["a", rx, ry, 0, 1, 1, 0, -2 * ry],
-                ["z"]
-            ];
-        }
-        res.toString = toString;
-        return res;
-    }
-    var unit2px = Snap._unit2px,
-        getPath = {
-        path: function (el) {
-            return el.attr("path");
-        },
-        circle: function (el) {
-            var attr = unit2px(el);
-            return ellipsePath(attr.cx, attr.cy, attr.r);
-        },
-        ellipse: function (el) {
-            var attr = unit2px(el);
-            return ellipsePath(attr.cx || 0, attr.cy || 0, attr.rx, attr.ry);
-        },
-        rect: function (el) {
-            var attr = unit2px(el);
-            return rectPath(attr.x || 0, attr.y || 0, attr.width, attr.height, attr.rx, attr.ry);
-        },
-        image: function (el) {
-            var attr = unit2px(el);
-            return rectPath(attr.x || 0, attr.y || 0, attr.width, attr.height);
-        },
-        line: function (el) {
-            return "M" + [el.attr("x1") || 0, el.attr("y1") || 0, el.attr("x2"), el.attr("y2")];
-        },
-        polyline: function (el) {
-            return "M" + el.attr("points");
-        },
-        polygon: function (el) {
-            return "M" + el.attr("points") + "z";
-        },
-        deflt: function (el) {
-            var bbox = el.node.getBBox();
-            return rectPath(bbox.x, bbox.y, bbox.width, bbox.height);
-        }
-    };
-    function pathToRelative(pathArray) {
-        var pth = paths(pathArray),
-            lowerCase = String.prototype.toLowerCase;
-        if (pth.rel) {
-            return pathClone(pth.rel);
-        }
-        if (!Snap.is(pathArray, "array") || !Snap.is(pathArray && pathArray[0], "array")) {
-            pathArray = Snap.parsePathString(pathArray);
-        }
-        var res = [],
-            x = 0,
-            y = 0,
-            mx = 0,
-            my = 0,
-            start = 0;
-        if (pathArray[0][0] == "M") {
-            x = pathArray[0][1];
-            y = pathArray[0][2];
-            mx = x;
-            my = y;
-            start++;
-            res.push(["M", x, y]);
-        }
-        for (var i = start, ii = pathArray.length; i < ii; i++) {
-            var r = res[i] = [],
-                pa = pathArray[i];
-            if (pa[0] != lowerCase.call(pa[0])) {
-                r[0] = lowerCase.call(pa[0]);
-                switch (r[0]) {
-                    case "a":
-                        r[1] = pa[1];
-                        r[2] = pa[2];
-                        r[3] = pa[3];
-                        r[4] = pa[4];
-                        r[5] = pa[5];
-                        r[6] = +(pa[6] - x).toFixed(3);
-                        r[7] = +(pa[7] - y).toFixed(3);
-                        break;
-                    case "v":
-                        r[1] = +(pa[1] - y).toFixed(3);
-                        break;
-                    case "m":
-                        mx = pa[1];
-                        my = pa[2];
-                    default:
-                        for (var j = 1, jj = pa.length; j < jj; j++) {
-                            r[j] = +(pa[j] - ((j % 2) ? x : y)).toFixed(3);
-                        }
-                }
-            } else {
-                r = res[i] = [];
-                if (pa[0] == "m") {
-                    mx = pa[1] + x;
-                    my = pa[2] + y;
-                }
-                for (var k = 0, kk = pa.length; k < kk; k++) {
-                    res[i][k] = pa[k];
-                }
-            }
-            var len = res[i].length;
-            switch (res[i][0]) {
-                case "z":
-                    x = mx;
-                    y = my;
-                    break;
-                case "h":
-                    x += +res[i][len - 1];
-                    break;
-                case "v":
-                    y += +res[i][len - 1];
-                    break;
-                default:
-                    x += +res[i][len - 2];
-                    y += +res[i][len - 1];
-            }
-        }
-        res.toString = toString;
-        pth.rel = pathClone(res);
-        return res;
-    }
-    function pathToAbsolute(pathArray) {
-        var pth = paths(pathArray);
-        if (pth.abs) {
-            return pathClone(pth.abs);
-        }
-        if (!is(pathArray, "array") || !is(pathArray && pathArray[0], "array")) { // rough assumption
-            pathArray = Snap.parsePathString(pathArray);
-        }
-        if (!pathArray || !pathArray.length) {
-            return [["M", 0, 0]];
-        }
-        var res = [],
-            x = 0,
-            y = 0,
-            mx = 0,
-            my = 0,
-            start = 0,
-            pa0;
-        if (pathArray[0][0] == "M") {
-            x = +pathArray[0][1];
-            y = +pathArray[0][2];
-            mx = x;
-            my = y;
-            start++;
-            res[0] = ["M", x, y];
-        }
-        var crz = pathArray.length == 3 &&
-            pathArray[0][0] == "M" &&
-            pathArray[1][0].toUpperCase() == "R" &&
-            pathArray[2][0].toUpperCase() == "Z";
-        for (var r, pa, i = start, ii = pathArray.length; i < ii; i++) {
-            res.push(r = []);
-            pa = pathArray[i];
-            pa0 = pa[0];
-            if (pa0 != pa0.toUpperCase()) {
-                r[0] = pa0.toUpperCase();
-                switch (r[0]) {
-                    case "A":
-                        r[1] = pa[1];
-                        r[2] = pa[2];
-                        r[3] = pa[3];
-                        r[4] = pa[4];
-                        r[5] = pa[5];
-                        r[6] = +pa[6] + x;
-                        r[7] = +pa[7] + y;
-                        break;
-                    case "V":
-                        r[1] = +pa[1] + y;
-                        break;
-                    case "H":
-                        r[1] = +pa[1] + x;
-                        break;
-                    case "R":
-                        var dots = [x, y].concat(pa.slice(1));
-                        for (var j = 2, jj = dots.length; j < jj; j++) {
-                            dots[j] = +dots[j] + x;
-                            dots[++j] = +dots[j] + y;
-                        }
-                        res.pop();
-                        res = res.concat(catmullRom2bezier(dots, crz));
-                        break;
-                    case "O":
-                        res.pop();
-                        dots = ellipsePath(x, y, pa[1], pa[2]);
-                        dots.push(dots[0]);
-                        res = res.concat(dots);
-                        break;
-                    case "U":
-                        res.pop();
-                        res = res.concat(ellipsePath(x, y, pa[1], pa[2], pa[3]));
-                        r = ["U"].concat(res[res.length - 1].slice(-2));
-                        break;
-                    case "M":
-                        mx = +pa[1] + x;
-                        my = +pa[2] + y;
-                    default:
-                        for (j = 1, jj = pa.length; j < jj; j++) {
-                            r[j] = +pa[j] + ((j % 2) ? x : y);
-                        }
-                }
-            } else if (pa0 == "R") {
-                dots = [x, y].concat(pa.slice(1));
-                res.pop();
-                res = res.concat(catmullRom2bezier(dots, crz));
-                r = ["R"].concat(pa.slice(-2));
-            } else if (pa0 == "O") {
-                res.pop();
-                dots = ellipsePath(x, y, pa[1], pa[2]);
-                dots.push(dots[0]);
-                res = res.concat(dots);
-            } else if (pa0 == "U") {
-                res.pop();
-                res = res.concat(ellipsePath(x, y, pa[1], pa[2], pa[3]));
-                r = ["U"].concat(res[res.length - 1].slice(-2));
-            } else {
-                for (var k = 0, kk = pa.length; k < kk; k++) {
-                    r[k] = pa[k];
-                }
-            }
-            pa0 = pa0.toUpperCase();
-            if (pa0 != "O") {
-                switch (r[0]) {
-                    case "Z":
-                        x = +mx;
-                        y = +my;
-                        break;
-                    case "H":
-                        x = r[1];
-                        break;
-                    case "V":
-                        y = r[1];
-                        break;
-                    case "M":
-                        mx = r[r.length - 2];
-                        my = r[r.length - 1];
-                    default:
-                        x = r[r.length - 2];
-                        y = r[r.length - 1];
-                }
-            }
-        }
-        res.toString = toString;
-        pth.abs = pathClone(res);
-        return res;
-    }
-    function l2c(x1, y1, x2, y2) {
-        return [x1, y1, x2, y2, x2, y2];
-    }
-    function q2c(x1, y1, ax, ay, x2, y2) {
-        var _13 = 1 / 3,
-            _23 = 2 / 3;
-        return [
-                _13 * x1 + _23 * ax,
-                _13 * y1 + _23 * ay,
-                _13 * x2 + _23 * ax,
-                _13 * y2 + _23 * ay,
-                x2,
-                y2
-            ];
-    }
-    function a2c(x1, y1, rx, ry, angle, large_arc_flag, sweep_flag, x2, y2, recursive) {
-        // for more information of where this math came from visit:
-        // http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
-        var _120 = PI * 120 / 180,
-            rad = PI / 180 * (+angle || 0),
-            res = [],
-            xy,
-            rotate = Snap._.cacher(function (x, y, rad) {
-                var X = x * math.cos(rad) - y * math.sin(rad),
-                    Y = x * math.sin(rad) + y * math.cos(rad);
-                return {x: X, y: Y};
-            });
-        if (!recursive) {
-            xy = rotate(x1, y1, -rad);
-            x1 = xy.x;
-            y1 = xy.y;
-            xy = rotate(x2, y2, -rad);
-            x2 = xy.x;
-            y2 = xy.y;
-            var cos = math.cos(PI / 180 * angle),
-                sin = math.sin(PI / 180 * angle),
-                x = (x1 - x2) / 2,
-                y = (y1 - y2) / 2;
-            var h = (x * x) / (rx * rx) + (y * y) / (ry * ry);
-            if (h > 1) {
-                h = math.sqrt(h);
-                rx = h * rx;
-                ry = h * ry;
-            }
-            var rx2 = rx * rx,
-                ry2 = ry * ry,
-                k = (large_arc_flag == sweep_flag ? -1 : 1) *
-                    math.sqrt(abs((rx2 * ry2 - rx2 * y * y - ry2 * x * x) / (rx2 * y * y + ry2 * x * x))),
-                cx = k * rx * y / ry + (x1 + x2) / 2,
-                cy = k * -ry * x / rx + (y1 + y2) / 2,
-                f1 = math.asin(((y1 - cy) / ry).toFixed(9)),
-                f2 = math.asin(((y2 - cy) / ry).toFixed(9));
-
-            f1 = x1 < cx ? PI - f1 : f1;
-            f2 = x2 < cx ? PI - f2 : f2;
-            f1 < 0 && (f1 = PI * 2 + f1);
-            f2 < 0 && (f2 = PI * 2 + f2);
-            if (sweep_flag && f1 > f2) {
-                f1 = f1 - PI * 2;
-            }
-            if (!sweep_flag && f2 > f1) {
-                f2 = f2 - PI * 2;
-            }
-        } else {
-            f1 = recursive[0];
-            f2 = recursive[1];
-            cx = recursive[2];
-            cy = recursive[3];
-        }
-        var df = f2 - f1;
-        if (abs(df) > _120) {
-            var f2old = f2,
-                x2old = x2,
-                y2old = y2;
-            f2 = f1 + _120 * (sweep_flag && f2 > f1 ? 1 : -1);
-            x2 = cx + rx * math.cos(f2);
-            y2 = cy + ry * math.sin(f2);
-            res = a2c(x2, y2, rx, ry, angle, 0, sweep_flag, x2old, y2old, [f2, f2old, cx, cy]);
-        }
-        df = f2 - f1;
-        var c1 = math.cos(f1),
-            s1 = math.sin(f1),
-            c2 = math.cos(f2),
-            s2 = math.sin(f2),
-            t = math.tan(df / 4),
-            hx = 4 / 3 * rx * t,
-            hy = 4 / 3 * ry * t,
-            m1 = [x1, y1],
-            m2 = [x1 + hx * s1, y1 - hy * c1],
-            m3 = [x2 + hx * s2, y2 - hy * c2],
-            m4 = [x2, y2];
-        m2[0] = 2 * m1[0] - m2[0];
-        m2[1] = 2 * m1[1] - m2[1];
-        if (recursive) {
-            return [m2, m3, m4].concat(res);
-        } else {
-            res = [m2, m3, m4].concat(res).join().split(",");
-            var newres = [];
-            for (var i = 0, ii = res.length; i < ii; i++) {
-                newres[i] = i % 2 ? rotate(res[i - 1], res[i], rad).y : rotate(res[i], res[i + 1], rad).x;
-            }
-            return newres;
-        }
-    }
-    function findDotAtSegment(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t) {
-        var t1 = 1 - t;
-        return {
-            x: pow(t1, 3) * p1x + pow(t1, 2) * 3 * t * c1x + t1 * 3 * t * t * c2x + pow(t, 3) * p2x,
-            y: pow(t1, 3) * p1y + pow(t1, 2) * 3 * t * c1y + t1 * 3 * t * t * c2y + pow(t, 3) * p2y
-        };
-    }
-    
-    // Returns bounding box of cubic bezier curve.
-    // Source: http://blog.hackers-cafe.net/2009/06/how-to-calculate-bezier-curves-bounding.html
-    // Original version: NISHIO Hirokazu
-    // Modifications: https://github.com/timo22345
-    function curveDim(x0, y0, x1, y1, x2, y2, x3, y3) {
-        var tvalues = [],
-            bounds = [[], []],
-            a, b, c, t, t1, t2, b2ac, sqrtb2ac;
-        for (var i = 0; i < 2; ++i) {
-            if (i == 0) {
-                b = 6 * x0 - 12 * x1 + 6 * x2;
-                a = -3 * x0 + 9 * x1 - 9 * x2 + 3 * x3;
-                c = 3 * x1 - 3 * x0;
-            } else {
-                b = 6 * y0 - 12 * y1 + 6 * y2;
-                a = -3 * y0 + 9 * y1 - 9 * y2 + 3 * y3;
-                c = 3 * y1 - 3 * y0;
-            }
-            if (abs(a) < 1e-12) {
-                if (abs(b) < 1e-12) {
-                    continue;
-                }
-                t = -c / b;
-                if (0 < t && t < 1) {
-                    tvalues.push(t);
-                }
-                continue;
-            }
-            b2ac = b * b - 4 * c * a;
-            sqrtb2ac = math.sqrt(b2ac);
-            if (b2ac < 0) {
-                continue;
-            }
-            t1 = (-b + sqrtb2ac) / (2 * a);
-            if (0 < t1 && t1 < 1) {
-                tvalues.push(t1);
-            }
-            t2 = (-b - sqrtb2ac) / (2 * a);
-            if (0 < t2 && t2 < 1) {
-                tvalues.push(t2);
-            }
-        }
-
-        var x, y, j = tvalues.length,
-            jlen = j,
-            mt;
-        while (j--) {
-            t = tvalues[j];
-            mt = 1 - t;
-            bounds[0][j] = (mt * mt * mt * x0) + (3 * mt * mt * t * x1) + (3 * mt * t * t * x2) + (t * t * t * x3);
-            bounds[1][j] = (mt * mt * mt * y0) + (3 * mt * mt * t * y1) + (3 * mt * t * t * y2) + (t * t * t * y3);
-        }
-
-        bounds[0][jlen] = x0;
-        bounds[1][jlen] = y0;
-        bounds[0][jlen + 1] = x3;
-        bounds[1][jlen + 1] = y3;
-        bounds[0].length = bounds[1].length = jlen + 2;
-
-
-        return {
-          min: {x: mmin.apply(0, bounds[0]), y: mmin.apply(0, bounds[1])},
-          max: {x: mmax.apply(0, bounds[0]), y: mmax.apply(0, bounds[1])}
-        };
-    }
-
-    function path2curve(path, path2) {
-        var pth = !path2 && paths(path);
-        if (!path2 && pth.curve) {
-            return pathClone(pth.curve);
-        }
-        var p = pathToAbsolute(path),
-            p2 = path2 && pathToAbsolute(path2),
-            attrs = {x: 0, y: 0, bx: 0, by: 0, X: 0, Y: 0, qx: null, qy: null},
-            attrs2 = {x: 0, y: 0, bx: 0, by: 0, X: 0, Y: 0, qx: null, qy: null},
-            processPath = function (path, d, pcom) {
-                var nx, ny;
-                if (!path) {
-                    return ["C", d.x, d.y, d.x, d.y, d.x, d.y];
-                }
-                !(path[0] in {T: 1, Q: 1}) && (d.qx = d.qy = null);
-                switch (path[0]) {
-                    case "M":
-                        d.X = path[1];
-                        d.Y = path[2];
-                        break;
-                    case "A":
-                        path = ["C"].concat(a2c.apply(0, [d.x, d.y].concat(path.slice(1))));
-                        break;
-                    case "S":
-                        if (pcom == "C" || pcom == "S") { // In "S" case we have to take into account, if the previous command is C/S.
-                            nx = d.x * 2 - d.bx;          // And reflect the previous
-                            ny = d.y * 2 - d.by;          // command's control point relative to the current point.
-                        }
-                        else {                            // or some else or nothing
-                            nx = d.x;
-                            ny = d.y;
-                        }
-                        path = ["C", nx, ny].concat(path.slice(1));
-                        break;
-                    case "T":
-                        if (pcom == "Q" || pcom == "T") { // In "T" case we have to take into account, if the previous command is Q/T.
-                            d.qx = d.x * 2 - d.qx;        // And make a reflection similar
-                            d.qy = d.y * 2 - d.qy;        // to case "S".
-                        }
-                        else {                            // or something else or nothing
-                            d.qx = d.x;
-                            d.qy = d.y;
-                        }
-                        path = ["C"].concat(q2c(d.x, d.y, d.qx, d.qy, path[1], path[2]));
-                        break;
-                    case "Q":
-                        d.qx = path[1];
-                        d.qy = path[2];
-                        path = ["C"].concat(q2c(d.x, d.y, path[1], path[2], path[3], path[4]));
-                        break;
-                    case "L":
-                        path = ["C"].concat(l2c(d.x, d.y, path[1], path[2]));
-                        break;
-                    case "H":
-                        path = ["C"].concat(l2c(d.x, d.y, path[1], d.y));
-                        break;
-                    case "V":
-                        path = ["C"].concat(l2c(d.x, d.y, d.x, path[1]));
-                        break;
-                    case "Z":
-                        path = ["C"].concat(l2c(d.x, d.y, d.X, d.Y));
-                        break;
-                }
-                return path;
-            },
-            fixArc = function (pp, i) {
-                if (pp[i].length > 7) {
-                    pp[i].shift();
-                    var pi = pp[i];
-                    while (pi.length) {
-                        pcoms1[i] = "A"; // if created multiple C:s, their original seg is saved
-                        p2 && (pcoms2[i] = "A"); // the same as above
-                        pp.splice(i++, 0, ["C"].concat(pi.splice(0, 6)));
-                    }
-                    pp.splice(i, 1);
-                    ii = mmax(p.length, p2 && p2.length || 0);
-                }
-            },
-            fixM = function (path1, path2, a1, a2, i) {
-                if (path1 && path2 && path1[i][0] == "M" && path2[i][0] != "M") {
-                    path2.splice(i, 0, ["M", a2.x, a2.y]);
-                    a1.bx = 0;
-                    a1.by = 0;
-                    a1.x = path1[i][1];
-                    a1.y = path1[i][2];
-                    ii = mmax(p.length, p2 && p2.length || 0);
-                }
-            },
-            pcoms1 = [], // path commands of original path p
-            pcoms2 = [], // path commands of original path p2
-            pfirst = "", // temporary holder for original path command
-            pcom = ""; // holder for previous path command of original path
-        for (var i = 0, ii = mmax(p.length, p2 && p2.length || 0); i < ii; i++) {
-            p[i] && (pfirst = p[i][0]); // save current path command
-
-            if (pfirst != "C") // C is not saved yet, because it may be result of conversion
-            {
-                pcoms1[i] = pfirst; // Save current path command
-                i && ( pcom = pcoms1[i - 1]); // Get previous path command pcom
-            }
-            p[i] = processPath(p[i], attrs, pcom); // Previous path command is inputted to processPath
-
-            if (pcoms1[i] != "A" && pfirst == "C") pcoms1[i] = "C"; // A is the only command
-            // which may produce multiple C:s
-            // so we have to make sure that C is also C in original path
-
-            fixArc(p, i); // fixArc adds also the right amount of A:s to pcoms1
-
-            if (p2) { // the same procedures is done to p2
-                p2[i] && (pfirst = p2[i][0]);
-                if (pfirst != "C") {
-                    pcoms2[i] = pfirst;
-                    i && (pcom = pcoms2[i - 1]);
-                }
-                p2[i] = processPath(p2[i], attrs2, pcom);
-
-                if (pcoms2[i] != "A" && pfirst == "C") {
-                    pcoms2[i] = "C";
-                }
-
-                fixArc(p2, i);
-            }
-            fixM(p, p2, attrs, attrs2, i);
-            fixM(p2, p, attrs2, attrs, i);
-            var seg = p[i],
-                seg2 = p2 && p2[i],
-                seglen = seg.length,
-                seg2len = p2 && seg2.length;
-            attrs.x = seg[seglen - 2];
-            attrs.y = seg[seglen - 1];
-            attrs.bx = toFloat(seg[seglen - 4]) || attrs.x;
-            attrs.by = toFloat(seg[seglen - 3]) || attrs.y;
-            attrs2.bx = p2 && (toFloat(seg2[seg2len - 4]) || attrs2.x);
-            attrs2.by = p2 && (toFloat(seg2[seg2len - 3]) || attrs2.y);
-            attrs2.x = p2 && seg2[seg2len - 2];
-            attrs2.y = p2 && seg2[seg2len - 1];
-        }
-        if (!p2) {
-            pth.curve = pathClone(p);
-        }
-        return p2 ? [p, p2] : p;
-    }
-    function mapPath(path, matrix) {
-        if (!matrix) {
-            return path;
-        }
-        var x, y, i, j, ii, jj, pathi;
-        path = path2curve(path);
-        for (i = 0, ii = path.length; i < ii; i++) {
-            pathi = path[i];
-            for (j = 1, jj = pathi.length; j < jj; j += 2) {
-                x = matrix.x(pathi[j], pathi[j + 1]);
-                y = matrix.y(pathi[j], pathi[j + 1]);
-                pathi[j] = x;
-                pathi[j + 1] = y;
-            }
-        }
-        return path;
-    }
-
-    // http://schepers.cc/getting-to-the-point
-    function catmullRom2bezier(crp, z) {
-        var d = [];
-        for (var i = 0, iLen = crp.length; iLen - 2 * !z > i; i += 2) {
-            var p = [
-                        {x: +crp[i - 2], y: +crp[i - 1]},
-                        {x: +crp[i],     y: +crp[i + 1]},
-                        {x: +crp[i + 2], y: +crp[i + 3]},
-                        {x: +crp[i + 4], y: +crp[i + 5]}
-                    ];
-            if (z) {
-                if (!i) {
-                    p[0] = {x: +crp[iLen - 2], y: +crp[iLen - 1]};
-                } else if (iLen - 4 == i) {
-                    p[3] = {x: +crp[0], y: +crp[1]};
-                } else if (iLen - 2 == i) {
-                    p[2] = {x: +crp[0], y: +crp[1]};
-                    p[3] = {x: +crp[2], y: +crp[3]};
-                }
-            } else {
-                if (iLen - 4 == i) {
-                    p[3] = p[2];
-                } else if (!i) {
-                    p[0] = {x: +crp[i], y: +crp[i + 1]};
-                }
-            }
-            d.push(["C",
-                  (-p[0].x + 6 * p[1].x + p[2].x) / 6,
-                  (-p[0].y + 6 * p[1].y + p[2].y) / 6,
-                  (p[1].x + 6 * p[2].x - p[3].x) / 6,
-                  (p[1].y + 6*p[2].y - p[3].y) / 6,
-                  p[2].x,
-                  p[2].y
-            ]);
-        }
-
-        return d;
-    }
-
-    // export
-    Snap.path = paths;
-
-    /*\
-     * Snap.path.getTotalLength
-     [ method ]
-     **
-     * Returns the length of the given path in pixels
-     **
-     - path (string) SVG path string
-     **
-     = (number) length
-    \*/
-    Snap.path.getTotalLength = getTotalLength;
-    /*\
-     * Snap.path.getPointAtLength
-     [ method ]
-     **
-     * Returns the coordinates of the point located at the given length along the given path
-     **
-     - path (string) SVG path string
-     - length (number) length, in pixels, from the start of the path, excluding non-rendering jumps
-     **
-     = (object) representation of the point:
-     o {
-     o     x: (number) x coordinate,
-     o     y: (number) y coordinate,
-     o     alpha: (number) angle of derivative
-     o }
-    \*/
-    Snap.path.getPointAtLength = getPointAtLength;
-    /*\
-     * Snap.path.getSubpath
-     [ method ]
-     **
-     * Returns the subpath of a given path between given start and end lengths
-     **
-     - path (string) SVG path string
-     - from (number) length, in pixels, from the start of the path to the start of the segment
-     - to (number) length, in pixels, from the start of the path to the end of the segment
-     **
-     = (string) path string definition for the segment
-    \*/
-    Snap.path.getSubpath = function (path, from, to) {
-        if (this.getTotalLength(path) - to < 1e-6) {
-            return getSubpathsAtLength(path, from).end;
-        }
-        var a = getSubpathsAtLength(path, to, 1);
-        return from ? getSubpathsAtLength(a, from).end : a;
-    };
-    /*\
-     * Element.getTotalLength
-     [ method ]
-     **
-     * Returns the length of the path in pixels (only works for `path` elements)
-     = (number) length
-    \*/
-    elproto.getTotalLength = function () {
-        if (this.node.getTotalLength) {
-            return this.node.getTotalLength();
-        }
-    };
-    // SIERRA Element.getPointAtLength()/Element.getTotalLength(): If a <path> is broken into different segments, is the jump distance to the new coordinates set by the _M_ or _m_ commands calculated as part of the path's total length?
-    /*\
-     * Element.getPointAtLength
-     [ method ]
-     **
-     * Returns coordinates of the point located at the given length on the given path (only works for `path` elements)
-     **
-     - length (number) length, in pixels, from the start of the path, excluding non-rendering jumps
-     **
-     = (object) representation of the point:
-     o {
-     o     x: (number) x coordinate,
-     o     y: (number) y coordinate,
-     o     alpha: (number) angle of derivative
-     o }
-    \*/
-    elproto.getPointAtLength = function (length) {
-        return getPointAtLength(this.attr("d"), length);
-    };
-    // SIERRA Element.getSubpath(): Similar to the problem for Element.getPointAtLength(). Unclear how this would work for a segmented path. Overall, the concept of _subpath_ and what I'm calling a _segment_ (series of non-_M_ or _Z_ commands) is unclear.
-    /*\
-     * Element.getSubpath
-     [ method ]
-     **
-     * Returns subpath of a given element from given start and end lengths (only works for `path` elements)
-     **
-     - from (number) length, in pixels, from the start of the path to the start of the segment
-     - to (number) length, in pixels, from the start of the path to the end of the segment
-     **
-     = (string) path string definition for the segment
-    \*/
-    elproto.getSubpath = function (from, to) {
-        return Snap.path.getSubpath(this.attr("d"), from, to);
-    };
-    Snap._.box = box;
-    /*\
-     * Snap.path.findDotsAtSegment
-     [ method ]
-     **
-     * Utility method
-     **
-     * Finds dot coordinates on the given cubic beziér curve at the given t
-     - p1x (number) x of the first point of the curve
-     - p1y (number) y of the first point of the curve
-     - c1x (number) x of the first anchor of the curve
-     - c1y (number) y of the first anchor of the curve
-     - c2x (number) x of the second anchor of the curve
-     - c2y (number) y of the second anchor of the curve
-     - p2x (number) x of the second point of the curve
-     - p2y (number) y of the second point of the curve
-     - t (number) position on the curve (0..1)
-     = (object) point information in format:
-     o {
-     o     x: (number) x coordinate of the point,
-     o     y: (number) y coordinate of the point,
-     o     m: {
-     o         x: (number) x coordinate of the left anchor,
-     o         y: (number) y coordinate of the left anchor
-     o     },
-     o     n: {
-     o         x: (number) x coordinate of the right anchor,
-     o         y: (number) y coordinate of the right anchor
-     o     },
-     o     start: {
-     o         x: (number) x coordinate of the start of the curve,
-     o         y: (number) y coordinate of the start of the curve
-     o     },
-     o     end: {
-     o         x: (number) x coordinate of the end of the curve,
-     o         y: (number) y coordinate of the end of the curve
-     o     },
-     o     alpha: (number) angle of the curve derivative at the point
-     o }
-    \*/
-    Snap.path.findDotsAtSegment = findDotsAtSegment;
-    /*\
-     * Snap.path.bezierBBox
-     [ method ]
-     **
-     * Utility method
-     **
-     * Returns the bounding box of a given cubic beziér curve
-     - p1x (number) x of the first point of the curve
-     - p1y (number) y of the first point of the curve
-     - c1x (number) x of the first anchor of the curve
-     - c1y (number) y of the first anchor of the curve
-     - c2x (number) x of the second anchor of the curve
-     - c2y (number) y of the second anchor of the curve
-     - p2x (number) x of the second point of the curve
-     - p2y (number) y of the second point of the curve
-     * or
-     - bez (array) array of six points for beziér curve
-     = (object) bounding box
-     o {
-     o     x: (number) x coordinate of the left top point of the box,
-     o     y: (number) y coordinate of the left top point of the box,
-     o     x2: (number) x coordinate of the right bottom point of the box,
-     o     y2: (number) y coordinate of the right bottom point of the box,
-     o     width: (number) width of the box,
-     o     height: (number) height of the box
-     o }
-    \*/
-    Snap.path.bezierBBox = bezierBBox;
-    /*\
-     * Snap.path.isPointInsideBBox
-     [ method ]
-     **
-     * Utility method
-     **
-     * Returns `true` if given point is inside bounding box
-     - bbox (string) bounding box
-     - x (string) x coordinate of the point
-     - y (string) y coordinate of the point
-     = (boolean) `true` if point is inside
-    \*/
-    Snap.path.isPointInsideBBox = isPointInsideBBox;
-    /*\
-     * Snap.path.isBBoxIntersect
-     [ method ]
-     **
-     * Utility method
-     **
-     * Returns `true` if two bounding boxes intersect
-     - bbox1 (string) first bounding box
-     - bbox2 (string) second bounding box
-     = (boolean) `true` if bounding boxes intersect
-    \*/
-    Snap.path.isBBoxIntersect = isBBoxIntersect;
-    /*\
-     * Snap.path.intersection
-     [ method ]
-     **
-     * Utility method
-     **
-     * Finds intersections of two paths
-     - path1 (string) path string
-     - path2 (string) path string
-     = (array) dots of intersection
-     o [
-     o     {
-     o         x: (number) x coordinate of the point,
-     o         y: (number) y coordinate of the point,
-     o         t1: (number) t value for segment of path1,
-     o         t2: (number) t value for segment of path2,
-     o         segment1: (number) order number for segment of path1,
-     o         segment2: (number) order number for segment of path2,
-     o         bez1: (array) eight coordinates representing beziér curve for the segment of path1,
-     o         bez2: (array) eight coordinates representing beziér curve for the segment of path2
-     o     }
-     o ]
-    \*/
-    Snap.path.intersection = pathIntersection;
-    Snap.path.intersectionNumber = pathIntersectionNumber;
-    /*\
-     * Snap.path.isPointInside
-     [ method ]
-     **
-     * Utility method
-     **
-     * Returns `true` if given point is inside a given closed path.
-     *
-     * Note: fill mode doesn’t affect the result of this method.
-     - path (string) path string
-     - x (number) x of the point
-     - y (number) y of the point
-     = (boolean) `true` if point is inside the path
-    \*/
-    Snap.path.isPointInside = isPointInsidePath;
-    /*\
-     * Snap.path.getBBox
-     [ method ]
-     **
-     * Utility method
-     **
-     * Returns the bounding box of a given path
-     - path (string) path string
-     = (object) bounding box
-     o {
-     o     x: (number) x coordinate of the left top point of the box,
-     o     y: (number) y coordinate of the left top point of the box,
-     o     x2: (number) x coordinate of the right bottom point of the box,
-     o     y2: (number) y coordinate of the right bottom point of the box,
-     o     width: (number) width of the box,
-     o     height: (number) height of the box
-     o }
-    \*/
-    Snap.path.getBBox = pathBBox;
-    Snap.path.get = getPath;
-    /*\
-     * Snap.path.toRelative
-     [ method ]
-     **
-     * Utility method
-     **
-     * Converts path coordinates into relative values
-     - path (string) path string
-     = (array) path string
-    \*/
-    Snap.path.toRelative = pathToRelative;
-    /*\
-     * Snap.path.toAbsolute
-     [ method ]
-     **
-     * Utility method
-     **
-     * Converts path coordinates into absolute values
-     - path (string) path string
-     = (array) path string
-    \*/
-    Snap.path.toAbsolute = pathToAbsolute;
-    /*\
-     * Snap.path.toCubic
-     [ method ]
-     **
-     * Utility method
-     **
-     * Converts path to a new path where all segments are cubic beziér curves
-     - pathString (string|array) path string or array of segments
-     = (array) array of segments
-    \*/
-    Snap.path.toCubic = path2curve;
-    /*\
-     * Snap.path.map
-     [ method ]
-     **
-     * Transform the path string with the given matrix
-     - path (string) path string
-     - matrix (object) see @Matrix
-     = (string) transformed path string
-    \*/
-    Snap.path.map = mapPath;
-    Snap.path.toString = toString;
-    Snap.path.clone = pathClone;
-});
-// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
-// 
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-// 
-// http://www.apache.org/licenses/LICENSE-2.0
-// 
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-Snap.plugin(function (Snap, Element, Paper, glob) {
-    var elproto = Element.prototype,
-    has = "hasOwnProperty",
-    supportsTouch = "createTouch" in glob.doc,
-    events = [
-        "click", "dblclick", "mousedown", "mousemove", "mouseout",
-        "mouseover", "mouseup", "touchstart", "touchmove", "touchend",
-        "touchcancel"
-    ],
-    touchMap = {
-        mousedown: "touchstart",
-        mousemove: "touchmove",
-        mouseup: "touchend"
-    },
-    getScroll = function (xy, el) {
-        var name = xy == "y" ? "scrollTop" : "scrollLeft",
-            doc = el && el.node ? el.node.ownerDocument : glob.doc;
-        return doc[name in doc.documentElement ? "documentElement" : "body"][name];
-    },
-    preventDefault = function () {
-        this.returnValue = false;
-    },
-    preventTouch = function () {
-        return this.originalEvent.preventDefault();
-    },
-    stopPropagation = function () {
-        this.cancelBubble = true;
-    },
-    stopTouch = function () {
-        return this.originalEvent.stopPropagation();
-    },
-    addEvent = (function () {
-        if (glob.doc.addEventListener) {
-            return function (obj, type, fn, element) {
-                var realName = supportsTouch && touchMap[type] ? touchMap[type] : type,
-                    f = function (e) {
-                        var scrollY = getScroll("y", element),
-                            scrollX = getScroll("x", element);
-                        if (supportsTouch && touchMap[has](type)) {
-                            for (var i = 0, ii = e.targetTouches && e.targetTouches.length; i < ii; i++) {
-                                if (e.targetTouches[i].target == obj || obj.contains(e.targetTouches[i].target)) {
-                                    var olde = e;
-                                    e = e.targetTouches[i];
-                                    e.originalEvent = olde;
-                                    e.preventDefault = preventTouch;
-                                    e.stopPropagation = stopTouch;
-                                    break;
-                                }
-                            }
-                        }
-                        var x = e.clientX + scrollX,
-                            y = e.clientY + scrollY;
-                        return fn.call(element, e, x, y);
-                    };
-
-                if (type !== realName) {
-                    obj.addEventListener(type, f, false);
-                }
-
-                obj.addEventListener(realName, f, false);
-
-                return function () {
-                    if (type !== realName) {
-                        obj.removeEventListener(type, f, false);
-                    }
-
-                    obj.removeEventListener(realName, f, false);
-                    return true;
-                };
-            };
-        } else if (glob.doc.attachEvent) {
-            return function (obj, type, fn, element) {
-                var f = function (e) {
-                    e = e || element.node.ownerDocument.window.event;
-                    var scrollY = getScroll("y", element),
-                        scrollX = getScroll("x", element),
-                        x = e.clientX + scrollX,
-                        y = e.clientY + scrollY;
-                    e.preventDefault = e.preventDefault || preventDefault;
-                    e.stopPropagation = e.stopPropagation || stopPropagation;
-                    return fn.call(element, e, x, y);
-                };
-                obj.attachEvent("on" + type, f);
-                var detacher = function () {
-                    obj.detachEvent("on" + type, f);
-                    return true;
-                };
-                return detacher;
-            };
-        }
-    })(),
-    drag = [],
-    dragMove = function (e) {
-        var x = e.clientX,
-            y = e.clientY,
-            scrollY = getScroll("y"),
-            scrollX = getScroll("x"),
-            dragi,
-            j = drag.length;
-        while (j--) {
-            dragi = drag[j];
-            if (supportsTouch) {
-                var i = e.touches && e.touches.length,
-                    touch;
-                while (i--) {
-                    touch = e.touches[i];
-                    if (touch.identifier == dragi.el._drag.id || dragi.el.node.contains(touch.target)) {
-                        x = touch.clientX;
-                        y = touch.clientY;
-                        (e.originalEvent ? e.originalEvent : e).preventDefault();
-                        break;
-                    }
-                }
-            } else {
-                e.preventDefault();
-            }
-            var node = dragi.el.node,
-                o,
-                next = node.nextSibling,
-                parent = node.parentNode,
-                display = node.style.display;
-            // glob.win.opera && parent.removeChild(node);
-            // node.style.display = "none";
-            // o = dragi.el.paper.getElementByPoint(x, y);
-            // node.style.display = display;
-            // glob.win.opera && (next ? parent.insertBefore(node, next) : parent.appendChild(node));
-            // o && eve("snap.drag.over." + dragi.el.id, dragi.el, o);
-            x += scrollX;
-            y += scrollY;
-            eve("snap.drag.move." + dragi.el.id, dragi.move_scope || dragi.el, x - dragi.el._drag.x, y - dragi.el._drag.y, x, y, e);
-        }
-    },
-    dragUp = function (e) {
-        Snap.unmousemove(dragMove).unmouseup(dragUp);
-        var i = drag.length,
-            dragi;
-        while (i--) {
-            dragi = drag[i];
-            dragi.el._drag = {};
-            eve("snap.drag.end." + dragi.el.id, dragi.end_scope || dragi.start_scope || dragi.move_scope || dragi.el, e);
-        }
-        drag = [];
-    };
-    /*\
-     * Element.click
-     [ method ]
-     **
-     * Adds a click event handler to the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    /*\
-     * Element.unclick
-     [ method ]
-     **
-     * Removes a click event handler from the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    
-    /*\
-     * Element.dblclick
-     [ method ]
-     **
-     * Adds a double click event handler to the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    /*\
-     * Element.undblclick
-     [ method ]
-     **
-     * Removes a double click event handler from the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    
-    /*\
-     * Element.mousedown
-     [ method ]
-     **
-     * Adds a mousedown event handler to the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    /*\
-     * Element.unmousedown
-     [ method ]
-     **
-     * Removes a mousedown event handler from the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    
-    /*\
-     * Element.mousemove
-     [ method ]
-     **
-     * Adds a mousemove event handler to the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    /*\
-     * Element.unmousemove
-     [ method ]
-     **
-     * Removes a mousemove event handler from the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    
-    /*\
-     * Element.mouseout
-     [ method ]
-     **
-     * Adds a mouseout event handler to the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    /*\
-     * Element.unmouseout
-     [ method ]
-     **
-     * Removes a mouseout event handler from the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    
-    /*\
-     * Element.mouseover
-     [ method ]
-     **
-     * Adds a mouseover event handler to the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    /*\
-     * Element.unmouseover
-     [ method ]
-     **
-     * Removes a mouseover event handler from the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    
-    /*\
-     * Element.mouseup
-     [ method ]
-     **
-     * Adds a mouseup event handler to the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    /*\
-     * Element.unmouseup
-     [ method ]
-     **
-     * Removes a mouseup event handler from the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    
-    /*\
-     * Element.touchstart
-     [ method ]
-     **
-     * Adds a touchstart event handler to the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    /*\
-     * Element.untouchstart
-     [ method ]
-     **
-     * Removes a touchstart event handler from the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    
-    /*\
-     * Element.touchmove
-     [ method ]
-     **
-     * Adds a touchmove event handler to the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    /*\
-     * Element.untouchmove
-     [ method ]
-     **
-     * Removes a touchmove event handler from the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    
-    /*\
-     * Element.touchend
-     [ method ]
-     **
-     * Adds a touchend event handler to the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    /*\
-     * Element.untouchend
-     [ method ]
-     **
-     * Removes a touchend event handler from the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    
-    /*\
-     * Element.touchcancel
-     [ method ]
-     **
-     * Adds a touchcancel event handler to the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    /*\
-     * Element.untouchcancel
-     [ method ]
-     **
-     * Removes a touchcancel event handler from the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    for (var i = events.length; i--;) {
-        (function (eventName) {
-            Snap[eventName] = elproto[eventName] = function (fn, scope) {
-                if (Snap.is(fn, "function")) {
-                    this.events = this.events || [];
-                    this.events.push({
-                        name: eventName,
-                        f: fn,
-                        unbind: addEvent(this.node || document, eventName, fn, scope || this)
-                    });
-                }
-                return this;
-            };
-            Snap["un" + eventName] =
-            elproto["un" + eventName] = function (fn) {
-                var events = this.events || [],
-                    l = events.length;
-                while (l--) if (events[l].name == eventName &&
-                               (events[l].f == fn || !fn)) {
-                    events[l].unbind();
-                    events.splice(l, 1);
-                    !events.length && delete this.events;
-                    return this;
-                }
-                return this;
-            };
-        })(events[i]);
-    }
-    /*\
-     * Element.hover
-     [ method ]
-     **
-     * Adds hover event handlers to the element
-     - f_in (function) handler for hover in
-     - f_out (function) handler for hover out
-     - icontext (object) #optional context for hover in handler
-     - ocontext (object) #optional context for hover out handler
-     = (object) @Element
-    \*/
-    elproto.hover = function (f_in, f_out, scope_in, scope_out) {
-        return this.mouseover(f_in, scope_in).mouseout(f_out, scope_out || scope_in);
-    };
-    /*\
-     * Element.unhover
-     [ method ]
-     **
-     * Removes hover event handlers from the element
-     - f_in (function) handler for hover in
-     - f_out (function) handler for hover out
-     = (object) @Element
-    \*/
-    elproto.unhover = function (f_in, f_out) {
-        return this.unmouseover(f_in).unmouseout(f_out);
-    };
-    var draggable = [];
-    // SIERRA unclear what _context_ refers to for starting, ending, moving the drag gesture.
-    // SIERRA Element.drag(): _x position of the mouse_: Where are the x/y values offset from?
-    // SIERRA Element.drag(): much of this member's doc appears to be duplicated for some reason.
-    // SIERRA Unclear about this sentence: _Additionally following drag events will be triggered: drag.start.<id> on start, drag.end.<id> on end and drag.move.<id> on every move._ Is there a global _drag_ object to which you can assign handlers keyed by an element's ID?
-    /*\
-     * Element.drag
-     [ method ]
-     **
-     * Adds event handlers for an element's drag gesture
-     **
-     - onmove (function) handler for moving
-     - onstart (function) handler for drag start
-     - onend (function) handler for drag end
-     - mcontext (object) #optional context for moving handler
-     - scontext (object) #optional context for drag start handler
-     - econtext (object) #optional context for drag end handler
-     * Additionaly following `drag` events are triggered: `drag.start.<id>` on start, 
-     * `drag.end.<id>` on end and `drag.move.<id>` on every move. When element is dragged over another element 
-     * `drag.over.<id>` fires as well.
-     *
-     * Start event and start handler are called in specified context or in context of the element with following parameters:
-     o x (number) x position of the mouse
-     o y (number) y position of the mouse
-     o event (object) DOM event object
-     * Move event and move handler are called in specified context or in context of the element with following parameters:
-     o dx (number) shift by x from the start point
-     o dy (number) shift by y from the start point
-     o x (number) x position of the mouse
-     o y (number) y position of the mouse
-     o event (object) DOM event object
-     * End event and end handler are called in specified context or in context of the element with following parameters:
-     o event (object) DOM event object
-     = (object) @Element
-    \*/
-    elproto.drag = function (onmove, onstart, onend, move_scope, start_scope, end_scope) {
-        if (!arguments.length) {
-            var origTransform;
-            return this.drag(function (dx, dy) {
-                this.attr({
-                    transform: origTransform + (origTransform ? "T" : "t") + [dx, dy]
-                });
-            }, function () {
-                origTransform = this.transform().local;
-            });
-        }
-        function start(e, x, y) {
-            (e.originalEvent || e).preventDefault();
-            this._drag.x = x;
-            this._drag.y = y;
-            this._drag.id = e.identifier;
-            !drag.length && Snap.mousemove(dragMove).mouseup(dragUp);
-            drag.push({el: this, move_scope: move_scope, start_scope: start_scope, end_scope: end_scope});
-            onstart && eve.on("snap.drag.start." + this.id, onstart);
-            onmove && eve.on("snap.drag.move." + this.id, onmove);
-            onend && eve.on("snap.drag.end." + this.id, onend);
-            eve("snap.drag.start." + this.id, start_scope || move_scope || this, x, y, e);
-        }
-        this._drag = {};
-        draggable.push({el: this, start: start});
-        this.mousedown(start);
-        return this;
-    };
-    /*
-     * Element.onDragOver
-     [ method ]
-     **
-     * Shortcut to assign event handler for `drag.over.<id>` event, where `id` is the element's `id` (see @Element.id)
-     - f (function) handler for event, first argument would be the element you are dragging over
-    \*/
-    // elproto.onDragOver = function (f) {
-    //     f ? eve.on("snap.drag.over." + this.id, f) : eve.unbind("snap.drag.over." + this.id);
-    // };
-    /*\
-     * Element.undrag
-     [ method ]
-     **
-     * Removes all drag event handlers from the given element
-    \*/
-    elproto.undrag = function () {
-        var i = draggable.length;
-        while (i--) if (draggable[i].el == this) {
-            this.unmousedown(draggable[i].start);
-            draggable.splice(i, 1);
-            eve.unbind("snap.drag.*." + this.id);
-        }
-        !draggable.length && Snap.unmousemove(dragMove).unmouseup(dragUp);
-        return this;
-    };
-});
-// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
-// 
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-// 
-// http://www.apache.org/licenses/LICENSE-2.0
-// 
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-Snap.plugin(function (Snap, Element, Paper, glob) {
-    var elproto = Element.prototype,
-        pproto = Paper.prototype,
-        rgurl = /^\s*url\((.+)\)/,
-        Str = String,
-        $ = Snap._.$;
-    Snap.filter = {};
-    /*\
-     * Paper.filter
-     [ method ]
-     **
-     * Creates a `<filter>` element
-     **
-     - filstr (string) SVG fragment of filter provided as a string
-     = (object) @Element
-     * Note: It is recommended to use filters embedded into the page inside an empty SVG element.
-     > Usage
-     | var f = paper.filter('<feGaussianBlur stdDeviation="2"/>'),
-     |     c = paper.circle(10, 10, 10).attr({
-     |         filter: f
-     |     });
-    \*/
-    pproto.filter = function (filstr) {
-        var paper = this;
-        if (paper.type != "svg") {
-            paper = paper.paper;
-        }
-        var f = Snap.parse(Str(filstr)),
-            id = Snap._.id(),
-            width = paper.node.offsetWidth,
-            height = paper.node.offsetHeight,
-            filter = $("filter");
-        $(filter, {
-            id: id,
-            filterUnits: "userSpaceOnUse"
-        });
-        filter.appendChild(f.node);
-        paper.defs.appendChild(filter);
-        return new Element(filter);
-    };
-    
-    eve.on("snap.util.getattr.filter", function () {
-        eve.stop();
-        var p = $(this.node, "filter");
-        if (p) {
-            var match = Str(p).match(rgurl);
-            return match && Snap.select(match[1]);
-        }
-    });
-    eve.on("snap.util.attr.filter", function (value) {
-        if (value instanceof Element && value.type == "filter") {
-            eve.stop();
-            var id = value.node.id;
-            if (!id) {
-                $(value.node, {id: value.id});
-                id = value.id;
-            }
-            $(this.node, {
-                filter: Snap.url(id)
-            });
-        }
-        if (!value || value == "none") {
-            eve.stop();
-            this.node.removeAttribute("filter");
-        }
-    });
-    /*\
-     * Snap.filter.blur
-     [ method ]
-     **
-     * Returns an SVG markup string for the blur filter
-     **
-     - x (number) amount of horizontal blur, in pixels
-     - y (number) #optional amount of vertical blur, in pixels
-     = (string) filter representation
-     > Usage
-     | var f = paper.filter(Snap.filter.blur(5, 10)),
-     |     c = paper.circle(10, 10, 10).attr({
-     |         filter: f
-     |     });
-    \*/
-    Snap.filter.blur = function (x, y) {
-        if (x == null) {
-            x = 2;
-        }
-        var def = y == null ? x : [x, y];
-        return Snap.format('\<feGaussianBlur stdDeviation="{def}"/>', {
-            def: def
-        });
-    };
-    Snap.filter.blur.toString = function () {
-        return this();
-    };
-    /*\
-     * Snap.filter.shadow
-     [ method ]
-     **
-     * Returns an SVG markup string for the shadow filter
-     **
-     - dx (number) #optional horizontal shift of the shadow, in pixels
-     - dy (number) #optional vertical shift of the shadow, in pixels
-     - blur (number) #optional amount of blur
-     - color (string) #optional color of the shadow
-     - opacity (number) #optional `0..1` opacity of the shadow
-     * or
-     - dx (number) #optional horizontal shift of the shadow, in pixels
-     - dy (number) #optional vertical shift of the shadow, in pixels
-     - color (string) #optional color of the shadow
-     - opacity (number) #optional `0..1` opacity of the shadow
-     * which makes blur default to `4`. Or
-     - dx (number) #optional horizontal shift of the shadow, in pixels
-     - dy (number) #optional vertical shift of the shadow, in pixels
-     - opacity (number) #optional `0..1` opacity of the shadow
-     = (string) filter representation
-     > Usage
-     | var f = paper.filter(Snap.filter.shadow(0, 2, 3)),
-     |     c = paper.circle(10, 10, 10).attr({
-     |         filter: f
-     |     });
-    \*/
-    Snap.filter.shadow = function (dx, dy, blur, color, opacity) {
-        if (typeof blur == "string") {
-            color = blur;
-            opacity = color;
-            blur = 4;
-        }
-        if (typeof color != "string") {
-            opacity = color;
-            color = "#000";
-        }
-        color = color || "#000";
-        if (blur == null) {
-            blur = 4;
-        }
-        if (opacity == null) {
-            opacity = 1;
-        }
-        if (dx == null) {
-            dx = 0;
-            dy = 2;
-        }
-        if (dy == null) {
-            dy = dx;
-        }
-        color = Snap.color(color);
-        return Snap.format('<feGaussianBlur in="SourceAlpha" stdDeviation="{blur}"/><feOffset dx="{dx}" dy="{dy}" result="offsetblur"/><feFlood flood-color="{color}"/><feComposite in2="offsetblur" operator="in"/><feComponentTransfer><feFuncA type="linear" slope="{opacity}"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>', {
-            color: color,
-            dx: dx,
-            dy: dy,
-            blur: blur,
-            opacity: opacity
-        });
-    };
-    Snap.filter.shadow.toString = function () {
-        return this();
-    };
-    /*\
-     * Snap.filter.grayscale
-     [ method ]
-     **
-     * Returns an SVG markup string for the grayscale filter
-     **
-     - amount (number) amount of filter (`0..1`)
-     = (string) filter representation
-    \*/
-    Snap.filter.grayscale = function (amount) {
-        if (amount == null) {
-            amount = 1;
-        }
-        return Snap.format('<feColorMatrix type="matrix" values="{a} {b} {c} 0 0 {d} {e} {f} 0 0 {g} {b} {h} 0 0 0 0 0 1 0"/>', {
-            a: 0.2126 + 0.7874 * (1 - amount),
-            b: 0.7152 - 0.7152 * (1 - amount),
-            c: 0.0722 - 0.0722 * (1 - amount),
-            d: 0.2126 - 0.2126 * (1 - amount),
-            e: 0.7152 + 0.2848 * (1 - amount),
-            f: 0.0722 - 0.0722 * (1 - amount),
-            g: 0.2126 - 0.2126 * (1 - amount),
-            h: 0.0722 + 0.9278 * (1 - amount)
-        });
-    };
-    Snap.filter.grayscale.toString = function () {
-        return this();
-    };
-    /*\
-     * Snap.filter.sepia
-     [ method ]
-     **
-     * Returns an SVG markup string for the sepia filter
-     **
-     - amount (number) amount of filter (`0..1`)
-     = (string) filter representation
-    \*/
-    Snap.filter.sepia = function (amount) {
-        if (amount == null) {
-            amount = 1;
-        }
-        return Snap.format('<feColorMatrix type="matrix" values="{a} {b} {c} 0 0 {d} {e} {f} 0 0 {g} {h} {i} 0 0 0 0 0 1 0"/>', {
-            a: 0.393 + 0.607 * (1 - amount),
-            b: 0.769 - 0.769 * (1 - amount),
-            c: 0.189 - 0.189 * (1 - amount),
-            d: 0.349 - 0.349 * (1 - amount),
-            e: 0.686 + 0.314 * (1 - amount),
-            f: 0.168 - 0.168 * (1 - amount),
-            g: 0.272 - 0.272 * (1 - amount),
-            h: 0.534 - 0.534 * (1 - amount),
-            i: 0.131 + 0.869 * (1 - amount)
-        });
-    };
-    Snap.filter.sepia.toString = function () {
-        return this();
-    };
-    /*\
-     * Snap.filter.saturate
-     [ method ]
-     **
-     * Returns an SVG markup string for the saturate filter
-     **
-     - amount (number) amount of filter (`0..1`)
-     = (string) filter representation
-    \*/
-    Snap.filter.saturate = function (amount) {
-        if (amount == null) {
-            amount = 1;
-        }
-        return Snap.format('<feColorMatrix type="saturate" values="{amount}"/>', {
-            amount: 1 - amount
-        });
-    };
-    Snap.filter.saturate.toString = function () {
-        return this();
-    };
-    /*\
-     * Snap.filter.hueRotate
-     [ method ]
-     **
-     * Returns an SVG markup string for the hue-rotate filter
-     **
-     - angle (number) angle of rotation
-     = (string) filter representation
-    \*/
-    Snap.filter.hueRotate = function (angle) {
-        angle = angle || 0;
-        return Snap.format('<feColorMatrix type="hueRotate" values="{angle}"/>', {
-            angle: angle
-        });
-    };
-    Snap.filter.hueRotate.toString = function () {
-        return this();
-    };
-    /*\
-     * Snap.filter.invert
-     [ method ]
-     **
-     * Returns an SVG markup string for the invert filter
-     **
-     - amount (number) amount of filter (`0..1`)
-     = (string) filter representation
-    \*/
-    Snap.filter.invert = function (amount) {
-        if (amount == null) {
-            amount = 1;
-        }
-        return Snap.format('<feComponentTransfer><feFuncR type="table" tableValues="{amount} {amount2}"/><feFuncG type="table" tableValues="{amount} {amount2}"/><feFuncB type="table" tableValues="{amount} {amount2}"/></feComponentTransfer>', {
-            amount: amount,
-            amount2: 1 - amount
-        });
-    };
-    Snap.filter.invert.toString = function () {
-        return this();
-    };
-    /*\
-     * Snap.filter.brightness
-     [ method ]
-     **
-     * Returns an SVG markup string for the brightness filter
-     **
-     - amount (number) amount of filter (`0..1`)
-     = (string) filter representation
-    \*/
-    Snap.filter.brightness = function (amount) {
-        if (amount == null) {
-            amount = 1;
-        }
-        return Snap.format('<feComponentTransfer><feFuncR type="linear" slope="{amount}"/><feFuncG type="linear" slope="{amount}"/><feFuncB type="linear" slope="{amount}"/></feComponentTransfer>', {
-            amount: amount
-        });
-    };
-    Snap.filter.brightness.toString = function () {
-        return this();
-    };
-    /*\
-     * Snap.filter.contrast
-     [ method ]
-     **
-     * Returns an SVG markup string for the contrast filter
-     **
-     - amount (number) amount of filter (`0..1`)
-     = (string) filter representation
-    \*/
-    Snap.filter.contrast = function (amount) {
-        if (amount == null) {
-            amount = 1;
-        }
-        return Snap.format('<feComponentTransfer><feFuncR type="linear" slope="{amount}" intercept="{amount2}"/><feFuncG type="linear" slope="{amount}" intercept="{amount2}"/><feFuncB type="linear" slope="{amount}" intercept="{amount2}"/></feComponentTransfer>', {
-            amount: amount,
-            amount2: .5 - amount / 2
-        });
-    };
-    Snap.filter.contrast.toString = function () {
-        return this();
-    };
-});
-
-return Snap;
-}));
-},{"117":117}],274:[function(_dereq_,module,exports){
-module.exports = _dereq_(275);
-
-},{"275":275}],275:[function(_dereq_,module,exports){
+},{"281":281}],281:[function(_dereq_,module,exports){
 'use strict';
 
-var di = _dereq_(106);
+var di = _dereq_(111);
 
 
 /**
@@ -28141,7 +21453,7 @@ function createInjector(options) {
     'config': ['value', options]
   };
 
-  var coreModule = _dereq_(280);
+  var coreModule = _dereq_(286);
 
   var modules = [ configModule, coreModule ].concat(options.modules || []);
 
@@ -28242,10 +21554,10 @@ Table.prototype.clear = function() {
   this.get('eventBus').fire('diagram.clear');
 };
 
-},{"106":106,"280":280}],276:[function(_dereq_,module,exports){
+},{"111":111,"286":286}],282:[function(_dereq_,module,exports){
 'use strict';
 
-var Model = _dereq_(298);
+var Model = _dereq_(304);
 
 
 /**
@@ -28290,7 +21602,7 @@ ElementFactory.prototype.create = function(type, attrs) {
   return Model.create(type, attrs);
 };
 
-},{"298":298}],277:[function(_dereq_,module,exports){
+},{"304":304}],283:[function(_dereq_,module,exports){
 'use strict';
 
 var ELEMENT_ID = 'data-element-id';
@@ -28491,10 +21803,10 @@ ElementRegistry.prototype._validateId = function(id) {
   }
 };
 
-},{}],278:[function(_dereq_,module,exports){
+},{}],284:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(127);
+var forEach = _dereq_(132);
 
 /**
  * A factory that creates graphical elements
@@ -28634,13 +21946,13 @@ GraphicsFactory.prototype.remove = function(element) {
   gfx.parentNode && gfx.parentNode.removeChild(gfx);
 };
 
-},{"127":127}],279:[function(_dereq_,module,exports){
+},{"132":132}],285:[function(_dereq_,module,exports){
 'use strict';
 
-var isNumber = _dereq_(233),
-    assign = _dereq_(239),
-    forEach = _dereq_(127),
-    every = _dereq_(124);
+var isNumber = _dereq_(240),
+    assign = _dereq_(246),
+    forEach = _dereq_(132),
+    every = _dereq_(129);
 
 function ensurePx(number) {
   return isNumber(number) ? number + 'px' : number;
@@ -29412,21 +22724,21 @@ Sheet.prototype.resized = function() {
   eventBus.fire('sheet.resized');
 };
 
-},{"124":124,"127":127,"233":233,"239":239}],280:[function(_dereq_,module,exports){
+},{"129":129,"132":132,"240":240,"246":246}],286:[function(_dereq_,module,exports){
 module.exports = {
-  __depends__: [ _dereq_(282) ],
+  __depends__: [ _dereq_(288) ],
   __init__: [ 'sheet' ],
-  sheet: [ 'type', _dereq_(279) ],
-  elementRegistry: [ 'type', _dereq_(277) ],
-  elementFactory: ['type', _dereq_(276)],
-  graphicsFactory: [ 'type', _dereq_(278) ],
-  eventBus: [ 'type', _dereq_(72) ]
+  sheet: [ 'type', _dereq_(285) ],
+  elementRegistry: [ 'type', _dereq_(283) ],
+  elementFactory: ['type', _dereq_(282)],
+  graphicsFactory: [ 'type', _dereq_(284) ],
+  eventBus: [ 'type', _dereq_(308) ]
 };
 
-},{"276":276,"277":277,"278":278,"279":279,"282":282,"72":72}],281:[function(_dereq_,module,exports){
+},{"282":282,"283":283,"284":284,"285":285,"288":288,"308":308}],287:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(127),
+var forEach = _dereq_(132),
     colDistance = function colDistance(from, to) {
       var i = 0,
           current = from.column;
@@ -29527,23 +22839,23 @@ Renderer.prototype.drawCell = function drawCell(gfx, data) {
   return gfx;
 };
 
-},{"127":127}],282:[function(_dereq_,module,exports){
+},{"132":132}],288:[function(_dereq_,module,exports){
 module.exports = {
-  renderer: [ 'type', _dereq_(281) ]
+  renderer: [ 'type', _dereq_(287) ]
 };
 
-},{"281":281}],283:[function(_dereq_,module,exports){
+},{"287":287}],289:[function(_dereq_,module,exports){
 module.exports = "<div>\n  <label></label>\n  <input tabindex=\"0\" />\n  <span class=\"cb-caret\"></span>\n</div>\n";
 
-},{}],284:[function(_dereq_,module,exports){
+},{}],290:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(253),
-    domClasses = _dereq_(250),
-    assign = _dereq_(239),
-    forEach = _dereq_(127);
+var domify = _dereq_(260),
+    domClasses = _dereq_(257),
+    assign = _dereq_(246),
+    forEach = _dereq_(132);
 
-var comboBoxTemplate = _dereq_(283);
+var comboBoxTemplate = _dereq_(289);
 
 /**
  * Offers the ability to create a combobox which is a combination of an
@@ -29837,12 +23149,12 @@ ComboBox.prototype.enable = function() {
 
 module.exports = ComboBox;
 
-},{"127":127,"239":239,"250":250,"253":253,"283":283}],285:[function(_dereq_,module,exports){
+},{"132":132,"246":246,"257":257,"260":260,"289":289}],291:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(239),
-    domClasses = _dereq_(250),
-    domRemove = _dereq_(256);
+var assign = _dereq_(246),
+    domClasses = _dereq_(257),
+    domRemove = _dereq_(263);
 
 
 /**
@@ -30047,18 +23359,18 @@ ComplexCell.$inject = [ 'eventBus', 'elementRegistry', 'sheet' ];
 
 module.exports = ComplexCell;
 
-},{"239":239,"250":250,"256":256}],286:[function(_dereq_,module,exports){
+},{"246":246,"257":257,"263":263}],292:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'complexCell' ],
-  complexCell: [ 'type', _dereq_(285) ]
+  complexCell: [ 'type', _dereq_(291) ]
 };
 
-},{"285":285}],287:[function(_dereq_,module,exports){
+},{"291":291}],293:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(250);
+var domClasses = _dereq_(257);
 /**
  *  The controls module adds a container to the top-right corner of the table which holds
  *  some control elements
@@ -30120,22 +23432,22 @@ Controls.$inject = [ 'eventBus' ];
 
 module.exports = Controls;
 
-},{"250":250}],288:[function(_dereq_,module,exports){
+},{"257":257}],294:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'controls' ],
-  controls: [ 'type', _dereq_(287) ]
+  controls: [ 'type', _dereq_(293) ]
 };
 
-},{"287":287}],289:[function(_dereq_,module,exports){
+},{"293":293}],295:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(127),
-    domDelegate = _dereq_(252);
+var forEach = _dereq_(132),
+    domDelegate = _dereq_(259);
 
 
-var isPrimaryButton = _dereq_(100).isPrimaryButton;
+var isPrimaryButton = _dereq_(313).isPrimaryButton;
 
 /**
  * A plugin that provides interaction events for table elements.
@@ -30375,16 +23687,16 @@ module.exports = InteractionEvents;
  * @property {Event} originalEvent
  */
 
-},{"100":100,"127":127,"252":252}],290:[function(_dereq_,module,exports){
+},{"132":132,"259":259,"313":313}],296:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'interactionEvents' ],
-  interactionEvents: [ 'type', _dereq_(289) ]
+  interactionEvents: [ 'type', _dereq_(295) ]
 };
 
-},{"289":289}],291:[function(_dereq_,module,exports){
+},{"295":295}],297:[function(_dereq_,module,exports){
 'use strict';
 
-var debounce = _dereq_(133);
+var debounce = _dereq_(139);
 
 var VERY_LOW_PRIORITY = 150;
 
@@ -30444,19 +23756,19 @@ LineNumbers.prototype.updateLineNumbers = function() {
   }
 };
 
-},{"133":133}],292:[function(_dereq_,module,exports){
+},{"139":139}],298:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'lineNumbers' ],
   __depends__: [
-    _dereq_(297)
+    _dereq_(303)
   ],
-  lineNumbers: [ 'type', _dereq_(291) ]
+  lineNumbers: [ 'type', _dereq_(297) ]
 };
 
-},{"291":291,"297":297}],293:[function(_dereq_,module,exports){
+},{"297":297,"303":303}],299:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(253);
+var domify = _dereq_(260);
 
 /**
  * Adds a header to the table containing the table name
@@ -30499,7 +23811,7 @@ TableName.prototype.getNode = function() {
   return this.node.querySelector('h3');
 };
 
-},{"253":253}],294:[function(_dereq_,module,exports){
+},{"260":260}],300:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -30546,10 +23858,10 @@ UtilityColumn.prototype.getColumn = function() {
   return this.column;
 };
 
-},{}],295:[function(_dereq_,module,exports){
+},{}],301:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(250);
+var domClasses = _dereq_(257);
 
 function UtilityColumnRenderer(eventBus, utilityColumn) {
 
@@ -30570,12 +23882,12 @@ UtilityColumnRenderer.$inject = [
 
 module.exports = UtilityColumnRenderer;
 
-},{"250":250}],296:[function(_dereq_,module,exports){
+},{"257":257}],302:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(118);
+var inherits = _dereq_(122);
 
-var RuleProvider = _dereq_(85);
+var RuleProvider = _dereq_(309);
 
 /**
  * LineNumber specific modeling rule
@@ -30602,23 +23914,23 @@ UtilityColumnRules.prototype.init = function() {
 
 };
 
-},{"118":118,"85":85}],297:[function(_dereq_,module,exports){
+},{"122":122,"309":309}],303:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'utilityColumn', 'utilityColumnRules', 'utilityColumnRenderer' ],
   __depends__: [
-    _dereq_(68),
-    _dereq_(87)
+    _dereq_(307),
+    _dereq_(311)
   ],
-  utilityColumn: [ 'type', _dereq_(294) ],
-  utilityColumnRules: [ 'type', _dereq_(296) ],
-  utilityColumnRenderer: [ 'type', _dereq_(295) ]
+  utilityColumn: [ 'type', _dereq_(300) ],
+  utilityColumnRules: [ 'type', _dereq_(302) ],
+  utilityColumnRenderer: [ 'type', _dereq_(301) ]
 };
 
-},{"294":294,"295":295,"296":296,"68":68,"87":87}],298:[function(_dereq_,module,exports){
+},{"300":300,"301":301,"302":302,"307":307,"311":311}],304:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(239),
-    inherits = _dereq_(118);
+var assign = _dereq_(246),
+    inherits = _dereq_(122);
 
 function Base() {
   Object.defineProperty(this, 'businessObject', {
@@ -30681,7 +23993,528 @@ module.exports.Table = Table;
 module.exports.Row = Row;
 module.exports.Column = Column;
 
-},{"118":118,"239":239}],299:[function(_dereq_,module,exports){
+},{"122":122,"246":246}],305:[function(_dereq_,module,exports){
+arguments[4][73][0].apply(exports,arguments)
+},{"132":132,"237":237,"238":238,"240":240,"73":73}],306:[function(_dereq_,module,exports){
+'use strict';
+
+var unique = _dereq_(126),
+    isArray = _dereq_(237),
+    assign = _dereq_(246);
+
+var InternalEvent = _dereq_(308).Event;
+
+
+/**
+ * A service that offers un- and redoable execution of commands.
+ *
+ * The command stack is responsible for executing modeling actions
+ * in a un- and redoable manner. To do this it delegates the actual
+ * command execution to {@link CommandHandler}s.
+ *
+ * Command handlers provide {@link CommandHandler#execute(ctx)} and
+ * {@link CommandHandler#revert(ctx)} methods to un- and redo a command
+ * identified by a command context.
+ *
+ *
+ * ## Life-Cycle events
+ *
+ * In the process the command stack fires a number of life-cycle events
+ * that other components to participate in the command execution.
+ *
+ *    * preExecute
+ *    * preExecuted
+ *    * execute
+ *    * executed
+ *    * postExecute
+ *    * postExecuted
+ *    * revert
+ *    * reverted
+ *
+ * A special event is used for validating, whether a command can be
+ * performed prior to its execution.
+ *
+ *    * canExecute
+ *
+ * Each of the events is fired as `commandStack.{eventName}` and
+ * `commandStack.{commandName}.{eventName}`, respectively. This gives
+ * components fine grained control on where to hook into.
+ *
+ * The event object fired transports `command`, the name of the
+ * command and `context`, the command context.
+ *
+ *
+ * ## Creating Command Handlers
+ *
+ * Command handlers should provide the {@link CommandHandler#execute(ctx)}
+ * and {@link CommandHandler#revert(ctx)} methods to implement
+ * redoing and undoing of a command. They must ensure undo is performed
+ * properly in order not to break the undo chain.
+ *
+ * Command handlers may execute other modeling operations (and thus
+ * commands) in their `preExecute` and `postExecute` phases. The command
+ * stack will properly group all commands together into a logical unit
+ * that may be re- and undone atomically.
+ *
+ * Command handlers must not execute other commands from within their
+ * core implementation (`execute`, `revert`).
+ *
+ *
+ * ## Change Tracking
+ *
+ * During the execution of the CommandStack it will keep track of all
+ * elements that have been touched during the command's execution.
+ *
+ * At the end of the CommandStack execution it will notify interested
+ * components via an 'elements.changed' event with all the dirty
+ * elements.
+ *
+ * The event can be picked up by components that are interested in the fact
+ * that elements have been changed. One use case for this is updating
+ * their graphical representation after moving / resizing or deletion.
+ *
+ *
+ * @param {EventBus} eventBus
+ * @param {Injector} injector
+ */
+function CommandStack(eventBus, injector) {
+
+  /**
+   * A map of all registered command handlers.
+   *
+   * @type {Object}
+   */
+  this._handlerMap = {};
+
+  /**
+   * A stack containing all re/undoable actions on the diagram
+   *
+   * @type {Array<Object>}
+   */
+  this._stack = [];
+
+  /**
+   * The current index on the stack
+   *
+   * @type {Number}
+   */
+  this._stackIdx = -1;
+
+  /**
+   * Current active commandStack execution
+   *
+   * @type {Object}
+   */
+  this._currentExecution = {
+    actions: [],
+    dirty: []
+  };
+
+
+  this._injector = injector;
+  this._eventBus = eventBus;
+
+  this._uid = 1;
+
+  eventBus.on([ 'diagram.destroy', 'diagram.clear' ], this.clear, this);
+}
+
+CommandStack.$inject = [ 'eventBus', 'injector' ];
+
+module.exports = CommandStack;
+
+
+/**
+ * Execute a command
+ *
+ * @param {String} command the command to execute
+ * @param {Object} context the environment to execute the command in
+ */
+CommandStack.prototype.execute = function(command, context) {
+  if (!command) {
+    throw new Error('command required');
+  }
+
+  var action = { command: command, context: context };
+
+  this._pushAction(action);
+  this._internalExecute(action);
+  this._popAction(action);
+};
+
+
+/**
+ * Ask whether a given command can be executed.
+ *
+ * Implementors may hook into the mechanism on two ways:
+ *
+ *   * in event listeners:
+ *
+ *     Users may prevent the execution via an event listener.
+ *     It must prevent the default action for `commandStack.(<command>.)canExecute` events.
+ *
+ *   * in command handlers:
+ *
+ *     If the method {@link CommandHandler#canExecute} is implemented in a handler
+ *     it will be called to figure out whether the execution is allowed.
+ *
+ * @param  {String} command the command to execute
+ * @param  {Object} context the environment to execute the command in
+ *
+ * @return {Boolean} true if the command can be executed
+ */
+CommandStack.prototype.canExecute = function(command, context) {
+
+  var action = { command: command, context: context };
+
+  var handler = this._getHandler(command);
+
+  var result = this._fire(command, 'canExecute', action);
+
+  // handler#canExecute will only be called if no listener
+  // decided on a result already
+  if (result === undefined) {
+    if (!handler) {
+      return false;
+    }
+
+    if (handler.canExecute) {
+      result = handler.canExecute(context);
+    }
+  }
+
+  return result;
+};
+
+
+/**
+ * Clear the command stack, erasing all undo / redo history
+ */
+CommandStack.prototype.clear = function() {
+  this._stack.length = 0;
+  this._stackIdx = -1;
+
+  this._fire('changed');
+};
+
+
+/**
+ * Undo last command(s)
+ */
+CommandStack.prototype.undo = function() {
+  var action = this._getUndoAction(),
+      next;
+
+  if (action) {
+    this._pushAction(action);
+
+    while (action) {
+      this._internalUndo(action);
+      next = this._getUndoAction();
+
+      if (!next || next.id !== action.id) {
+        break;
+      }
+
+      action = next;
+    }
+
+    this._popAction();
+  }
+};
+
+
+/**
+ * Redo last command(s)
+ */
+CommandStack.prototype.redo = function() {
+  var action = this._getRedoAction(),
+      next;
+
+  if (action) {
+    this._pushAction(action);
+
+    while (action) {
+      this._internalExecute(action, true);
+      next = this._getRedoAction();
+
+      if (!next || next.id !== action.id) {
+        break;
+      }
+
+      action = next;
+    }
+
+    this._popAction();
+  }
+};
+
+
+/**
+ * Register a handler instance with the command stack
+ *
+ * @param {String} command
+ * @param {CommandHandler} handler
+ */
+CommandStack.prototype.register = function(command, handler) {
+  this._setHandler(command, handler);
+};
+
+
+/**
+ * Register a handler type with the command stack
+ * by instantiating it and injecting its dependencies.
+ *
+ * @param {String} command
+ * @param {Function} a constructor for a {@link CommandHandler}
+ */
+CommandStack.prototype.registerHandler = function(command, handlerCls) {
+
+  if (!command || !handlerCls) {
+    throw new Error('command and handlerCls must be defined');
+  }
+
+  var handler = this._injector.instantiate(handlerCls);
+  this.register(command, handler);
+};
+
+CommandStack.prototype.canUndo = function() {
+  return !!this._getUndoAction();
+};
+
+CommandStack.prototype.canRedo = function() {
+  return !!this._getRedoAction();
+};
+
+////// stack access  //////////////////////////////////////
+
+CommandStack.prototype._getRedoAction = function() {
+  return this._stack[this._stackIdx + 1];
+};
+
+
+CommandStack.prototype._getUndoAction = function() {
+  return this._stack[this._stackIdx];
+};
+
+
+////// internal functionality /////////////////////////////
+
+CommandStack.prototype._internalUndo = function(action) {
+  var self = this;
+
+  var command = action.command,
+      context = action.context;
+
+  var handler = this._getHandler(command);
+
+  // guard against illegal nested command stack invocations
+  this._atomicDo(function() {
+    self._fire(command, 'revert', action);
+
+    if (handler.revert) {
+      self._markDirty(handler.revert(context));
+    }
+
+    self._revertedAction(action);
+
+    self._fire(command, 'reverted', action);
+  });
+};
+
+
+CommandStack.prototype._fire = function(command, qualifier, event) {
+  if (arguments.length < 3) {
+    event = qualifier;
+    qualifier = null;
+  }
+
+  var names = qualifier ? [ command + '.' + qualifier, qualifier ] : [ command ],
+      i, name, result;
+
+  event = assign(new InternalEvent(), event);
+
+  for (i = 0; (name = names[i]); i++) {
+    result = this._eventBus.fire('commandStack.' + name, event);
+
+    if (event.cancelBubble) {
+      break;
+    }
+  }
+
+  return result;
+};
+
+CommandStack.prototype._createId = function() {
+  return this._uid++;
+};
+
+CommandStack.prototype._atomicDo = function(fn) {
+
+  var execution = this._currentExecution;
+
+  execution.atomic = true;
+
+  try {
+    fn();
+  } finally {
+    execution.atomic = false;
+  }
+};
+
+CommandStack.prototype._internalExecute = function(action, redo) {
+  var self = this;
+
+  var command = action.command,
+      context = action.context;
+
+  var handler = this._getHandler(command);
+
+  if (!handler) {
+    throw new Error('no command handler registered for <' + command + '>');
+  }
+
+  this._pushAction(action);
+
+  if (!redo) {
+    this._fire(command, 'preExecute', action);
+
+    if (handler.preExecute) {
+      handler.preExecute(context);
+    }
+
+    this._fire(command, 'preExecuted', action);
+  }
+
+  // guard against illegal nested command stack invocations
+  this._atomicDo(function() {
+
+    self._fire(command, 'execute', action);
+
+    if (handler.execute) {
+      // actual execute + mark return results as dirty
+      self._markDirty(handler.execute(context));
+    }
+
+    // log to stack
+    self._executedAction(action, redo);
+
+    self._fire(command, 'executed', action);
+  });
+
+  if (!redo) {
+    this._fire(command, 'postExecute', action);
+
+    if (handler.postExecute) {
+      handler.postExecute(context);
+    }
+
+    this._fire(command, 'postExecuted', action);
+  }
+
+  this._popAction(action);
+};
+
+
+CommandStack.prototype._pushAction = function(action) {
+
+  var execution = this._currentExecution,
+      actions = execution.actions;
+
+  var baseAction = actions[0];
+
+  if (execution.atomic) {
+    throw new Error('illegal invocation in <execute> or <revert> phase (action: ' + action.command + ')');
+  }
+
+  if (!action.id) {
+    action.id = (baseAction && baseAction.id) || this._createId();
+  }
+
+  actions.push(action);
+};
+
+
+CommandStack.prototype._popAction = function() {
+  var execution = this._currentExecution,
+      actions = execution.actions,
+      dirty = execution.dirty;
+
+  actions.pop();
+
+  if (!actions.length) {
+    this._eventBus.fire('elements.changed', { elements: unique(dirty) });
+
+    dirty.length = 0;
+
+    this._fire('changed');
+  }
+};
+
+
+CommandStack.prototype._markDirty = function(elements) {
+  var execution = this._currentExecution;
+
+  if (!elements) {
+    return;
+  }
+
+  elements = isArray(elements) ? elements : [ elements ];
+
+  execution.dirty = execution.dirty.concat(elements);
+};
+
+
+CommandStack.prototype._executedAction = function(action, redo) {
+  var stackIdx = ++this._stackIdx;
+
+  if (!redo) {
+    this._stack.splice(stackIdx, this._stack.length, action);
+  }
+};
+
+
+CommandStack.prototype._revertedAction = function(action) {
+  this._stackIdx--;
+};
+
+
+CommandStack.prototype._getHandler = function(command) {
+  return this._handlerMap[command];
+};
+
+CommandStack.prototype._setHandler = function(command, handler) {
+  if (!command || !handler) {
+    throw new Error('command and handler required');
+  }
+
+  if (this._handlerMap[command]) {
+    throw new Error('overriding handler for command <' + command + '>');
+  }
+
+  this._handlerMap[command] = handler;
+};
+
+},{"126":126,"237":237,"246":246,"308":308}],307:[function(_dereq_,module,exports){
+module.exports = {
+  commandStack: [ 'type', _dereq_(306) ]
+};
+
+},{"306":306}],308:[function(_dereq_,module,exports){
+arguments[4][77][0].apply(exports,arguments)
+},{"138":138,"237":237,"238":238,"240":240,"246":246,"77":77}],309:[function(_dereq_,module,exports){
+arguments[4][92][0].apply(exports,arguments)
+},{"122":122,"305":305,"92":92}],310:[function(_dereq_,module,exports){
+arguments[4][93][0].apply(exports,arguments)
+},{"93":93}],311:[function(_dereq_,module,exports){
+arguments[4][94][0].apply(exports,arguments)
+},{"310":310,"94":94}],312:[function(_dereq_,module,exports){
+arguments[4][102][0].apply(exports,arguments)
+},{"102":102}],313:[function(_dereq_,module,exports){
+arguments[4][105][0].apply(exports,arguments)
+},{"105":105,"312":312,"314":314}],314:[function(_dereq_,module,exports){
+arguments[4][106][0].apply(exports,arguments)
+},{"106":106}],315:[function(_dereq_,module,exports){
 /**
  * Tiny stack for browser or server
  *
@@ -30798,6 +24631,589 @@ else {
 }
 } )( this );
 
-},{}]},{},[1])(1)
+},{}],316:[function(_dereq_,module,exports){
+/**
+ * append utility
+ */
+
+module.exports = append;
+
+var appendTo = _dereq_(317);
+
+/**
+ * Append a node to an element
+ *
+ * @param  {SVGElement} element
+ * @param  {SVGElement} node
+ *
+ * @return {SVGElement} the element
+ */
+function append(element, node) {
+  appendTo(node, element);
+  return element;
+}
+},{"317":317}],317:[function(_dereq_,module,exports){
+/**
+ * appendTo utility
+ */
+module.exports = appendTo;
+
+var ensureImported = _dereq_(324);
+
+/**
+ * Append a node to a target element and return the appended node.
+ *
+ * @param  {SVGElement} element
+ * @param  {SVGElement} node
+ *
+ * @return {SVGElement} the appended node
+ */
+function appendTo(element, target) {
+  target.appendChild(ensureImported(element, target));
+  return element;
+}
+},{"324":324}],318:[function(_dereq_,module,exports){
+/**
+ * attribute accessor utility
+ */
+
+module.exports = attr;
+
+
+var LENGTH_ATTR = 2;
+
+var CSS_PROPERTIES = {
+  'alignment-baseline': 1,
+  'baseline-shift': 1,
+  'clip': 1,
+  'clip-path': 1,
+  'clip-rule': 1,
+  'color': 1,
+  'color-interpolation': 1,
+  'color-interpolation-filters': 1,
+  'color-profile': 1,
+  'color-rendering': 1,
+  'cursor': 1,
+  'direction': 1,
+  'display': 1,
+  'dominant-baseline': 1,
+  'enable-background': 1,
+  'fill': 1,
+  'fill-opacity': 1,
+  'fill-rule': 1,
+  'filter': 1,
+  'flood-color': 1,
+  'flood-opacity': 1,
+  'font': 1,
+  'font-family': 1,
+  'font-size': LENGTH_ATTR,
+  'font-size-adjust': 1,
+  'font-stretch': 1,
+  'font-style': 1,
+  'font-variant': 1,
+  'font-weight': 1,
+  'glyph-orientation-horizontal': 1,
+  'glyph-orientation-vertical': 1,
+  'image-rendering': 1,
+  'kerning': 1,
+  'letter-spacing': 1,
+  'lighting-color': 1,
+  'marker': 1,
+  'marker-end': 1,
+  'marker-mid': 1,
+  'marker-start': 1,
+  'mask': 1,
+  'opacity': 1,
+  'overflow': 1,
+  'pointer-events': 1,
+  'shape-rendering': 1,
+  'stop-color': 1,
+  'stop-opacity': 1,
+  'stroke': 1,
+  'stroke-dasharray': 1,
+  'stroke-dashoffset': 1,
+  'stroke-linecap': 1,
+  'stroke-linejoin': 1,
+  'stroke-miterlimit': 1,
+  'stroke-opacity': 1,
+  'stroke-width': LENGTH_ATTR,
+  'text-anchor': 1,
+  'text-decoration': 1,
+  'text-rendering': 1,
+  'unicode-bidi': 1,
+  'visibility': 1,
+  'word-spacing': 1,
+  'writing-mode': 1
+};
+
+
+function getAttribute(node, name) {
+  if (CSS_PROPERTIES[name]) {
+    return node.style[name];
+  } else {
+    return node.getAttributeNS(null, name);
+  }
+}
+
+function setAttribute(node, name, value) {
+  var hyphenated = name.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+
+  var type = CSS_PROPERTIES[hyphenated];
+
+  if (type) {
+    // append pixel unit, unless present
+    if (type === LENGTH_ATTR && typeof value === 'number') {
+      value = String(value) + 'px';
+    }
+
+    node.style[hyphenated] = value;
+  } else {
+    node.setAttributeNS(null, name, value);
+  }
+}
+
+function setAttributes(node, attrs) {
+
+  var names = Object.keys(attrs), i, name;
+
+  for (i = 0, name; !!(name = names[i]); i++) {
+    setAttribute(node, name, attrs[name]);
+  }
+}
+
+/**
+ * Gets or sets raw attributes on a node.
+ *
+ * @param  {SVGElement} node
+ * @param  {Object} [attrs]
+ * @param  {String} [name]
+ * @param  {String} [value]
+ *
+ * @return {String}
+ */
+function attr(node, name, value) {
+  if (typeof name === 'string') {
+    if (value !== undefined) {
+      setAttribute(node, name, value);
+    } else {
+      return getAttribute(node, name);
+    }
+  } else {
+    setAttributes(node, name);
+  }
+
+  return node;
+}
+
+},{}],319:[function(_dereq_,module,exports){
+/**
+ * Clear utility
+ */
+module.exports = classes;
+
+var index = function(arr, obj) {
+  if (arr.indexOf) {
+     return arr.indexOf(obj);
+  }
+
+
+  for (var i = 0; i < arr.length; ++i) {
+    if (arr[i] === obj) {
+      return i;
+    }
+  }
+
+  return -1;
+};
+
+var re = /\s+/;
+
+var toString = Object.prototype.toString;
+
+/**
+ * Wrap `el` in a `ClassList`.
+ *
+ * @param {Element} el
+ * @return {ClassList}
+ * @api public
+ */
+
+function classes(el) {
+  return new ClassList(el);
+};
+
+function ClassList(el) {
+  if (!el || !el.nodeType) {
+    throw new Error('A DOM element reference is required');
+  }
+  this.el = el;
+  this.list = el.classList;
+}
+
+/**
+ * Add class `name` if not already present.
+ *
+ * @param {String} name
+ * @return {ClassList}
+ * @api public
+ */
+
+ClassList.prototype.add = function(name) {
+
+  // classList
+  if (this.list) {
+    this.list.add(name);
+    return this;
+  }
+
+  // fallback
+  var arr = this.array();
+  var i = index(arr, name);
+  if (!~i) arr.push(name);
+
+  if (this.el.className.baseVal !== undefined) {
+    this.el.className.baseVal = arr.join(' ');
+  } else {
+    this.el.className = arr.join(' ');
+  }
+
+  return this;
+};
+
+/**
+ * Remove class `name` when present, or
+ * pass a regular expression to remove
+ * any which match.
+ *
+ * @param {String|RegExp} name
+ * @return {ClassList}
+ * @api public
+ */
+
+ClassList.prototype.remove = function(name) {
+  if ('[object RegExp]' == toString.call(name)) {
+    return this.removeMatching(name);
+  }
+
+  // classList
+  if (this.list) {
+    this.list.remove(name);
+    return this;
+  }
+
+  // fallback
+  var arr = this.array();
+  var i = index(arr, name);
+  if (~i) arr.splice(i, 1);
+  this.el.className.baseVal = arr.join(' ');
+  return this;
+};
+
+/**
+ * Remove all classes matching `re`.
+ *
+ * @param {RegExp} re
+ * @return {ClassList}
+ * @api private
+ */
+
+ClassList.prototype.removeMatching = function(re) {
+  var arr = this.array();
+  for (var i = 0; i < arr.length; i++) {
+    if (re.test(arr[i])) {
+      this.remove(arr[i]);
+    }
+  }
+  return this;
+};
+
+/**
+ * Toggle class `name`, can force state via `force`.
+ *
+ * For browsers that support classList, but do not support `force` yet,
+ * the mistake will be detected and corrected.
+ *
+ * @param {String} name
+ * @param {Boolean} force
+ * @return {ClassList}
+ * @api public
+ */
+
+ClassList.prototype.toggle = function(name, force) {
+  // classList
+  if (this.list) {
+    if ("undefined" !== typeof force) {
+      if (force !== this.list.toggle(name, force)) {
+        this.list.toggle(name); // toggle again to correct
+      }
+    } else {
+      this.list.toggle(name);
+    }
+    return this;
+  }
+
+  // fallback
+  if ("undefined" !== typeof force) {
+    if (!force) {
+      this.remove(name);
+    } else {
+      this.add(name);
+    }
+  } else {
+    if (this.has(name)) {
+      this.remove(name);
+    } else {
+      this.add(name);
+    }
+  }
+
+  return this;
+};
+
+/**
+ * Return an array of classes.
+ *
+ * @return {Array}
+ * @api public
+ */
+
+ClassList.prototype.array = function() {
+  var className = this.el.getAttribute('class') || '';
+  var str = className.replace(/^\s+|\s+$/g, '');
+  var arr = str.split(re);
+  if ('' === arr[0]) arr.shift();
+  return arr;
+};
+
+/**
+ * Check if class `name` is present.
+ *
+ * @param {String} name
+ * @return {ClassList}
+ * @api public
+ */
+
+ClassList.prototype.has =
+ClassList.prototype.contains = function(name) {
+  return this.list
+    ? this.list.contains(name)
+    : !! ~index(this.array(), name);
+};
+
+},{}],320:[function(_dereq_,module,exports){
+/**
+ * Create utility for SVG elements
+ */
+
+module.exports = create;
+
+
+var attr = _dereq_(318);
+var parse = _dereq_(326);
+var ns = _dereq_(325);
+
+
+/**
+ * Create a specific type from name or SVG markup.
+ *
+ * @param {String} name the name or markup of the element
+ * @param {Object} [attrs] attributes to set on the element
+ *
+ * @returns {SVGElement}
+ */
+function create(name, attrs) {
+  var element;
+
+  if (name.charAt(0) === '<') {
+    element = parse(name).firstChild;
+    element = document.importNode(element, true);
+  } else {
+    element = document.createElementNS(ns.svg, name);
+  }
+
+  if (attrs) {
+    attr(element, attrs);
+  }
+
+  return element;
+}
+},{"318":318,"325":325,"326":326}],321:[function(_dereq_,module,exports){
+/**
+ * Geometry helpers
+ */
+
+module.exports = { createPoint: createPoint, createMatrix: createMatrix, createTransform: createTransform };
+
+
+var create = _dereq_(320);
+
+// fake node used to instantiate svg geometry elements
+var node = create('svg');
+
+function extend(object, props) {
+  var i, k, keys = Object.keys(props);
+
+  for (i = 0; !!(k = keys[i]); i++) {
+    object[k] = props[k];
+  }
+
+  return object;
+}
+
+
+function createPoint(x, y) {
+  var point = node.createSVGPoint();
+
+  switch (arguments.length) {
+    case 0:
+      return point;
+    case 2:
+      x = {
+        x: x,
+        y: y
+      };
+      break;
+  }
+
+  return extend(point, x);
+}
+
+function createMatrix(a, b, c, d, e, f) {
+  var matrix = node.createSVGMatrix();
+
+  switch (arguments.length) {
+    case 0:
+      return matrix;
+    case 6:
+      a = {
+        a: a,
+        b: b,
+        c: c,
+        d: d,
+        e: e,
+        f: f
+      };
+      break;
+  }
+
+  return extend(matrix, a);
+}
+
+function createTransform(matrix) {
+  if (matrix) {
+    return node.createSVGTransformFromMatrix(matrix);
+  } else {
+    return node.createSVGTransform();
+  }
+}
+},{"320":320}],322:[function(_dereq_,module,exports){
+module.exports = remove;
+
+function remove(element) {
+  element.parentNode.removeChild(element);
+  return element;
+}
+},{}],323:[function(_dereq_,module,exports){
+/**
+ * transform accessor utility
+ */
+
+module.exports = transform;
+
+function wrapMatrix(transformList, transform) {
+  if (transform instanceof SVGMatrix) {
+    return transformList.createSVGTransformFromMatrix(transform);
+  } else {
+    return transform;
+  }
+}
+
+function setTransforms(transformList, transforms) {
+  var i, t;
+
+  transformList.clear();
+
+  for (i = 0; !!(t = transforms[i]); i++) {
+    transformList.appendItem(wrapMatrix(transformList, t));
+  }
+
+  transformList.consolidate();
+}
+
+function transform(node, transforms) {
+  var transformList = node.transform.baseVal;
+
+  if (arguments.length === 1) {
+    return transformList.consolidate();
+  } else {
+    if (transforms.length) {
+      setTransforms(transformList, transforms);
+    } else {
+      transformList.initialize(wrapMatrix(transformList, transforms));
+    }
+  }
+}
+},{}],324:[function(_dereq_,module,exports){
+module.exports = ensureImported;
+
+function ensureImported(element, target) {
+
+  if (element.ownerDocument !== target.ownerDocument) {
+    try {
+      // may fail on webkit
+      return target.ownerDocument.importNode(element, true);
+    } catch (e) { }
+  }
+
+  return element;
+}
+},{}],325:[function(_dereq_,module,exports){
+var ns = {
+  svg: 'http://www.w3.org/2000/svg'
+};
+
+module.exports = ns;
+},{}],326:[function(_dereq_,module,exports){
+/**
+ * DOM parsing utility
+ */
+
+module.exports = parse;
+
+
+var ns = _dereq_(325);
+
+var SVG_START = '<svg xmlns="' + ns.svg + '"';
+
+function parse(svg) {
+
+  var doc;
+
+  // ensure we import a valid svg document
+  if (svg.substring(0, 4) === '<svg') {
+    doc = true;
+
+    if (svg.indexOf(ns.svg) === -1) {
+      svg = SVG_START + svg.substring(4);
+    }
+  } else {
+    // namespace svg
+    svg = SVG_START + '>' + svg + '</svg>';
+  }
+
+  return parseDocument(svg);
+}
+
+function parseDocument(svg) {
+
+  var parser;
+
+  // parse
+  parser = new DOMParser();
+  parser.async = false;
+
+  return parser.parseFromString(svg, 'text/xml');
+}
+},{"325":325}]},{},[1])(1)
 });
 //# sourceMappingURL=dmn-viewer.js.map
