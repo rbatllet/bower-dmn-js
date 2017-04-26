@@ -1,5 +1,5 @@
 /*!
- * dmn-js - dmn-viewer v0.8.0
+ * dmn-js - dmn-viewer v0.8.6-1
 
  * Copyright 2015 camunda Services GmbH and other contributors
  *
@@ -8,7 +8,7 @@
  *
  * Source Code: https://github.com/dmn-io/dmn-js
  *
- * Date: 2016-11-11
+ * Date: 2017-04-26
  */
 
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.DmnJS = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
@@ -40,6 +40,10 @@ var inherits = _dereq_(122);
 var Importer = _dereq_(15);
 
 var is = _dereq_(62).is;
+
+var innerSVG = _dereq_(323);
+
+function noop() {}
 
 function lengthOne(arr) {
   return arr && arr.length === 1;
@@ -192,7 +196,7 @@ Viewer.prototype.importXML = function(xml, done) {
   var loadDiagram = this._loadDiagram;
 
   // done is optional
-  done = done || function() {};
+  done = done || noop;
 
   var self = this;
 
@@ -240,6 +244,9 @@ Viewer.prototype.importXML = function(xml, done) {
           lengthOne(decisions) &&
           loadDiagram === false) {
         self.showDecision(decisions[0]);
+      } else {
+        // set the DRD Editor as the current active editor
+        self._activeEditor = self;
       }
 
       done(err, allWarnings);
@@ -290,10 +297,10 @@ Viewer.prototype.saveSVG = function(options, done) {
   var canvas = this.get('canvas');
 
   var contentNode = canvas.getDefaultLayer(),
-      defsNode = canvas._svg.select('defs');
+      defsNode = domQuery('defs', canvas._svg);
 
-  var contents = contentNode.innerSVG(),
-      defs = (defsNode && defsNode.outerSVG()) || '';
+  var contents = innerSVG(contentNode),
+      defs = (defsNode && defsNode.outerHTML) || '';
 
   var bbox = contentNode.getBBox();
 
@@ -357,6 +364,10 @@ Viewer.prototype.attach = function(container, oldContainer) {
   parent.appendChild(container);
 };
 
+Viewer.prototype.getActiveEditor = function() {
+  return this._activeEditor;
+};
+
 Viewer.prototype.showDecision = function(decision, attrs, done) {
   var table = this.table,
       self = this;
@@ -366,11 +377,11 @@ Viewer.prototype.showDecision = function(decision, attrs, done) {
     attrs = {};
   }
 
-  done = done || function(err, warnings) {
-    console.log(err, warnings);
-  };
+  done = done || noop;
 
   this.attach(table.container, this.container);
+
+  this._activeEditor = table;
 
   return table.showDecision(decision, function(err, warnings) {
     self._emit('view.switch', assign({ decision: decision }, attrs));
@@ -385,6 +396,8 @@ Viewer.prototype.showDRD = function(attrs) {
   attrs = attrs || {};
 
   this.attach(this.container, this.table.container);
+
+  this._activeEditor = this;
 
   this._emit('view.switch', assign({ decision: decision }, attrs));
 };
@@ -578,7 +591,7 @@ function addProjectLogo(container) {
 
 /* </project-logo> */
 
-},{"10":10,"114":114,"12":12,"122":122,"130":130,"15":15,"17":17,"2":2,"240":240,"243":243,"246":246,"250":250,"260":260,"261":261,"262":262,"263":263,"62":62,"63":63,"71":71,"8":8,"91":91,"98":98}],2:[function(_dereq_,module,exports){
+},{"10":10,"114":114,"12":12,"122":122,"130":130,"15":15,"17":17,"2":2,"240":240,"243":243,"246":246,"250":250,"260":260,"261":261,"262":262,"263":263,"323":323,"62":62,"63":63,"71":71,"8":8,"91":91,"98":98}],2:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -634,7 +647,7 @@ var domClasses = _dereq_(257),
 
 var svgAppend = _dereq_(316),
     svgAttr = _dereq_(318),
-    svgCreate = _dereq_(320);
+    svgCreate = _dereq_(321);
 
 var BaseRenderer = _dereq_(80),
     RenderUtil = _dereq_(107),
@@ -1064,7 +1077,7 @@ function getSemantic(element) {
   return element.businessObject;
 }
 
-},{"107":107,"109":109,"122":122,"237":237,"241":241,"246":246,"257":257,"262":262,"316":316,"318":318,"320":320,"62":62,"80":80}],5:[function(_dereq_,module,exports){
+},{"107":107,"109":109,"122":122,"237":237,"241":241,"246":246,"257":257,"262":262,"316":316,"318":318,"321":321,"62":62,"80":80}],5:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1354,10 +1367,11 @@ module.exports = {
 var domify = _dereq_(260),
     domDelegate = _dereq_(259);
 
-function DrillDown(eventBus, overlays, drdRules) {
+function DrillDown(eventBus, overlays, drdRules, config) {
   this._eventBus = eventBus;
   this._overlays = overlays;
   this._drdRules = drdRules;
+  this._config = config;
 
   eventBus.on([ 'drdElement.added', 'shape.create' ], function(context) {
     var element = context.element,
@@ -1371,7 +1385,7 @@ function DrillDown(eventBus, overlays, drdRules) {
 
 module.exports = DrillDown;
 
-DrillDown.$inject = [ 'eventBus', 'overlays', 'drdRules' ];
+DrillDown.$inject = [ 'eventBus', 'overlays', 'drdRules', 'config' ];
 
 
 DrillDown.prototype.addOverlay = function(decision, decisionType) {
@@ -1393,7 +1407,10 @@ DrillDown.prototype.addOverlay = function(decision, decisionType) {
     html: overlay
   });
 
-  this.bindEventListener(decision, overlay, overlayId);
+  if (!this._config.disableDrdInteraction) {
+    overlay.style.cursor = 'pointer';
+    this.bindEventListener(decision, overlay, overlayId);
+  }
 };
 
 DrillDown.prototype.bindEventListener = function(decision, overlay, id) {
@@ -1494,6 +1511,10 @@ DrdRules.prototype.canDrillDown = canDrillDown;
 
 
 function canConnect(source, target) {
+
+  if (is(source, 'dmn:Definitions') || is(target, 'dmn:Definitions')) {
+    return false;
+  }
 
   if (is(source, 'dmn:Decision') || is(source, 'dmn:InputData')) {
     if (is(target, 'dmn:Decision') ||
@@ -2605,7 +2626,7 @@ function DateView(eventBus, simpleMode) {
 
         // remove potential datafield
         dateGfx = evt.gfx.querySelector('.date-content');
-        
+
         if (dateGfx) {
           dateGfx.parentNode.removeChild(dateGfx);
         }
@@ -3967,14 +3988,7 @@ function SimpleMode(eventBus, sheet, config, graphicsFactory) {
   var self = this;
 
   eventBus.on('controls.init', function(event) {
-    this._node = event.controls.addControl('Exit Advanced Mode', function() {
-
-      if (!domClasses(sheet.getContainer().parentNode).contains('simple-mode')) {
-        self.activate();
-      } else {
-        self.deactivate();
-      }
-    });
+    this._node = this.addControlButton(event);
   }, this);
 
   eventBus.on('import.done', function(event) {
@@ -3983,16 +3997,8 @@ function SimpleMode(eventBus, sheet, config, graphicsFactory) {
     }
 
     if (!config.advancedMode) {
-      this.activate();
+      this.activate(true);
     }
-  }, this);
-
-  eventBus.on([ 'sheet.destroy', 'sheet.clear' ], function(event) {
-    if (event.error) {
-      return;
-    }
-
-    this.deactivate();
   }, this);
 
   eventBus.on('cell.render', function(event) {
@@ -4082,15 +4088,12 @@ function SimpleMode(eventBus, sheet, config, graphicsFactory) {
         // ) THEN { remove checkbox }
         if (!(
           (businessObject.inputExpression &&
-         businessObject.inputExpression.typeRef === 'boolean' ||
-         businessObject.typeRef === 'boolean')
+           businessObject.inputExpression.typeRef === 'boolean' ||
+           businessObject.typeRef === 'boolean')
         )) {
-
           checkbox.parentNode.removeChild(checkbox);
           gfx.childNodes[0].style.display = '';
-
         }
-
       }
     }
   }, this);
@@ -4099,6 +4102,22 @@ function SimpleMode(eventBus, sheet, config, graphicsFactory) {
 SimpleMode.$inject = [ 'eventBus', 'sheet', 'config', 'graphicsFactory' ];
 
 module.exports = SimpleMode;
+
+SimpleMode.prototype.addControlButton = function(event) {
+  var sheet = this._sheet,
+      controls = event.controls;
+
+  var self = this;
+
+  return controls.addControl('Exit Advanced Mode', function() {
+
+    if (!domClasses(sheet.getContainer().parentNode).contains('simple-mode')) {
+      self.activate();
+    } else {
+      self.deactivate();
+    }
+  });
+};
 
 SimpleMode.prototype.getExpressionNode = function(businessObject) {
   var node;
@@ -4114,7 +4133,7 @@ SimpleMode.prototype.getExpressionNode = function(businessObject) {
   return node;
 };
 
-SimpleMode.prototype.activate = function() {
+SimpleMode.prototype.activate = function(isInit) {
   if (!this._node) {
     return;
   }
@@ -4127,7 +4146,12 @@ SimpleMode.prototype.activate = function() {
 
   this._graphicsFactory.redraw();
 
-  this._eventBus.fire('simpleMode.activated');
+  // fire a different event from initializing and activating
+  if (isInit) {
+    this._eventBus.fire('simpleMode.initialized');
+  } else {
+    this._eventBus.fire('simpleMode.activated');
+  }
 };
 
 SimpleMode.prototype.deactivate = function() {
@@ -4459,7 +4483,7 @@ TableName.prototype.setId = function(newId) {
   if (newId) {
     this.semantic.id = newId;
   }
-  
+
   this.node.querySelector('div').textContent = this.semantic.id || '';
 };
 
@@ -6103,10 +6127,10 @@ var Collections = _dereq_(100),
 var svgAppend = _dereq_(316),
     svgAttr = _dereq_(318),
     svgClasses = _dereq_(319),
-    svgCreate = _dereq_(320),
-    svgTransform = _dereq_(323);
+    svgCreate = _dereq_(321),
+    svgTransform = _dereq_(325);
 
-var createMatrix = _dereq_(321).createMatrix;
+var createMatrix = _dereq_(322).createMatrix;
 
 
 function round(number, resolution) {
@@ -7074,7 +7098,7 @@ Canvas.prototype.resized = function() {
   this._eventBus.fire('canvas.resized');
 };
 
-},{"100":100,"101":101,"129":129,"132":132,"139":139,"240":240,"246":246,"316":316,"318":318,"319":319,"320":320,"321":321,"323":323}],75:[function(_dereq_,module,exports){
+},{"100":100,"101":101,"129":129,"132":132,"139":139,"240":240,"246":246,"316":316,"318":318,"319":319,"321":321,"322":322,"325":325}],75:[function(_dereq_,module,exports){
 'use strict';
 
 var Model = _dereq_(99);
@@ -7800,8 +7824,8 @@ var domClear = _dereq_(258);
 var svgAppend = _dereq_(316),
     svgAttr = _dereq_(318),
     svgClasses = _dereq_(319),
-    svgCreate = _dereq_(320),
-    svgRemove = _dereq_(322);
+    svgCreate = _dereq_(321),
+    svgRemove = _dereq_(324);
 
 
 /**
@@ -8002,7 +8026,7 @@ function prependTo(newNode, parentNode) {
   parentNode.insertBefore(newNode, parentNode.firstChild);
 }
 
-},{"103":103,"108":108,"132":132,"135":135,"258":258,"316":316,"318":318,"319":319,"320":320,"322":322}],79:[function(_dereq_,module,exports){
+},{"103":103,"108":108,"132":132,"135":135,"258":258,"316":316,"318":318,"319":319,"321":321,"324":324}],79:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [ _dereq_(83) ],
   __init__: [ 'canvas' ],
@@ -8117,7 +8141,7 @@ var componentsToPath = renderUtil.componentsToPath,
 
 var svgAppend = _dereq_(316),
     svgAttr = _dereq_(318),
-    svgCreate = _dereq_(320);
+    svgCreate = _dereq_(321);
 
 // apply default renderer with lowest possible priority
 // so that it only kicks in if noone else could render
@@ -8208,7 +8232,7 @@ DefaultRenderer.$inject = [ 'eventBus', 'styles' ];
 
 module.exports = DefaultRenderer;
 
-},{"107":107,"122":122,"316":316,"318":318,"320":320,"80":80}],82:[function(_dereq_,module,exports){
+},{"107":107,"122":122,"316":316,"318":318,"321":321,"80":80}],82:[function(_dereq_,module,exports){
 'use strict';
 
 var isArray = _dereq_(237),
@@ -8613,7 +8637,7 @@ var isPrimaryButton = _dereq_(105).isPrimaryButton;
 
 var svgAppend = _dereq_(316),
     svgAttr = _dereq_(318),
-    svgCreate = _dereq_(320);
+    svgCreate = _dereq_(321);
 
 var domQuery = _dereq_(262);
 
@@ -8903,7 +8927,7 @@ module.exports = InteractionEvents;
  * @property {Event} originalEvent
  */
 
-},{"105":105,"107":107,"132":132,"259":259,"262":262,"316":316,"318":318,"320":320}],87:[function(_dereq_,module,exports){
+},{"105":105,"107":107,"132":132,"259":259,"262":262,"316":316,"318":318,"321":321}],87:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'interactionEvents' ],
   interactionEvents: [ 'type', _dereq_(86) ]
@@ -8917,7 +8941,7 @@ var LOW_PRIORITY = 500;
 
 var svgAppend = _dereq_(316),
     svgAttr = _dereq_(318),
-    svgCreate = _dereq_(320);
+    svgCreate = _dereq_(321);
 
 var domQuery = _dereq_(262);
 
@@ -9031,7 +9055,7 @@ Outline.$inject = ['eventBus', 'styles', 'elementRegistry'];
 
 module.exports = Outline;
 
-},{"101":101,"246":246,"262":262,"316":316,"318":318,"320":320}],89:[function(_dereq_,module,exports){
+},{"101":101,"246":246,"262":262,"316":316,"318":318,"321":321}],89:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -9059,6 +9083,8 @@ var getBBox = _dereq_(101).getBBox;
 
 // document wide unique overlay ids
 var ids = new (_dereq_(104))('ov');
+
+var LOW_PRIORITY = 500;
 
 
 function createRoot(parent) {
@@ -9557,9 +9583,7 @@ Overlays.prototype._init = function() {
 
   // move integration
 
-  eventBus.on([
-    'element.changed'
-  ], function(e) {
+  eventBus.on('element.changed', LOW_PRIORITY, function(e) {
     var element = e.element;
 
     var container = self._getOverlayContainer(element, true);
@@ -10806,7 +10830,7 @@ module.exports.isMac = function isMac() {
 'use strict';
 
 var svgAttr = _dereq_(318),
-    svgCreate = _dereq_(320);
+    svgCreate = _dereq_(321);
 
 
 module.exports.componentsToPath = function(elements) {
@@ -10843,12 +10867,12 @@ module.exports.updateLine = function(gfx, points) {
   return gfx;
 };
 
-},{"318":318,"320":320}],108:[function(_dereq_,module,exports){
+},{"318":318,"321":321}],108:[function(_dereq_,module,exports){
 'use strict';
 
-var svgTransform = _dereq_(323);
+var svgTransform = _dereq_(325);
 
-var createTransform = _dereq_(321).createTransform;
+var createTransform = _dereq_(322).createTransform;
 
 
 /**
@@ -10908,7 +10932,7 @@ module.exports.scale = function(gfx, amount) {
   svgTransform(gfx, scale);
 };
 
-},{"321":321,"323":323}],109:[function(_dereq_,module,exports){
+},{"322":322,"325":325}],109:[function(_dereq_,module,exports){
 'use strict';
 
 var isObject = _dereq_(241),
@@ -10920,8 +10944,8 @@ var isObject = _dereq_(241),
 
 var svgAppend = _dereq_(316),
     svgAttr = _dereq_(318),
-    svgCreate = _dereq_(320),
-    svgRemove = _dereq_(322);
+    svgCreate = _dereq_(321),
+    svgRemove = _dereq_(324);
 
 var DEFAULT_BOX_PADDING = 0;
 
@@ -11191,7 +11215,7 @@ Text.prototype.createText = function(parent, text, options) {
 
 module.exports = Text;
 
-},{"132":132,"135":135,"241":241,"246":246,"249":249,"252":252,"316":316,"318":318,"320":320,"322":322}],110:[function(_dereq_,module,exports){
+},{"132":132,"135":135,"241":241,"246":246,"249":249,"252":252,"316":316,"318":318,"321":321,"324":324}],110:[function(_dereq_,module,exports){
 
 var isArray = function(obj) {
   return Object.prototype.toString.call(obj) === '[object Array]';
@@ -11199,7 +11223,7 @@ var isArray = function(obj) {
 
 var annotate = function() {
   var args = Array.prototype.slice.call(arguments);
-  
+
   if (args.length === 1 && isArray(args[0])) {
     args = args[0];
   }
@@ -11849,7 +11873,7 @@ module.exports={
       "properties": [
         { "name": "question", "type": "String" },
         { "name": "allowedAnswers", "type": "String" },
-        { "name": "variable", "type": "InformationItem" },
+        { "name": "variable", "type": "InformationItem", "xml": { "serialize": "property" }  },
         { "name": "informationRequirement", "type": "InformationRequirement", "isMany": true, "xml": { "serialize": "property" } },
         { "name": "knowledgeRequirement", "type": "KnowledgeRequirement", "isMany": true, "xml": { "serialize": "property" } },
         { "name": "authorityRequirement", "type": "AuthorityRequirement", "isMany": true, "xml": { "serialize": "property" } },
@@ -11920,7 +11944,7 @@ module.exports={
         { "name": "typeLanguage", "type": "String", "isAttr": true },
         { "name": "isCollection", "type": "Boolean", "isAttr": true, "default": false },
         { "name": "typeRef", "type": "String" },
-        { "name": "allowedValue", "type": "LiteralExpression", "isMany": true, "xml": { "serialize": "property" } }
+        { "name": "allowedValues", "type": "UnaryTests", "isMany": true, "xml": { "serialize": "property" } }
       ]
     },
     {
@@ -17545,7 +17569,7 @@ BaseHandler.prototype.handleNode = function() {};
  */
 function NoopHandler() { }
 
-NoopHandler.prototype = new BaseHandler();
+NoopHandler.prototype = Object.create(BaseHandler.prototype);
 
 NoopHandler.prototype.handleNode = function() {
   return this;
@@ -17553,7 +17577,7 @@ NoopHandler.prototype.handleNode = function() {
 
 function BodyHandler() {}
 
-BodyHandler.prototype = new BaseHandler();
+BodyHandler.prototype = Object.create(BaseHandler.prototype);
 
 BodyHandler.prototype.handleText = function(text) {
   this.body = (this.body || '') + text;
@@ -17564,7 +17588,7 @@ function ReferenceHandler(property, context) {
   this.context = context;
 }
 
-ReferenceHandler.prototype = new BodyHandler();
+ReferenceHandler.prototype = Object.create(BodyHandler.prototype);
 
 ReferenceHandler.prototype.handleNode = function(node) {
 
@@ -17593,11 +17617,11 @@ function ValueHandler(propertyDesc, element) {
   this.propertyDesc = propertyDesc;
 }
 
-ValueHandler.prototype = new BodyHandler();
+ValueHandler.prototype = Object.create(BodyHandler.prototype);
 
 ValueHandler.prototype.handleEnd = function() {
 
-  var value = this.body,
+  var value = this.body || '',
       element = this.element,
       propertyDesc = this.propertyDesc;
 
@@ -17640,7 +17664,7 @@ function ElementHandler(model, type, context) {
   this.context = context;
 }
 
-ElementHandler.prototype = new BaseElementHandler();
+ElementHandler.prototype = Object.create(BaseElementHandler.prototype);
 
 ElementHandler.prototype.addReference = function(reference) {
   this.context.addReference(reference);
@@ -19263,12 +19287,18 @@ Moddle.prototype.hasType = function(element, type) {
   });
 };
 
-
 /**
  * Returns the descriptor of an elements named property
  */
 Moddle.prototype.getPropertyDescriptor = function(element, property) {
   return this.getElementDescriptor(element).propertiesByName[property];
+};
+
+/**
+ * Returns a mapped type's descriptor
+ */
+Moddle.prototype.getTypeDescriptor = function(type) {
+  return this.registry.typeMap[type];
 };
 
 },{"131":131,"132":132,"241":241,"243":243,"270":270,"272":272,"273":273,"274":274}],272:[function(_dereq_,module,exports){
@@ -19486,7 +19516,8 @@ Registry.prototype.registerType = function(type, pkg) {
   type = assign({}, type, {
     superClass: (type.superClass || []).slice(),
     extends: (type.extends || []).slice(),
-    properties: (type.properties || []).slice()
+    properties: (type.properties || []).slice(),
+    meta: assign(({}, type.meta || {}))
   });
 
   var ns = parseNameNs(type.name, pkg.prefix),
@@ -19612,6 +19643,7 @@ Registry.prototype.getEffectiveDescriptor = function(name) {
 Registry.prototype.definePackage = function(target, pkg) {
   this.properties.define(target, '$pkg', { value: pkg });
 };
+
 },{"132":132,"246":246,"269":269,"272":272,"275":275}],275:[function(_dereq_,module,exports){
 'use strict';
 
@@ -23994,8 +24026,157 @@ module.exports.Row = Row;
 module.exports.Column = Column;
 
 },{"122":122,"246":246}],305:[function(_dereq_,module,exports){
-arguments[4][73][0].apply(exports,arguments)
-},{"132":132,"237":237,"238":238,"240":240,"73":73}],306:[function(_dereq_,module,exports){
+'use strict';
+
+var forEach = _dereq_(132),
+    isFunction = _dereq_(238),
+    isArray = _dereq_(237),
+    isNumber = _dereq_(240);
+
+
+var DEFAULT_PRIORITY = 1000;
+
+
+function isObject(element) {
+  return typeof element === 'object';
+}
+
+/**
+ * A utility that can be used to plug-in into the command execution for
+ * extension and/or validation.
+ *
+ * @param {EventBus} eventBus
+ *
+ * @example
+ *
+ * var inherits = require('inherits');
+ *
+ * var CommandInterceptor = require('diagram-js/lib/command/CommandInterceptor');
+ *
+ * function CommandLogger(eventBus) {
+ *   CommandInterceptor.call(this, eventBus);
+ *
+ *   this.preExecute(function(event) {
+ *     console.log('command pre-execute', event);
+ *   });
+ * }
+ *
+ * inherits(CommandLogger, CommandInterceptor);
+ *
+ */
+function CommandInterceptor(eventBus) {
+  this._eventBus = eventBus;
+}
+
+CommandInterceptor.$inject = [ 'eventBus' ];
+
+module.exports = CommandInterceptor;
+
+function unwrapEvent(fn, that) {
+  return function(event) {
+    return fn.call(that || null, event.context, event.command, event);
+  };
+}
+
+/**
+ * Register an interceptor for a command execution
+ *
+ * @param {String|Array<String>} [events] list of commands to register on
+ * @param {String} [hook] command hook, i.e. preExecute, executed to listen on
+ * @param {Number} [priority] the priority on which to hook into the execution
+ * @param {Function} handlerFn interceptor to be invoked with (event)
+ * @param {Boolean} unwrap if true, unwrap the event and pass (context, command, event) to the
+ *                          listener instead
+ * @param {Object} [that] Pass context (`this`) to the handler function
+ */
+CommandInterceptor.prototype.on = function(events, hook, priority, handlerFn, unwrap, that) {
+
+  if (isFunction(hook) || isNumber(hook)) {
+    that = unwrap;
+    unwrap = handlerFn;
+    handlerFn = priority;
+    priority = hook;
+    hook = null;
+  }
+
+  if (isFunction(priority)) {
+    that = unwrap;
+    unwrap = handlerFn;
+    handlerFn = priority;
+    priority = DEFAULT_PRIORITY;
+  }
+
+  if (isObject(unwrap)) {
+    that = unwrap;
+    unwrap = false;
+  }
+
+  if (!isFunction(handlerFn)) {
+    throw new Error('handlerFn must be a function');
+  }
+
+  if (!isArray(events)) {
+    events = [ events ];
+  }
+
+  var eventBus = this._eventBus;
+
+  forEach(events, function(event) {
+    // concat commandStack(.event)?(.hook)?
+    var fullEvent = [ 'commandStack', event, hook ].filter(function(e) { return e; }).join('.');
+
+    eventBus.on(fullEvent, priority, unwrap ? unwrapEvent(handlerFn, that) : handlerFn, that);
+  });
+};
+
+
+var hooks = [
+  'canExecute',
+  'preExecute',
+  'preExecuted',
+  'execute',
+  'executed',
+  'postExecute',
+  'postExecuted',
+  'revert',
+  'reverted'
+];
+
+/*
+ * Install hook shortcuts
+ *
+ * This will generate the CommandInterceptor#(preExecute|...|reverted) methods
+ * which will in term forward to CommandInterceptor#on.
+ */
+forEach(hooks, function(hook) {
+
+  /**
+   * {canExecute|preExecute|preExecuted|execute|executed|postExecute|postExecuted|revert|reverted}
+   *
+   * A named hook for plugging into the command execution
+   *
+   * @param {String|Array<String>} [events] list of commands to register on
+   * @param {Number} [priority] the priority on which to hook into the execution
+   * @param {Function} handlerFn interceptor to be invoked with (event)
+   * @param {Boolean} [unwrap=false] if true, unwrap the event and pass (context, command, event) to the
+   *                          listener instead
+   * @param {Object} [that] Pass context (`this`) to the handler function
+   */
+  CommandInterceptor.prototype[hook] = function(events, priority, handlerFn, unwrap, that) {
+
+    if (isFunction(events) || isNumber(events)) {
+      that = unwrap;
+      unwrap = handlerFn;
+      handlerFn = priority;
+      priority = events;
+      events = null;
+    }
+
+    this.on(events, hook, priority, handlerFn, unwrap, that);
+  };
+});
+
+},{"132":132,"237":237,"238":238,"240":240}],306:[function(_dereq_,module,exports){
 'use strict';
 
 var unique = _dereq_(126),
@@ -24501,20 +24682,730 @@ module.exports = {
 };
 
 },{"306":306}],308:[function(_dereq_,module,exports){
-arguments[4][77][0].apply(exports,arguments)
-},{"138":138,"237":237,"238":238,"240":240,"246":246,"77":77}],309:[function(_dereq_,module,exports){
-arguments[4][92][0].apply(exports,arguments)
-},{"122":122,"305":305,"92":92}],310:[function(_dereq_,module,exports){
-arguments[4][93][0].apply(exports,arguments)
-},{"93":93}],311:[function(_dereq_,module,exports){
-arguments[4][94][0].apply(exports,arguments)
-},{"310":310,"94":94}],312:[function(_dereq_,module,exports){
-arguments[4][102][0].apply(exports,arguments)
-},{"102":102}],313:[function(_dereq_,module,exports){
-arguments[4][105][0].apply(exports,arguments)
-},{"105":105,"312":312,"314":314}],314:[function(_dereq_,module,exports){
-arguments[4][106][0].apply(exports,arguments)
-},{"106":106}],315:[function(_dereq_,module,exports){
+'use strict';
+
+var isFunction = _dereq_(238),
+    isArray = _dereq_(237),
+    isNumber = _dereq_(240),
+    bind = _dereq_(138),
+    assign = _dereq_(246);
+
+var FN_REF = '__fn';
+
+var DEFAULT_PRIORITY = 1000;
+
+var slice = Array.prototype.slice;
+
+/**
+ * A general purpose event bus.
+ *
+ * This component is used to communicate across a diagram instance.
+ * Other parts of a diagram can use it to listen to and broadcast events.
+ *
+ *
+ * ## Registering for Events
+ *
+ * The event bus provides the {@link EventBus#on} and {@link EventBus#once}
+ * methods to register for events. {@link EventBus#off} can be used to
+ * remove event registrations. Listeners receive an instance of {@link Event}
+ * as the first argument. It allows them to hook into the event execution.
+ *
+ * ```javascript
+ *
+ * // listen for event
+ * eventBus.on('foo', function(event) {
+ *
+ *   // access event type
+ *   event.type; // 'foo'
+ *
+ *   // stop propagation to other listeners
+ *   event.stopPropagation();
+ *
+ *   // prevent event default
+ *   event.preventDefault();
+ * });
+ *
+ * // listen for event with custom payload
+ * eventBus.on('bar', function(event, payload) {
+ *   console.log(payload);
+ * });
+ *
+ * // listen for event returning value
+ * eventBus.on('foobar', function(event) {
+ *
+ *   // stop event propagation + prevent default
+ *   return false;
+ *
+ *   // stop event propagation + return custom result
+ *   return {
+ *     complex: 'listening result'
+ *   };
+ * });
+ *
+ *
+ * // listen with custom priority (default=1000, higher is better)
+ * eventBus.on('priorityfoo', 1500, function(event) {
+ *   console.log('invoked first!');
+ * });
+ *
+ *
+ * // listen for event and pass the context (`this`)
+ * eventBus.on('foobar', function(event) {
+ *   this.foo();
+ * }, this);
+ * ```
+ *
+ *
+ * ## Emitting Events
+ *
+ * Events can be emitted via the event bus using {@link EventBus#fire}.
+ *
+ * ```javascript
+ *
+ * // false indicates that the default action
+ * // was prevented by listeners
+ * if (eventBus.fire('foo') === false) {
+ *   console.log('default has been prevented!');
+ * };
+ *
+ *
+ * // custom args + return value listener
+ * eventBus.on('sum', function(event, a, b) {
+ *   return a + b;
+ * });
+ *
+ * // you can pass custom arguments + retrieve result values.
+ * var sum = eventBus.fire('sum', 1, 2);
+ * console.log(sum); // 3
+ * ```
+ */
+function EventBus() {
+  this._listeners = {};
+
+  // cleanup on destroy on lowest priority to allow
+  // message passing until the bitter end
+  this.on('diagram.destroy', 1, this._destroy, this);
+}
+
+module.exports = EventBus;
+
+
+/**
+ * Register an event listener for events with the given name.
+ *
+ * The callback will be invoked with `event, ...additionalArguments`
+ * that have been passed to {@link EventBus#fire}.
+ *
+ * Returning false from a listener will prevent the events default action
+ * (if any is specified). To stop an event from being processed further in
+ * other listeners execute {@link Event#stopPropagation}.
+ *
+ * Returning anything but `undefined` from a listener will stop the listener propagation.
+ *
+ * @param {String|Array<String>} events
+ * @param {Number} [priority=1000] the priority in which this listener is called, larger is higher
+ * @param {Function} callback
+ * @param {Object} [that] Pass context (`this`) to the callback
+ */
+EventBus.prototype.on = function(events, priority, callback, that) {
+
+  events = isArray(events) ? events : [ events ];
+
+  if (isFunction(priority)) {
+    that = callback;
+    callback = priority;
+    priority = DEFAULT_PRIORITY;
+  }
+
+  if (!isNumber(priority)) {
+    throw new Error('priority must be a number');
+  }
+
+  var actualCallback = callback;
+
+  if (that) {
+    actualCallback = bind(callback, that);
+
+    // make sure we remember and are able to remove
+    // bound callbacks via {@link #off} using the original
+    // callback
+    actualCallback[FN_REF] = callback[FN_REF] || callback;
+  }
+
+  var self = this,
+      listener = { priority: priority, callback: actualCallback };
+
+  events.forEach(function(e) {
+    self._addListener(e, listener);
+  });
+};
+
+
+/**
+ * Register an event listener that is executed only once.
+ *
+ * @param {String} event the event name to register for
+ * @param {Function} callback the callback to execute
+ * @param {Object} [that] Pass context (`this`) to the callback
+ */
+EventBus.prototype.once = function(event, priority, callback, that) {
+  var self = this;
+
+  if (isFunction(priority)) {
+    that = callback;
+    callback = priority;
+    priority = DEFAULT_PRIORITY;
+  }
+
+  if (!isNumber(priority)) {
+    throw new Error('priority must be a number');
+  }
+
+  function wrappedCallback() {
+    self.off(event, wrappedCallback);
+    return callback.apply(that, arguments);
+  }
+
+  // make sure we remember and are able to remove
+  // bound callbacks via {@link #off} using the original
+  // callback
+  wrappedCallback[FN_REF] = callback;
+
+  this.on(event, priority, wrappedCallback);
+};
+
+
+/**
+ * Removes event listeners by event and callback.
+ *
+ * If no callback is given, all listeners for a given event name are being removed.
+ *
+ * @param {String} event
+ * @param {Function} [callback]
+ */
+EventBus.prototype.off = function(event, callback) {
+  var listeners = this._getListeners(event),
+      listener,
+      listenerCallback,
+      idx;
+
+  if (callback) {
+
+    // move through listeners from back to front
+    // and remove matching listeners
+    for (idx = listeners.length - 1; (listener = listeners[idx]); idx--) {
+      listenerCallback = listener.callback;
+
+      if (listenerCallback === callback || listenerCallback[FN_REF] === callback) {
+        listeners.splice(idx, 1);
+      }
+    }
+  } else {
+    // clear listeners
+    listeners.length = 0;
+  }
+};
+
+
+/**
+ * Fires a named event.
+ *
+ * @example
+ *
+ * // fire event by name
+ * events.fire('foo');
+ *
+ * // fire event object with nested type
+ * var event = { type: 'foo' };
+ * events.fire(event);
+ *
+ * // fire event with explicit type
+ * var event = { x: 10, y: 20 };
+ * events.fire('element.moved', event);
+ *
+ * // pass additional arguments to the event
+ * events.on('foo', function(event, bar) {
+ *   alert(bar);
+ * });
+ *
+ * events.fire({ type: 'foo' }, 'I am bar!');
+ *
+ * @param {String} [name] the optional event name
+ * @param {Object} [event] the event object
+ * @param {...Object} additional arguments to be passed to the callback functions
+ *
+ * @return {Boolean} the events return value, if specified or false if the
+ *                   default action was prevented by listeners
+ */
+EventBus.prototype.fire = function(type, data) {
+
+  var event,
+      listeners,
+      returnValue,
+      args;
+
+  args = slice.call(arguments);
+
+  if (typeof type === 'object') {
+    event = type;
+    type = event.type;
+  }
+
+  if (!type) {
+    throw new Error('no event type specified');
+  }
+
+  listeners = this._listeners[type];
+
+  if (!listeners) {
+    return;
+  }
+
+  // we make sure we fire instances of our home made
+  // events here. We wrap them only once, though
+  if (data instanceof Event) {
+    // we are fine, we alread have an event
+    event = data;
+  } else {
+    event = new Event();
+    event.init(data);
+  }
+
+  // ensure we pass the event as the first parameter
+  args[0] = event;
+
+  // original event type (in case we delegate)
+  var originalType = event.type;
+
+  // update event type before delegation
+  if (type !== originalType) {
+    event.type = type;
+  }
+
+  try {
+    returnValue = this._invokeListeners(event, args, listeners);
+  } finally {
+    // reset event type after delegation
+    if (type !== originalType) {
+      event.type = originalType;
+    }
+  }
+
+  // set the return value to false if the event default
+  // got prevented and no other return value exists
+  if (returnValue === undefined && event.defaultPrevented) {
+    returnValue = false;
+  }
+
+  return returnValue;
+};
+
+
+EventBus.prototype.handleError = function(error) {
+  return this.fire('error', { error: error }) === false;
+};
+
+
+EventBus.prototype._destroy = function() {
+  this._listeners = {};
+};
+
+EventBus.prototype._invokeListeners = function(event, args, listeners) {
+
+  var idx,
+      listener,
+      returnValue;
+
+  for (idx = 0; (listener = listeners[idx]); idx++) {
+
+    // handle stopped propagation
+    if (event.cancelBubble) {
+      break;
+    }
+
+    returnValue = this._invokeListener(event, args, listener);
+  }
+
+  return returnValue;
+};
+
+EventBus.prototype._invokeListener = function(event, args, listener) {
+
+  var returnValue;
+
+  try {
+    // returning false prevents the default action
+    returnValue = invokeFunction(listener.callback, args);
+
+    // stop propagation on return value
+    if (returnValue !== undefined) {
+      event.returnValue = returnValue;
+      event.stopPropagation();
+    }
+
+    // prevent default on return false
+    if (returnValue === false) {
+      event.preventDefault();
+    }
+  } catch (e) {
+    if (!this.handleError(e)) {
+      console.error('unhandled error in event listener');
+      console.error(e.stack);
+
+      throw e;
+    }
+  }
+
+  return returnValue;
+};
+
+/*
+ * Add new listener with a certain priority to the list
+ * of listeners (for the given event).
+ *
+ * The semantics of listener registration / listener execution are
+ * first register, first serve: New listeners will always be inserted
+ * after existing listeners with the same priority.
+ *
+ * Example: Inserting two listeners with priority 1000 and 1300
+ *
+ *    * before: [ 1500, 1500, 1000, 1000 ]
+ *    * after: [ 1500, 1500, (new=1300), 1000, 1000, (new=1000) ]
+ *
+ * @param {String} event
+ * @param {Object} listener { priority, callback }
+ */
+EventBus.prototype._addListener = function(event, newListener) {
+
+  var listeners = this._getListeners(event),
+      existingListener,
+      idx;
+
+  // ensure we order listeners by priority from
+  // 0 (high) to n > 0 (low)
+  for (idx = 0; (existingListener = listeners[idx]); idx++) {
+    if (existingListener.priority < newListener.priority) {
+
+      // prepend newListener at before existingListener
+      listeners.splice(idx, 0, newListener);
+      return;
+    }
+  }
+
+  listeners.push(newListener);
+};
+
+
+EventBus.prototype._getListeners = function(name) {
+  var listeners = this._listeners[name];
+
+  if (!listeners) {
+    this._listeners[name] = listeners = [];
+  }
+
+  return listeners;
+};
+
+
+/**
+ * A event that is emitted via the event bus.
+ */
+function Event() { }
+
+module.exports.Event = Event;
+
+Event.prototype.stopPropagation = function() {
+  this.cancelBubble = true;
+};
+
+Event.prototype.preventDefault = function() {
+  this.defaultPrevented = true;
+};
+
+Event.prototype.init = function(data) {
+  assign(this, data || {});
+};
+
+
+/**
+ * Invoke function. Be fast...
+ *
+ * @param {Function} fn
+ * @param {Array<Object>} args
+ *
+ * @return {Any}
+ */
+function invokeFunction(fn, args) {
+  return fn.apply(null, args);
+}
+
+},{"138":138,"237":237,"238":238,"240":240,"246":246}],309:[function(_dereq_,module,exports){
+
+'use strict';
+
+var inherits = _dereq_(122);
+
+var CommandInterceptor = _dereq_(305);
+
+/**
+ * A basic provider that may be extended to implement modeling rules.
+ *
+ * Extensions should implement the init method to actually add their custom
+ * modeling checks. Checks may be added via the #addRule(action, fn) method.
+ *
+ * @param {EventBus} eventBus
+ */
+function RuleProvider(eventBus) {
+  CommandInterceptor.call(this, eventBus);
+
+  this.init();
+}
+
+RuleProvider.$inject = [ 'eventBus' ];
+
+inherits(RuleProvider, CommandInterceptor);
+
+module.exports = RuleProvider;
+
+
+/**
+ * Adds a modeling rule for the given action, implemented through
+ * a callback function.
+ *
+ * The function will receive the modeling specific action context
+ * to perform its check. It must return `false` to disallow the
+ * action from happening or `true` to allow the action.
+ *
+ * A rule provider may pass over the evaluation to lower priority
+ * rules by returning return nothing (or <code>undefined</code>).
+ *
+ * @example
+ *
+ * ResizableRules.prototype.init = function() {
+ *
+ *   \/**
+ *    * Return `true`, `false` or nothing to denote
+ *    * _allowed_, _not allowed_ and _continue evaluating_.
+ *    *\/
+ *   this.addRule('shape.resize', function(context) {
+ *
+ *     var shape = context.shape;
+ *
+ *     if (!context.newBounds) {
+ *       // check general resizability
+ *       if (!shape.resizable) {
+ *         return false;
+ *       }
+ *
+ *       // not returning anything (read: undefined)
+ *       // will continue the evaluation of other rules
+ *       // (with lower priority)
+ *       return;
+ *     } else {
+ *       // element must have minimum size of 10*10 points
+ *       return context.newBounds.width > 10 && context.newBounds.height > 10;
+ *     }
+ *   });
+ * };
+ *
+ * @param {String|Array<String>} actions the identifier for the modeling action to check
+ * @param {Number} [priority] the priority at which this rule is being applied
+ * @param {Function} fn the callback function that performs the actual check
+ */
+RuleProvider.prototype.addRule = function(actions, priority, fn) {
+
+  var self = this;
+
+  if (typeof actions === 'string') {
+    actions = [ actions ];
+  }
+
+  actions.forEach(function(action) {
+
+    self.canExecute(action, priority, function(context, action, event) {
+      return fn(context);
+    }, true);
+  });
+};
+
+/**
+ * Implement this method to add new rules during provider initialization.
+ */
+RuleProvider.prototype.init = function() {};
+},{"122":122,"305":305}],310:[function(_dereq_,module,exports){
+'use strict';
+
+/**
+ * A service that provides rules for certain diagram actions.
+ *
+ * The default implementation will hook into the {@link CommandStack}
+ * to perform the actual rule evaluation. Make sure to provide the
+ * `commandStack` service with this module if you plan to use it.
+ *
+ * Together with this implementation you may use the {@link RuleProvider}
+ * to implement your own rule checkers.
+ *
+ * This module is ment to be easily replaced, thus the tiny foot print.
+ *
+ * @param {Injector} injector
+ */
+function Rules(injector) {
+  this._commandStack = injector.get('commandStack', false);
+}
+
+Rules.$inject = [ 'injector' ];
+
+module.exports = Rules;
+
+
+/**
+ * Returns whether or not a given modeling action can be executed
+ * in the specified context.
+ *
+ * This implementation will respond with allow unless anyone
+ * objects.
+ *
+ * @param {String} action the action to be checked
+ * @param {Object} [context] the context to check the action in
+ *
+ * @return {Boolean} returns true, false or null depending on whether the
+ *                   operation is allowed, not allowed or should be ignored.
+ */
+Rules.prototype.allowed = function(action, context) {
+  var allowed = true;
+
+  var commandStack = this._commandStack;
+
+  if (commandStack) {
+    allowed = commandStack.canExecute(action, context);
+  }
+
+  // map undefined to true, i.e. no rules
+  return allowed === undefined ? true : allowed;
+};
+},{}],311:[function(_dereq_,module,exports){
+module.exports = {
+  __init__: [ 'rules' ],
+  rules: [ 'type', _dereq_(310) ]
+};
+
+},{"310":310}],312:[function(_dereq_,module,exports){
+'use strict';
+
+function __preventDefault(event) {
+  return event && event.preventDefault();
+}
+
+function __stopPropagation(event, immediate) {
+  if (!event) {
+    return;
+  }
+
+  if (event.stopPropagation) {
+    event.stopPropagation();
+  }
+
+  if (immediate && event.stopImmediatePropagation) {
+    event.stopImmediatePropagation();
+  }
+}
+
+
+function getOriginal(event) {
+  return event.originalEvent || event.srcEvent;
+}
+
+module.exports.getOriginal = getOriginal;
+
+
+function stopEvent(event, immediate) {
+  stopPropagation(event, immediate);
+  preventDefault(event);
+}
+
+module.exports.stopEvent = stopEvent;
+
+
+function preventDefault(event) {
+  __preventDefault(event);
+  __preventDefault(getOriginal(event));
+}
+
+module.exports.preventDefault = preventDefault;
+
+
+function stopPropagation(event, immediate) {
+  __stopPropagation(event, immediate);
+  __stopPropagation(getOriginal(event), immediate);
+}
+
+module.exports.stopPropagation = stopPropagation;
+
+
+function toPoint(event) {
+
+  if (event.pointers && event.pointers.length) {
+    event = event.pointers[0];
+  }
+
+  if (event.touches && event.touches.length) {
+    event = event.touches[0];
+  }
+
+  return event ? {
+    x: event.clientX,
+    y: event.clientY
+  } : null;
+}
+
+module.exports.toPoint = toPoint;
+
+},{}],313:[function(_dereq_,module,exports){
+'use strict';
+
+var getOriginalEvent = _dereq_(312).getOriginal;
+
+var isMac = _dereq_(314).isMac;
+
+
+function isPrimaryButton(event) {
+  // button === 0 -> left áka primary mouse button
+  return !(getOriginalEvent(event) || event).button;
+}
+
+module.exports.isPrimaryButton = isPrimaryButton;
+
+module.exports.isMac = isMac;
+
+module.exports.hasPrimaryModifier = function(event) {
+  var originalEvent = getOriginalEvent(event) || event;
+
+  if (!isPrimaryButton(event)) {
+    return false;
+  }
+
+  // Use alt as primary modifier key for mac OS
+  if (isMac()) {
+    return originalEvent.metaKey;
+  } else {
+    return originalEvent.ctrlKey;
+  }
+};
+
+
+module.exports.hasSecondaryModifier = function(event) {
+  var originalEvent = getOriginalEvent(event) || event;
+
+  return isPrimaryButton(event) && originalEvent.shiftKey;
+};
+
+},{"312":312,"314":314}],314:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports.isMac = function isMac() {
+  return (/mac/i).test(navigator.platform);
+};
+},{}],315:[function(_dereq_,module,exports){
 /**
  * Tiny stack for browser or server
  *
@@ -24658,7 +25549,7 @@ function append(element, node) {
  */
 module.exports = appendTo;
 
-var ensureImported = _dereq_(324);
+var ensureImported = _dereq_(326);
 
 /**
  * Append a node to a target element and return the appended node.
@@ -24672,7 +25563,7 @@ function appendTo(element, target) {
   target.appendChild(ensureImported(element, target));
   return element;
 }
-},{"324":324}],318:[function(_dereq_,module,exports){
+},{"326":326}],318:[function(_dereq_,module,exports){
 /**
  * attribute accessor utility
  */
@@ -24776,7 +25667,7 @@ function setAttributes(node, attrs) {
 
   var names = Object.keys(attrs), i, name;
 
-  for (i = 0, name; !!(name = names[i]); i++) {
+  for (i = 0, name; (name = names[i]); i++) {
     setAttribute(node, name, attrs[name]);
   }
 }
@@ -24813,7 +25704,7 @@ module.exports = classes;
 
 var index = function(arr, obj) {
   if (arr.indexOf) {
-     return arr.indexOf(obj);
+    return arr.indexOf(obj);
   }
 
 
@@ -24830,6 +25721,10 @@ var re = /\s+/;
 
 var toString = Object.prototype.toString;
 
+function defined(o) {
+  return typeof o !== 'undefined';
+}
+
 /**
  * Wrap `el` in a `ClassList`.
  *
@@ -24840,7 +25735,7 @@ var toString = Object.prototype.toString;
 
 function classes(el) {
   return new ClassList(el);
-};
+}
 
 function ClassList(el) {
   if (!el || !el.nodeType) {
@@ -24869,9 +25764,11 @@ ClassList.prototype.add = function(name) {
   // fallback
   var arr = this.array();
   var i = index(arr, name);
-  if (!~i) arr.push(name);
+  if (!~i) {
+    arr.push(name);
+  }
 
-  if (this.el.className.baseVal !== undefined) {
+  if (defined(this.el.className.baseVal)) {
     this.el.className.baseVal = arr.join(' ');
   } else {
     this.el.className = arr.join(' ');
@@ -24891,7 +25788,7 @@ ClassList.prototype.add = function(name) {
  */
 
 ClassList.prototype.remove = function(name) {
-  if ('[object RegExp]' == toString.call(name)) {
+  if ('[object RegExp]' === toString.call(name)) {
     return this.removeMatching(name);
   }
 
@@ -24904,7 +25801,9 @@ ClassList.prototype.remove = function(name) {
   // fallback
   var arr = this.array();
   var i = index(arr, name);
-  if (~i) arr.splice(i, 1);
+  if (~i) {
+    arr.splice(i, 1);
+  }
   this.el.className.baseVal = arr.join(' ');
   return this;
 };
@@ -24942,7 +25841,7 @@ ClassList.prototype.removeMatching = function(re) {
 ClassList.prototype.toggle = function(name, force) {
   // classList
   if (this.list) {
-    if ("undefined" !== typeof force) {
+    if (defined(force)) {
       if (force !== this.list.toggle(name, force)) {
         this.list.toggle(name); // toggle again to correct
       }
@@ -24953,7 +25852,7 @@ ClassList.prototype.toggle = function(name, force) {
   }
 
   // fallback
-  if ("undefined" !== typeof force) {
+  if (defined(force)) {
     if (!force) {
       this.remove(name);
     } else {
@@ -24981,7 +25880,9 @@ ClassList.prototype.array = function() {
   var className = this.el.getAttribute('class') || '';
   var str = className.replace(/^\s+|\s+$/g, '');
   var arr = str.split(re);
-  if ('' === arr[0]) arr.shift();
+  if ('' === arr[0]) {
+    arr.shift();
+  }
   return arr;
 };
 
@@ -24995,12 +25896,39 @@ ClassList.prototype.array = function() {
 
 ClassList.prototype.has =
 ClassList.prototype.contains = function(name) {
-  return this.list
-    ? this.list.contains(name)
-    : !! ~index(this.array(), name);
+  return (
+    this.list ?
+      this.list.contains(name) :
+      !! ~index(this.array(), name)
+  );
 };
 
 },{}],320:[function(_dereq_,module,exports){
+/**
+ * Clear utility
+ */
+
+module.exports = clear;
+
+
+var remove = _dereq_(324);
+
+/**
+ * Removes all children from the given element
+ *
+ * @param  {DOMElement} element
+ * @return {DOMElement} the element (for chaining)
+ */
+function clear(element) {
+  var child;
+
+  while ((child = element.firstChild)) {
+    remove(child);
+  }
+
+  return element;
+}
+},{"324":324}],321:[function(_dereq_,module,exports){
 /**
  * Create utility for SVG elements
  */
@@ -25009,8 +25937,8 @@ module.exports = create;
 
 
 var attr = _dereq_(318);
-var parse = _dereq_(326);
-var ns = _dereq_(325);
+var parse = _dereq_(328);
+var ns = _dereq_(327);
 
 
 /**
@@ -25037,7 +25965,7 @@ function create(name, attrs) {
 
   return element;
 }
-},{"318":318,"325":325,"326":326}],321:[function(_dereq_,module,exports){
+},{"318":318,"327":327,"328":328}],322:[function(_dereq_,module,exports){
 /**
  * Geometry helpers
  */
@@ -25045,7 +25973,7 @@ function create(name, attrs) {
 module.exports = { createPoint: createPoint, createMatrix: createMatrix, createTransform: createTransform };
 
 
-var create = _dereq_(320);
+var create = _dereq_(321);
 
 // fake node used to instantiate svg geometry elements
 var node = create('svg');
@@ -25053,7 +25981,7 @@ var node = create('svg');
 function extend(object, props) {
   var i, k, keys = Object.keys(props);
 
-  for (i = 0; !!(k = keys[i]); i++) {
+  for (i = 0; (k = keys[i]); i++) {
     object[k] = props[k];
   }
 
@@ -25065,14 +25993,14 @@ function createPoint(x, y) {
   var point = node.createSVGPoint();
 
   switch (arguments.length) {
-    case 0:
-      return point;
-    case 2:
-      x = {
-        x: x,
-        y: y
-      };
-      break;
+  case 0:
+    return point;
+  case 2:
+    x = {
+      x: x,
+      y: y
+    };
+    break;
   }
 
   return extend(point, x);
@@ -25082,18 +26010,18 @@ function createMatrix(a, b, c, d, e, f) {
   var matrix = node.createSVGMatrix();
 
   switch (arguments.length) {
-    case 0:
-      return matrix;
-    case 6:
-      a = {
-        a: a,
-        b: b,
-        c: c,
-        d: d,
-        e: e,
-        f: f
-      };
-      break;
+  case 0:
+    return matrix;
+  case 6:
+    a = {
+      a: a,
+      b: b,
+      c: c,
+      d: d,
+      e: e,
+      f: f
+    };
+    break;
   }
 
   return extend(matrix, a);
@@ -25106,14 +26034,77 @@ function createTransform(matrix) {
     return node.createSVGTransform();
   }
 }
-},{"320":320}],322:[function(_dereq_,module,exports){
+},{"321":321}],323:[function(_dereq_,module,exports){
+/**
+ * innerHTML like functionality for SVG elements.
+ * based on innerSVG (https://code.google.com/p/innersvg)
+ */
+
+module.exports = innerSVG;
+
+
+var clear = _dereq_(320);
+var appendTo = _dereq_(317);
+var parse = _dereq_(328);
+var serialize = _dereq_(329);
+
+
+function set(element, svg) {
+
+  var node,
+      documentElement = parse(svg).documentElement;
+
+  // clear element contents
+  clear(element);
+
+  if (!svg) {
+    return;
+  }
+
+  // import + append each node
+  node = documentElement.firstChild;
+
+  while (node) {
+    appendTo(node, element);
+    node = node.nextSibling;
+  }
+}
+
+function get(element) {
+  var child = element.firstChild,
+      output = [];
+
+  while (child) {
+    serialize(child, output);
+    child = child.nextSibling;
+  }
+
+  return output.join('');
+}
+
+function innerSVG(element, svg) {
+
+  if (svg !== undefined) {
+
+    try {
+      set(element, svg);
+    } catch (e) {
+      throw new Error('error parsing SVG: ' + e.message);
+    }
+
+    return element;
+  } else {
+    return get(element);
+  }
+}
+},{"317":317,"320":320,"328":328,"329":329}],324:[function(_dereq_,module,exports){
 module.exports = remove;
 
 function remove(element) {
   element.parentNode.removeChild(element);
   return element;
 }
-},{}],323:[function(_dereq_,module,exports){
+},{}],325:[function(_dereq_,module,exports){
 /**
  * transform accessor utility
  */
@@ -25133,7 +26124,7 @@ function setTransforms(transformList, transforms) {
 
   transformList.clear();
 
-  for (i = 0; !!(t = transforms[i]); i++) {
+  for (i = 0; (t = transforms[i]); i++) {
     transformList.appendItem(wrapMatrix(transformList, t));
   }
 
@@ -25153,7 +26144,7 @@ function transform(node, transforms) {
     }
   }
 }
-},{}],324:[function(_dereq_,module,exports){
+},{}],326:[function(_dereq_,module,exports){
 module.exports = ensureImported;
 
 function ensureImported(element, target) {
@@ -25162,18 +26153,20 @@ function ensureImported(element, target) {
     try {
       // may fail on webkit
       return target.ownerDocument.importNode(element, true);
-    } catch (e) { }
+    } catch (e) {
+      // ignore
+    }
   }
 
   return element;
 }
-},{}],325:[function(_dereq_,module,exports){
+},{}],327:[function(_dereq_,module,exports){
 var ns = {
   svg: 'http://www.w3.org/2000/svg'
 };
 
 module.exports = ns;
-},{}],326:[function(_dereq_,module,exports){
+},{}],328:[function(_dereq_,module,exports){
 /**
  * DOM parsing utility
  */
@@ -25181,18 +26174,14 @@ module.exports = ns;
 module.exports = parse;
 
 
-var ns = _dereq_(325);
+var ns = _dereq_(327);
 
 var SVG_START = '<svg xmlns="' + ns.svg + '"';
 
 function parse(svg) {
 
-  var doc;
-
   // ensure we import a valid svg document
   if (svg.substring(0, 4) === '<svg') {
-    doc = true;
-
     if (svg.indexOf(ns.svg) === -1) {
       svg = SVG_START + svg.substring(4);
     }
@@ -25214,6 +26203,84 @@ function parseDocument(svg) {
 
   return parser.parseFromString(svg, 'text/xml');
 }
-},{"325":325}]},{},[1])(1)
+},{"327":327}],329:[function(_dereq_,module,exports){
+/**
+ * Serialization util
+ */
+
+module.exports = serialize;
+
+
+var TEXT_ENTITIES = /([&<>]{1})/g;
+var ATTR_ENTITIES = /([\n\r"]{1})/g;
+
+var ENTITY_REPLACEMENT = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '\''
+};
+
+function escape(str, pattern) {
+
+  function replaceFn(match, entity) {
+    return ENTITY_REPLACEMENT[entity] || entity;
+  }
+
+  return str.replace(pattern, replaceFn);
+}
+
+function serialize(node, output) {
+
+  var i, len, attrMap, attrNode, childNodes;
+
+  switch (node.nodeType) {
+  // TEXT
+  case 3:
+    // replace special XML characters
+    output.push(escape(node.textContent, TEXT_ENTITIES));
+    break;
+
+  // ELEMENT
+  case 1:
+    output.push('<', node.tagName);
+
+    if (node.hasAttributes()) {
+      attrMap = node.attributes;
+      for (i = 0, len = attrMap.length; i < len; ++i) {
+        attrNode = attrMap.item(i);
+        output.push(' ', attrNode.name, '="', escape(attrNode.value, ATTR_ENTITIES), '"');
+      }
+    }
+
+    if (node.hasChildNodes()) {
+      output.push('>');
+      childNodes = node.childNodes;
+      for (i = 0, len = childNodes.length; i < len; ++i) {
+        serialize(childNodes.item(i), output);
+      }
+      output.push('</', node.tagName, '>');
+    } else {
+      output.push('/>');
+    }
+    break;
+
+  // COMMENT
+  case 8:
+    output.push('<!--', escape(node.nodeValue, TEXT_ENTITIES), '-->');
+    break;
+
+  // CDATA
+  case 4:
+    output.push('<![CDATA[', node.nodeValue, ']]>');
+    break;
+
+  default:
+    throw new Error('unable to handle node ' + node.nodeType);
+  }
+
+  return output;
+}
+},{}]},{},[1])(1)
 });
 //# sourceMappingURL=dmn-viewer.js.map
