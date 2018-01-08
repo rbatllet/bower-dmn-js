@@ -1,5 +1,5 @@
 /*!
- * dmn-js - dmn-viewer v0.8.6-1
+ * dmn-js - dmn-viewer v0.9.1
 
  * Copyright 2015 camunda Services GmbH and other contributors
  *
@@ -8,7 +8,7 @@
  *
  * Source Code: https://github.com/dmn-io/dmn-js
  *
- * Date: 2017-04-26
+ * Date: 2018-01-08
  */
 
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.DmnJS = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
@@ -20,28 +20,28 @@
  */
 'use strict';
 
-var assign = _dereq_(246),
-    filter = _dereq_(130),
-    omit = _dereq_(250),
-    isString = _dereq_(243),
-    isNumber = _dereq_(240);
+var assign = _dereq_(250),
+    filter = _dereq_(134),
+    omit = _dereq_(254),
+    isString = _dereq_(247),
+    isNumber = _dereq_(244);
 
-var domify = _dereq_(260),
-    domQuery = _dereq_(262),
-    domRemove = _dereq_(263);
+var domify = _dereq_(264),
+    domQuery = _dereq_(266),
+    domRemove = _dereq_(267);
 
-var Diagram = _dereq_(71),
-    DmnModdle = _dereq_(114);
+var Diagram = _dereq_(73),
+    DmnModdle = _dereq_(118);
 
-var TableViewer = _dereq_(17);
+var TableViewer = _dereq_(19);
 
-var inherits = _dereq_(122);
+var inherits = _dereq_(126);
 
-var Importer = _dereq_(15);
+var Importer = _dereq_(17);
 
-var is = _dereq_(62).is;
+var is = _dereq_(64).is;
 
-var innerSVG = _dereq_(323);
+var innerSVG = _dereq_(327);
 
 function noop() {}
 
@@ -480,11 +480,15 @@ Viewer.prototype._init = function(container, moddle, options) {
 Viewer.prototype._setupTableSwitchListeners = function(options) {
   var table = this.table;
 
+  var translate = this.get('translate', false) || function(str) {
+    return str;
+  };
+
   var self = this;
 
   table.get('eventBus').on('controls.init', function(event) {
 
-    event.controls.addControl('Show DRD', function() {
+    event.controls.addControl(translate('Show DRD'), function() {
       self.showDRD({ fromTable: true });
     });
   });
@@ -543,8 +547,9 @@ Viewer.prototype._createModdle = function(options) {
 // modules the viewer is composed of
 Viewer.prototype._modules = [
   _dereq_(2),
-  _dereq_(98),
-  _dereq_(91),
+  _dereq_(101),
+  _dereq_(100),
+  _dereq_(93),
   _dereq_(12),
   _dereq_(10),
   _dereq_(8)
@@ -555,8 +560,8 @@ Viewer.prototype._moddleExtensions = {};
 
 /* <project-logo> */
 
-var PoweredBy = _dereq_(63),
-    domEvent = _dereq_(261);
+var PoweredBy = _dereq_(65),
+    domEvent = _dereq_(265);
 
 /**
  * Adds the project logo to the diagram container as
@@ -591,20 +596,20 @@ function addProjectLogo(container) {
 
 /* </project-logo> */
 
-},{"10":10,"114":114,"12":12,"122":122,"130":130,"15":15,"17":17,"2":2,"240":240,"243":243,"246":246,"250":250,"260":260,"261":261,"262":262,"263":263,"323":323,"62":62,"63":63,"71":71,"8":8,"91":91,"98":98}],2:[function(_dereq_,module,exports){
+},{"10":10,"100":100,"101":101,"118":118,"12":12,"126":126,"134":134,"17":17,"19":19,"2":2,"244":244,"247":247,"250":250,"254":254,"264":264,"265":265,"266":266,"267":267,"327":327,"64":64,"65":65,"73":73,"8":8,"93":93}],2:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __depends__: [
     _dereq_(6),
-    _dereq_(16)
+    _dereq_(18)
   ]
 };
 
-},{"16":16,"6":6}],3:[function(_dereq_,module,exports){
+},{"18":18,"6":6}],3:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(132);
+var forEach = _dereq_(136);
 
 function DecisionLabelUpdater(eventBus, elementRegistry, graphicsFactory) {
   this._elementRegistry = elementRegistry;
@@ -634,25 +639,25 @@ DecisionLabelUpdater.prototype.updateDecisionLabels = function(context) {
 
 };
 
-},{"132":132}],4:[function(_dereq_,module,exports){
+},{"136":136}],4:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(122),
-    isArray = _dereq_(237),
-    isObject = _dereq_(241),
-    assign = _dereq_(246);
+var inherits = _dereq_(126),
+    isArray = _dereq_(241),
+    isObject = _dereq_(245),
+    assign = _dereq_(250);
 
-var domClasses = _dereq_(257),
-    domQuery = _dereq_(262);
+var domClasses = _dereq_(261),
+    domQuery = _dereq_(266);
 
-var svgAppend = _dereq_(316),
-    svgAttr = _dereq_(318),
-    svgCreate = _dereq_(321);
+var svgAppend = _dereq_(320),
+    svgAttr = _dereq_(322),
+    svgCreate = _dereq_(325);
 
-var BaseRenderer = _dereq_(80),
-    RenderUtil = _dereq_(107),
-    TextUtil = _dereq_(109),
-    ModelUtil = _dereq_(62);
+var BaseRenderer = _dereq_(82),
+    RenderUtil = _dereq_(111),
+    TextUtil = _dereq_(113),
+    ModelUtil = _dereq_(64);
 
 var is = ModelUtil.is,
     getName = ModelUtil.getName;
@@ -1077,7 +1082,7 @@ function getSemantic(element) {
   return element.businessObject;
 }
 
-},{"107":107,"109":109,"122":122,"237":237,"241":241,"246":246,"257":257,"262":262,"316":316,"318":318,"321":321,"62":62,"80":80}],5:[function(_dereq_,module,exports){
+},{"111":111,"113":113,"126":126,"241":241,"245":245,"250":250,"261":261,"266":266,"320":320,"322":322,"325":325,"64":64,"82":82}],5:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1294,9 +1299,9 @@ module.exports = {
 },{"3":3,"4":4,"5":5}],7:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(260),
-    domQuery = _dereq_(262),
-    domDelegate = _dereq_(259);
+var domify = _dereq_(264),
+    domQuery = _dereq_(266),
+    domDelegate = _dereq_(263);
 
 function DefinitionIdView(eventBus, canvas) {
   this._eventBus = eventBus;
@@ -1354,7 +1359,7 @@ DefinitionIdView.HTML_MARKUP =
     '<div class="dmn-definitions-id" title="Definition ID"></div>' +
   '</div>';
 
-},{"259":259,"260":260,"262":262}],8:[function(_dereq_,module,exports){
+},{"263":263,"264":264,"266":266}],8:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [ ],
   __init__: [ 'definitionIdView' ],
@@ -1364,8 +1369,8 @@ module.exports = {
 },{"7":7}],9:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(260),
-    domDelegate = _dereq_(259);
+var domify = _dereq_(264),
+    domDelegate = _dereq_(263);
 
 function DrillDown(eventBus, overlays, drdRules, config) {
   this._eventBus = eventBus;
@@ -1425,27 +1430,27 @@ DrillDown.prototype.bindEventListener = function(decision, overlay, id) {
   });
 };
 
-},{"259":259,"260":260}],10:[function(_dereq_,module,exports){
+},{"263":263,"264":264}],10:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __depends__: [
-    _dereq_(85)
+    _dereq_(87)
   ],
   __init__: [ 'drillDown' ],
   drillDown: [ 'type', _dereq_(9) ]
 };
 
-},{"85":85,"9":9}],11:[function(_dereq_,module,exports){
+},{"87":87,"9":9}],11:[function(_dereq_,module,exports){
 'use strict';
 
-var ModelUtil = _dereq_(62),
+var ModelUtil = _dereq_(64),
     is = ModelUtil.is,
     isAny = ModelUtil.isAny;
 
-var inherits = _dereq_(122);
+var inherits = _dereq_(126);
 
-var RuleProvider = _dereq_(92);
+var RuleProvider = _dereq_(94);
 
 /**
  * DRD specific modeling rule
@@ -1574,24 +1579,78 @@ function canDrillDown(element) {
   return false;
 }
 
-},{"122":122,"62":62,"92":92}],12:[function(_dereq_,module,exports){
+},{"126":126,"64":64,"94":94}],12:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __depends__: [
-    _dereq_(94)
+    _dereq_(96)
   ],
   __init__: [ 'drdRules' ],
   drdRules: [ 'type', _dereq_(11) ]
 };
 
-},{"11":11,"94":94}],13:[function(_dereq_,module,exports){
+},{"11":11,"96":96}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(246),
-    map = _dereq_(134);
+var FILTER_REGEX = /^\s*(?:'([^']+)')\s*(?:\|\s*(\w+)\s*)?$/g;
+var TEMPLATE_REGEX = /{{([^}]+)}}/g;
 
-var ModelUtil = _dereq_(62),
+/**
+ * A parser that processes loaded (HTML) templates
+ * before they get used by the app.
+ *
+ * @param {Function} translate
+ *
+ * @return {Function} template parser fn
+ */
+function ParseTemplateFactory(translate) {
+
+  var filters = {
+    translate: translate
+  };
+
+  function applyFilters(expr) {
+    // match expression | filter
+    return expr.replace(FILTER_REGEX, function(_, expr, filterName, str) {
+      var s = str || applyFilters(expr);
+      var cb = filters[filterName];
+      if (typeof cb === 'function') {
+        return cb(s);
+      } else {
+        return s;
+      }
+    });
+  }
+
+  return function parseTemplate(templateStr) {
+    return templateStr.replace(TEMPLATE_REGEX, function(_, expr) {
+      return applyFilters(expr);
+    });
+  };
+
+}
+
+ParseTemplateFactory.$inject = [ 'translate' ];
+
+module.exports = ParseTemplateFactory;
+},{}],14:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = {
+  __depends__: [
+    _dereq_(101)
+  ],
+  parseTemplate: [ 'factory', _dereq_(13) ]
+};
+
+},{"101":101,"13":13}],15:[function(_dereq_,module,exports){
+'use strict';
+
+var assign = _dereq_(250),
+    map = _dereq_(138);
+
+var ModelUtil = _dereq_(64),
     is = ModelUtil.is;
 
 function elementData(semantic, attrs) {
@@ -1702,13 +1761,13 @@ DrdImporter.prototype._getShape = function(id) {
   return this._elementRegistry.get(id);
 };
 
-},{"134":134,"246":246,"62":62}],14:[function(_dereq_,module,exports){
+},{"138":138,"250":250,"64":64}],16:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(132),
-    find = _dereq_(131);
+var forEach = _dereq_(136),
+    find = _dereq_(135);
 
-var is = _dereq_(62).is;
+var is = _dereq_(64).is;
 
 
 function parseID(element) {
@@ -1845,10 +1904,10 @@ function DRDTreeWalker(handler, options) {
 
 module.exports = DRDTreeWalker;
 
-},{"131":131,"132":132,"62":62}],15:[function(_dereq_,module,exports){
+},{"135":135,"136":136,"64":64}],17:[function(_dereq_,module,exports){
 'use strict';
 
-var DrdTreeWalker = _dereq_(14);
+var DrdTreeWalker = _dereq_(16);
 
 
 /**
@@ -1909,14 +1968,14 @@ function importDRD(canvas, definitions, done) {
 
 module.exports.importDRD = importDRD;
 
-},{"14":14}],16:[function(_dereq_,module,exports){
+},{"16":16}],18:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
-  drdImporter: [ 'type', _dereq_(13) ]
+  drdImporter: [ 'type', _dereq_(15) ]
 };
 
-},{"13":13}],17:[function(_dereq_,module,exports){
+},{"15":15}],19:[function(_dereq_,module,exports){
 /**
  * The code in the <project-logo></project-logo> area
  * must not be changed.
@@ -1925,25 +1984,25 @@ module.exports = {
  */
 'use strict';
 
-var assign = _dereq_(246),
-    omit = _dereq_(250),
-    isString = _dereq_(243),
-    filter = _dereq_(130);
+var assign = _dereq_(250),
+    omit = _dereq_(254),
+    isString = _dereq_(247),
+    filter = _dereq_(134);
 
-var domify = _dereq_(260),
-    domQuery = _dereq_(262),
-    domRemove = _dereq_(263);
+var domify = _dereq_(264),
+    domQuery = _dereq_(266),
+    domRemove = _dereq_(267);
 
-var Table = _dereq_(280),
-    DmnModdle = _dereq_(114);
+var Table = _dereq_(284),
+    DmnModdle = _dereq_(118);
 
-var inherits = _dereq_(122);
+var inherits = _dereq_(126);
 
-var Importer = _dereq_(57);
+var Importer = _dereq_(59);
 
-var is = _dereq_(62).is;
+var is = _dereq_(64).is;
 
-var ComboBox = _dereq_(290);
+var ComboBox = _dereq_(294);
 
 
 function checkValidationError(err) {
@@ -2316,30 +2375,31 @@ Viewer.prototype.off = function(event, callback) {
 
 // modules the viewer is composed of
 Viewer.prototype._modules = [
-  _dereq_(18),
-  _dereq_(298),
-  _dereq_(38),
-  _dereq_(52),
-  _dereq_(23),
-  _dereq_(45),
-  _dereq_(56),
+  _dereq_(20),
+  _dereq_(101),
+  _dereq_(302),
+  _dereq_(40),
+  _dereq_(54),
+  _dereq_(25),
   _dereq_(47),
-  _dereq_(34),
+  _dereq_(58),
+  _dereq_(49),
+  _dereq_(36),
+  _dereq_(30),
   _dereq_(28),
-  _dereq_(26),
-  _dereq_(50),
-  _dereq_(41),
+  _dereq_(52),
+  _dereq_(43),
 
-  _dereq_(296),
-  _dereq_(294),
-  _dereq_(292)
+  _dereq_(300),
+  _dereq_(298),
+  _dereq_(296)
 ];
 
 
 /* <project-logo> */
 
-var PoweredBy = _dereq_(63),
-    domEvent = _dereq_(261);
+var PoweredBy = _dereq_(65),
+    domEvent = _dereq_(265);
 
 /**
  * Adds the project logo to the diagram container as
@@ -2374,18 +2434,18 @@ function addProjectLogo(container) {
 
 /* </project-logo> */
 
-},{"114":114,"122":122,"130":130,"18":18,"23":23,"243":243,"246":246,"250":250,"26":26,"260":260,"261":261,"262":262,"263":263,"28":28,"280":280,"290":290,"292":292,"294":294,"296":296,"298":298,"34":34,"38":38,"41":41,"45":45,"47":47,"50":50,"52":52,"56":56,"57":57,"62":62,"63":63}],18:[function(_dereq_,module,exports){
+},{"101":101,"118":118,"126":126,"134":134,"20":20,"247":247,"25":25,"250":250,"254":254,"264":264,"265":265,"266":266,"267":267,"28":28,"284":284,"294":294,"296":296,"298":298,"30":30,"300":300,"302":302,"36":36,"40":40,"43":43,"47":47,"49":49,"52":52,"54":54,"58":58,"59":59,"64":64,"65":65}],20:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(61),
-    _dereq_(20)
+    _dereq_(63),
+    _dereq_(22)
   ]
 };
 
-},{"20":20,"61":61}],19:[function(_dereq_,module,exports){
+},{"22":22,"63":63}],21:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(257);
+var domClasses = _dereq_(261);
 
 var HIGH_PRIORITY = 1500,
     UTILITY_COL_WIDTH = 45;
@@ -2474,23 +2534,23 @@ DmnRenderer.$inject = [ 'eventBus', 'elementRegistry', 'sheet', 'config' ];
 
 module.exports = DmnRenderer;
 
-},{"257":257}],20:[function(_dereq_,module,exports){
+},{"261":261}],22:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'tableRenderer' ],
-  tableRenderer: [ 'type', _dereq_(19) ]
+  tableRenderer: [ 'type', _dereq_(21) ]
 };
 
-},{"19":19}],21:[function(_dereq_,module,exports){
+},{"21":21}],23:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(260);
+var domify = _dereq_(264);
 
 /**
  * Adds an annotation column to the table
  *
  * @param {EventBus} eventBus
  */
-function Annotations(eventBus, sheet, elementRegistry, graphicsFactory) {
+function Annotations(eventBus, sheet, elementRegistry, graphicsFactory, translate) {
 
   this.column = null;
 
@@ -2516,7 +2576,7 @@ function Annotations(eventBus, sheet, elementRegistry, graphicsFactory) {
 
     labelCell.rowspan = 4;
 
-    labelCell.content = domify('Annotation');
+    labelCell.content = domify(translate('Annotation'));
 
     graphicsFactory.update('column', column, elementRegistry.getGraphics(this.column.id));
 
@@ -2536,7 +2596,10 @@ function Annotations(eventBus, sheet, elementRegistry, graphicsFactory) {
   }, this);
 }
 
-Annotations.$inject = [ 'eventBus', 'sheet', 'elementRegistry', 'graphicsFactory' ];
+Annotations.$inject = [
+  'eventBus', 'sheet', 'elementRegistry',
+  'graphicsFactory', 'translate'
+];
 
 module.exports = Annotations;
 
@@ -2544,10 +2607,10 @@ Annotations.prototype.getColumn = function() {
   return this.column;
 };
 
-},{"260":260}],22:[function(_dereq_,module,exports){
+},{"264":264}],24:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(257);
+var domClasses = _dereq_(261);
 
 function AnnotationsRenderer(
     eventBus,
@@ -2571,20 +2634,21 @@ AnnotationsRenderer.$inject = [
 
 module.exports = AnnotationsRenderer;
 
-},{"257":257}],23:[function(_dereq_,module,exports){
+},{"261":261}],25:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'annotations', 'annotationsRenderer'],
   __depends__: [
+    _dereq_(101)
   ],
-  annotations: [ 'type', _dereq_(21) ],
-  annotationsRenderer: [ 'type', _dereq_(22) ]
+  annotations: [ 'type', _dereq_(23) ],
+  annotationsRenderer: [ 'type', _dereq_(24) ]
 };
 
-},{"21":21,"22":22}],24:[function(_dereq_,module,exports){
+},{"101":101,"23":23,"24":24}],26:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(260),
-    utils  = _dereq_(25);
+var domify = _dereq_(264),
+    utils  = _dereq_(27);
 
 var isDateCell = utils.isDateCell,
     parseDate  = utils.parseDate;
@@ -2626,7 +2690,7 @@ function DateView(eventBus, simpleMode) {
 
         // remove potential datafield
         dateGfx = evt.gfx.querySelector('.date-content');
-
+        
         if (dateGfx) {
           dateGfx.parentNode.removeChild(dateGfx);
         }
@@ -2670,7 +2734,7 @@ DateView.$inject = ['eventBus', 'simpleMode'];
 
 module.exports = DateView;
 
-},{"25":25,"260":260}],25:[function(_dereq_,module,exports){
+},{"264":264,"27":27}],27:[function(_dereq_,module,exports){
 'use strict';
 
 var hasDateType = function(column) {
@@ -2741,20 +2805,20 @@ module.exports = {
   }
 };
 
-},{}],26:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'dateView' ],
   __depends__: [],
-  dateView: [ 'type', _dereq_(24) ]
+  dateView: [ 'type', _dereq_(26) ]
 };
 
 
-},{"24":24}],27:[function(_dereq_,module,exports){
+},{"26":26}],29:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(260);
+var domify = _dereq_(264);
 
-var hasSecondaryModifier = _dereq_(105).hasSecondaryModifier;
+var hasSecondaryModifier = _dereq_(109).hasSecondaryModifier;
 
 var OFFSET_X = 2,
     OFFSET_Y = 2;
@@ -2855,18 +2919,18 @@ Descriptions.prototype.openPopover = function(context) {
   node.textContent = context.content.description;
 };
 
-},{"105":105,"260":260}],28:[function(_dereq_,module,exports){
+},{"109":109,"264":264}],30:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'descriptions' ],
-  descriptions: [ 'type', _dereq_(27) ]
+  descriptions: [ 'type', _dereq_(29) ]
 };
 
-},{"27":27}],29:[function(_dereq_,module,exports){
+},{"29":29}],31:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(122);
+var inherits = _dereq_(126);
 
-var BaseElementFactory = _dereq_(282);
+var BaseElementFactory = _dereq_(286);
 
 
 /**
@@ -2924,7 +2988,7 @@ ElementFactory.prototype.create = function(elementType, attrs) {
 
 };
 
-},{"122":122,"282":282}],30:[function(_dereq_,module,exports){
+},{"126":126,"286":286}],32:[function(_dereq_,module,exports){
 'use strict';
 
 function TableFactory(moddle) {
@@ -3052,19 +3116,19 @@ TableFactory.prototype.createOutputValues = function(output) {
 
 module.exports = TableFactory;
 
-},{}],31:[function(_dereq_,module,exports){
+},{}],33:[function(_dereq_,module,exports){
 module.exports = {
-  tableFactory: [ 'type', _dereq_(30) ],
-  elementFactory: [ 'type', _dereq_(29) ]
+  tableFactory: [ 'type', _dereq_(32) ],
+  elementFactory: [ 'type', _dereq_(31) ]
 };
 
-},{"29":29,"30":30}],32:[function(_dereq_,module,exports){
+},{"31":31,"32":32}],34:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(260),
-    domClasses = _dereq_(257);
+var domify = _dereq_(264),
+    domClasses = _dereq_(261);
 
-var ComboBox = _dereq_(290);
+var ComboBox = _dereq_(294);
 
 var OFFSET_X = 36,
     OFFSET_Y = -16;
@@ -3074,7 +3138,7 @@ var OFFSET_X = 36,
  *
  * @param {EventBus} eventBus
  */
-function HitPolicy(eventBus, utilityColumn, ioLabel, graphicsFactory, elementRegistry, rules) {
+function HitPolicy(eventBus, utilityColumn, ioLabel, graphicsFactory, elementRegistry, rules, translate) {
 
   this.table = null;
   this.hitPolicyCell = null;
@@ -3098,7 +3162,7 @@ function HitPolicy(eventBus, utilityColumn, ioLabel, graphicsFactory, elementReg
 
         // initializing the comboBox
       var comboBox = new ComboBox({
-        label: 'Hit Policy',
+        label: translate('Hit Policy'),
         classNames: ['dmn-combobox', 'hitpolicy'],
         options: ['UNIQUE', 'FIRST', 'PRIORITY', 'ANY', 'COLLECT', 'RULE ORDER', 'OUTPUT ORDER'],
         dropdownClassNames: ['dmn-combobox-suggestions']
@@ -3110,7 +3174,7 @@ function HitPolicy(eventBus, utilityColumn, ioLabel, graphicsFactory, elementReg
         );
 
       var operatorComboBox = new ComboBox({
-        label: 'Collect Operator',
+        label: translate('Collect Operator'),
         classNames: ['dmn-combobox', 'operator'],
         options: ['LIST', 'SUM', 'MIN', 'MAX', 'COUNT'],
         dropdownClassNames: ['dmn-combobox-suggestions']
@@ -3192,7 +3256,7 @@ function HitPolicy(eventBus, utilityColumn, ioLabel, graphicsFactory, elementReg
 
 HitPolicy.$inject = [
   'eventBus', 'utilityColumn', 'ioLabel',
-  'graphicsFactory', 'elementRegistry', 'rules'
+  'graphicsFactory', 'elementRegistry', 'rules', 'translate'
 ];
 
 HitPolicy.prototype.getCell = function() {
@@ -3209,7 +3273,7 @@ HitPolicy.prototype.getAggregation = function() {
 
 module.exports = HitPolicy;
 
-},{"257":257,"260":260,"290":290}],33:[function(_dereq_,module,exports){
+},{"261":261,"264":264,"294":294}],35:[function(_dereq_,module,exports){
 'use strict';
 
 function convertOperators(operator) {
@@ -3244,32 +3308,33 @@ HitPolicyRenderer.$inject = [
 
 module.exports = HitPolicyRenderer;
 
-},{}],34:[function(_dereq_,module,exports){
+},{}],36:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'hitPolicy', 'hitPolicyRenderer' ],
   __depends__: [
-    _dereq_(303),
-    _dereq_(38)
+    _dereq_(101),
+    _dereq_(307),
+    _dereq_(40)
   ],
-  hitPolicy: [ 'type', _dereq_(32) ],
-  hitPolicyRenderer: [ 'type', _dereq_(33) ]
+  hitPolicy: [ 'type', _dereq_(34) ],
+  hitPolicyRenderer: [ 'type', _dereq_(35) ]
 };
 
-},{"303":303,"32":32,"33":33,"38":38}],35:[function(_dereq_,module,exports){
+},{"101":101,"307":307,"34":34,"35":35,"40":40}],37:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(260),
-    forEach = _dereq_(132);
+var domify = _dereq_(264),
+    forEach = _dereq_(136);
 
 // document wide unique overlay ids
-var ids = new (_dereq_(104))('clause');
+var ids = new (_dereq_(108))('clause');
 
 /**
  * Adds a control to the table to add more columns
  *
  * @param {EventBus} eventBus
  */
-function IoLabel(eventBus, sheet, elementRegistry, graphicsFactory, rules) {
+function IoLabel(eventBus, sheet, elementRegistry, graphicsFactory, rules, translate) {
 
   this.row = null;
 
@@ -3318,7 +3383,7 @@ function IoLabel(eventBus, sheet, elementRegistry, graphicsFactory, rules) {
 
         var node;
         if (rules.allowed('column.create')) {
-          node = domify('Input <a class="dmn-icon-plus"></a>');
+          node = domify(translate('Input')+' <a class="dmn-icon-plus"></a>');
           node.querySelector('a').addEventListener('mouseup', function() {
             var col = input.column;
             while (col.next && col.next.businessObject.$type === 'dmn:InputClause') {
@@ -3337,7 +3402,7 @@ function IoLabel(eventBus, sheet, elementRegistry, graphicsFactory, rules) {
             });
           });
         } else {
-          node = domify('Input');
+          node = domify(translate('Input'));
         }
 
         input.content = node;
@@ -3357,7 +3422,7 @@ function IoLabel(eventBus, sheet, elementRegistry, graphicsFactory, rules) {
 
         var node;
         if (rules.allowed('column.create')) {
-          node = domify('Output <a class="dmn-icon-plus"></a>');
+          node = domify(translate('Output')+' <a class="dmn-icon-plus"></a>');
           node.querySelector('a').addEventListener('mouseup', function() {
             var col = output.column;
             while (col.next && col.next.businessObject && col.next.businessObject.$type === 'dmn:OutputClause') {
@@ -3376,7 +3441,7 @@ function IoLabel(eventBus, sheet, elementRegistry, graphicsFactory, rules) {
             });
           });
         } else {
-          node = domify('Output');
+          node = domify(translate('Output'));
         }
 
         output.content = node;
@@ -3398,7 +3463,7 @@ function IoLabel(eventBus, sheet, elementRegistry, graphicsFactory, rules) {
   eventBus.on([ 'column.move.applied' ], updateColspans);
 }
 
-IoLabel.$inject = [ 'eventBus', 'sheet', 'elementRegistry', 'graphicsFactory', 'rules' ];
+IoLabel.$inject = [ 'eventBus', 'sheet', 'elementRegistry', 'graphicsFactory', 'rules', 'translate' ];
 
 module.exports = IoLabel;
 
@@ -3406,7 +3471,7 @@ IoLabel.prototype.getRow = function() {
   return this.row;
 };
 
-},{"104":104,"132":132,"260":260}],36:[function(_dereq_,module,exports){
+},{"108":108,"136":136,"264":264}],38:[function(_dereq_,module,exports){
 'use strict';
 
 function IoLabelRenderer(
@@ -3430,12 +3495,12 @@ IoLabelRenderer.$inject = [
 
 module.exports = IoLabelRenderer;
 
-},{}],37:[function(_dereq_,module,exports){
+},{}],39:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(122);
+var inherits = _dereq_(126);
 
-var RuleProvider = _dereq_(92);
+var RuleProvider = _dereq_(94);
 
 /**
  * LineNumber specific modeling rule
@@ -3462,25 +3527,27 @@ IoLabelRules.prototype.init = function() {
 
 };
 
-},{"122":122,"92":92}],38:[function(_dereq_,module,exports){
+},{"126":126,"94":94}],40:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'ioLabel', 'ioLabelRules', 'ioLabelRenderer' ],
-  __depends__: [],
-  ioLabel: [ 'type', _dereq_(35) ],
-  ioLabelRules: [ 'type', _dereq_(37) ],
-  ioLabelRenderer: [ 'type', _dereq_(36) ]
+  __depends__: [
+    _dereq_(101)
+  ],
+  ioLabel: [ 'type', _dereq_(37) ],
+  ioLabelRules: [ 'type', _dereq_(39) ],
+  ioLabelRenderer: [ 'type', _dereq_(38) ]
 };
 
-},{"35":35,"36":36,"37":37}],39:[function(_dereq_,module,exports){
+},{"101":101,"37":37,"38":38,"39":39}],41:[function(_dereq_,module,exports){
 module.exports = "<div class=\"literal-expression-editor\">\n  <textarea placeholder=\"return obj.propertyName;\"></textarea>\n\n  <div>\n    <div class=\"literal-expression-field\">\n      <div class=\"dmn-combobox\">\n        <label>Variable Name:</label>\n        <input class=\"variable-name\" placeholder=\"varName\">\n      </div>\n    </div>\n    <div class=\"literal-expression-field variable-type\">\n    </div>\n  </div>\n  <div>\n    <div class=\"literal-expression-field expression-language\">\n    </div>\n  </div>\n</div>\n";
 
-},{}],40:[function(_dereq_,module,exports){
+},{}],42:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(260);
-var template = _dereq_(39);
+var domify = _dereq_(264);
+var template = _dereq_(41);
 
-var ComboBox = _dereq_(290);
+var ComboBox = _dereq_(294);
 
 function LiteralExpressionEditor(eventBus, sheet, rules) {
   this._eventBus = eventBus;
@@ -3581,27 +3648,26 @@ LiteralExpressionEditor.prototype.show = function(decision) {
 
 };
 
-},{"260":260,"290":290,"39":39}],41:[function(_dereq_,module,exports){
+},{"264":264,"294":294,"41":41}],43:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'literalExpressionEditor' ],
-  __depends__: [],
-  literalExpressionEditor: [ 'type', _dereq_(40) ]
+  literalExpressionEditor: [ 'type', _dereq_(42) ]
 };
 
-},{"40":40}],42:[function(_dereq_,module,exports){
-module.exports = "<div>\n  <div class=\"links\">\n    <div class=\"toggle-type\">\n      <label>Use:</label>\n      <a class=\"expression\">Expression</a>\n      /\n      <a class=\"script\">Script</a>\n    </div>\n    <a class=\"dmn-icon-clear\"></a>\n  </div>\n  <div class=\"expression region\">\n    <div class=\"input-expression\">\n      <label>Expression:</label>\n      <input placeholder=\"propertyName\">\n    </div>\n    <div class=\"input-expression\">\n      <label>Input Variable Name:</label>\n      <input placeholder=\"cellInput\">\n    </div>\n  </div>\n  <div class=\"script region\">\n    <textarea placeholder=\"return obj.propertyName;\"></textarea>\n    <div class=\"input-expression\">\n      <label>Input Variable Name:</label>\n      <input placeholder=\"cellInput\">\n    </div>\n  </div>\n</div>\n";
+},{"42":42}],44:[function(_dereq_,module,exports){
+module.exports = "<div>\n  <div class=\"links\">\n    <div class=\"toggle-type\">\n      <label>{{ 'Use:' | translate }}</label>\n      <a class=\"expression\">{{ 'Expression' | translate }}</a>\n      /\n      <a class=\"script\">{{ 'Script' | translate }}</a>\n    </div>\n    <a class=\"dmn-icon-clear\"></a>\n  </div>\n  <div class=\"expression region\">\n    <div class=\"input-expression\">\n       <label>{{ 'Expression:' | translate }}</label>\n      <input placeholder=\"propertyName\">\n    </div>\n    <div class=\"input-expression\">\n      <label>{{ 'Input Variable Name:' | translate }}</label>\n      <input placeholder=\"cellInput\">\n    </div>\n  </div>\n  <div class=\"script region\">\n    <textarea placeholder=\"return obj.propertyName;\"></textarea>\n    <div class=\"input-expression\">\n      <label>{{ 'Input Variable Name:' | translate }}</label>\n      <input placeholder=\"cellInput\">\n    </div>\n  </div>\n</div>\n";
 
-},{}],43:[function(_dereq_,module,exports){
+},{}],45:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(260),
-    domClasses = _dereq_(257),
-    assign = _dereq_(246),
-    forEach = _dereq_(132);
+var domify = _dereq_(264),
+    domClasses = _dereq_(261),
+    assign = _dereq_(250),
+    forEach = _dereq_(136);
 
-var exprTemplate = _dereq_(42);
+var exprTemplate = _dereq_(44);
 
-var ComboBox = _dereq_(290);
+var ComboBox = _dereq_(294);
 
 var PROP_NAME = '.expression .input-expression input[placeholder="propertyName"]',
     EXPR_IPT_VAR = '.expression .input-expression input[placeholder="cellInput"]',
@@ -3623,7 +3689,10 @@ function forEachSelector(node, arr, fn) {
 /**
  * Adds a control to the table to define the input- and output-mappings for clauses
  */
-function MappingsRow(eventBus, sheet, elementRegistry, graphicsFactory, complexCell, config) {
+function MappingsRow(
+  eventBus, sheet, elementRegistry,
+  graphicsFactory, complexCell,
+  translate, parseTemplate, config) {
 
   this.row = null;
 
@@ -3709,11 +3778,11 @@ function MappingsRow(eventBus, sheet, elementRegistry, graphicsFactory, complexC
       // cell content is the input expression of the clause
       content = element.content = column.businessObject.inputExpression;
 
-      var template = domify(exprTemplate);
+      var template = domify(parseTemplate(exprTemplate));
 
       // initializing the comboBox
       var comboBox = new ComboBox({
-        label: 'Language',
+        label: translate('Language'),
         classNames: [ 'dmn-combobox', 'language' ],
         options: [ 'javascript', 'groovy', 'python', 'jruby', 'juel', 'feel' ],
         dropdownClassNames: [ 'dmn-combobox-suggestions' ]
@@ -3906,6 +3975,8 @@ MappingsRow.$inject = [
   'elementRegistry',
   'graphicsFactory',
   'complexCell',
+  'translate',
+  'parseTemplate',
   'config'
 ];
 
@@ -3915,10 +3986,10 @@ MappingsRow.prototype.getRow = function() {
   return this.row;
 };
 
-},{"132":132,"246":246,"257":257,"260":260,"290":290,"42":42}],44:[function(_dereq_,module,exports){
+},{"136":136,"250":250,"261":261,"264":264,"294":294,"44":44}],46:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(257);
+var domClasses = _dereq_(261);
 
 function MappingsRowRenderer(
     eventBus,
@@ -3955,21 +4026,23 @@ MappingsRowRenderer.$inject = [
 
 module.exports = MappingsRowRenderer;
 
-},{"257":257}],45:[function(_dereq_,module,exports){
+},{"261":261}],47:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(292)
+    _dereq_(101),
+    _dereq_(14),
+    _dereq_(296)
   ],
   __init__: [ 'mappingsRow', 'mappingsRowRenderer' ],
-  mappingsRow: [ 'type', _dereq_(43) ],
-  mappingsRowRenderer: [ 'type', _dereq_(44) ]
+  mappingsRow: [ 'type', _dereq_(45) ],
+  mappingsRowRenderer: [ 'type', _dereq_(46) ]
 };
 
-},{"292":292,"43":43,"44":44}],46:[function(_dereq_,module,exports){
+},{"101":101,"14":14,"296":296,"45":45,"46":46}],48:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(257),
-    domify = _dereq_(260);
+var domClasses = _dereq_(261),
+    domify = _dereq_(264);
 
 function isType(bo, type) {
   return bo.inputExpression &&
@@ -3977,11 +4050,12 @@ function isType(bo, type) {
          bo.typeRef === type;
 }
 
-function SimpleMode(eventBus, sheet, config, graphicsFactory) {
+function SimpleMode(eventBus, sheet, config, graphicsFactory, translate) {
 
   this._sheet = sheet;
   this._eventBus = eventBus;
   this._graphicsFactory = graphicsFactory;
+  this._translate = translate;
 
   this.simple = false;
 
@@ -4053,8 +4127,8 @@ function SimpleMode(eventBus, sheet, config, graphicsFactory) {
           gfx.childNodes[0].style.display = 'none';
           newCheckbox = domify([
             '<select class="simple-mode-checkbox">',
-            '<option value="true">Yes</option>',
-            '<option value="false">No</option>',
+            '<option value="true">' + translate('Yes') + '</option>',
+            '<option value="false">' + translate('No') + '</option>',
             '<option value="">-</option>',
             '</select>'
           ].join(''));
@@ -4099,17 +4173,18 @@ function SimpleMode(eventBus, sheet, config, graphicsFactory) {
   }, this);
 }
 
-SimpleMode.$inject = [ 'eventBus', 'sheet', 'config', 'graphicsFactory' ];
+SimpleMode.$inject = [ 'eventBus', 'sheet', 'config', 'graphicsFactory', 'translate' ];
 
 module.exports = SimpleMode;
 
 SimpleMode.prototype.addControlButton = function(event) {
   var sheet = this._sheet,
+      translate = this._translate,
       controls = event.controls;
 
   var self = this;
 
-  return controls.addControl('Exit Advanced Mode', function() {
+  return controls.addControl(translate('Exit Advanced Mode'), function() {
 
     if (!domClasses(sheet.getContainer().parentNode).contains('simple-mode')) {
       self.activate();
@@ -4140,7 +4215,7 @@ SimpleMode.prototype.activate = function(isInit) {
 
   domClasses(this._sheet.getContainer().parentNode).add('simple-mode');
 
-  this._node.textContent = 'Enter Advanced Mode';
+  this._node.textContent = this._translate('Enter Advanced Mode');
 
   this.simple = true;
 
@@ -4161,7 +4236,7 @@ SimpleMode.prototype.deactivate = function() {
 
   domClasses(this._sheet.getContainer().parentNode).remove('simple-mode');
 
-  this._node.textContent = 'Exit Advanced Mode';
+  this._node.textContent = this._translate('Exit Advanced Mode');
 
   this.simple = false;
 
@@ -4227,17 +4302,20 @@ SimpleMode.prototype.isString = function(textContent) {
   return firstCondition && !secondCondition;
 };
 
-},{"257":257,"260":260}],47:[function(_dereq_,module,exports){
+},{"261":261,"264":264}],49:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'simpleMode' ],
-  simpleMode: [ 'type', _dereq_(46) ]
+  __depends__: [
+    _dereq_(101)
+  ],
+  simpleMode: [ 'type', _dereq_(48) ]
 };
 
-},{"46":46}],48:[function(_dereq_,module,exports){
+},{"101":101,"48":48}],50:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(260),
-    utils  = _dereq_(49);
+var domify = _dereq_(264),
+    utils  = _dereq_(51);
 
 var isStringCell = utils.isStringCell,
     parseString  = utils.parseString;
@@ -4319,7 +4397,7 @@ StringView.$inject = ['eventBus', 'simpleMode'];
 
 module.exports = StringView;
 
-},{"260":260,"49":49}],49:[function(_dereq_,module,exports){
+},{"264":264,"51":51}],51:[function(_dereq_,module,exports){
 'use strict';
 
 var hasStringType = function(column) {
@@ -4411,22 +4489,22 @@ module.exports = {
   }
 };
 
-},{}],50:[function(_dereq_,module,exports){
+},{}],52:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'stringView' ],
-  stringView: [ 'type', _dereq_(48) ]
+  stringView: [ 'type', _dereq_(50) ]
 };
 
-},{"48":48}],51:[function(_dereq_,module,exports){
+},{"50":50}],53:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(260);
+var domify = _dereq_(264);
 
-var inherits = _dereq_(122);
+var inherits = _dereq_(126);
 
-var BaseModule = _dereq_(299);
+var BaseModule = _dereq_(303);
 /**
  * Adds a header to the table containing the table name
  *
@@ -4483,7 +4561,7 @@ TableName.prototype.setId = function(newId) {
   if (newId) {
     this.semantic.id = newId;
   }
-
+  
   this.node.querySelector('div').textContent = this.semantic.id || '';
 };
 
@@ -4491,23 +4569,22 @@ TableName.prototype.getId = function() {
   return this.semantic.id;
 };
 
-},{"122":122,"260":260,"299":299}],52:[function(_dereq_,module,exports){
+},{"126":126,"264":264,"303":303}],54:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'tableName' ],
-  __depends__: [],
-  tableName: [ 'type', _dereq_(51) ]
+  tableName: [ 'type', _dereq_(53) ]
 };
 
-},{"51":51}],53:[function(_dereq_,module,exports){
+},{"53":53}],55:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(246);
+var assign = _dereq_(250);
 
-var domify = _dereq_(260),
-    domClasses = _dereq_(257),
-    ComboBox = _dereq_(290);
+var domify = _dereq_(264),
+    domClasses = _dereq_(261),
+    ComboBox = _dereq_(294);
 
-var typeTemplate = _dereq_(55);
+var typeTemplate = _dereq_(57);
 
 var OFFSET_X = -4,
     OFFSET_Y = -17;
@@ -4515,10 +4592,14 @@ var OFFSET_X = -4,
 /**
  * Adds a control to the table to define the datatypes for clauses
  */
-function TypeRow(eventBus, sheet, elementRegistry, graphicsFactory, complexCell, rules, simpleMode) {
+function TypeRow(
+  eventBus, sheet, elementRegistry,
+  graphicsFactory, complexCell, rules,
+  simpleMode, translate, parseTemplate) {
 
   this._eventBus = eventBus;
   this._graphicsFactory = graphicsFactory;
+
   this.row = null;
 
   var self = this;
@@ -4560,16 +4641,16 @@ function TypeRow(eventBus, sheet, elementRegistry, graphicsFactory, complexCell,
 
       evt.element.content = evt.element.column.businessObject;
 
-      var template = domify(typeTemplate);
+      var template = domify(parseTemplate(typeTemplate));
 
       var isOutput = evt.element.column.type === 'dmn:OutputClause';
       if (isOutput) {
-        template.querySelector('.allowed-values label').textContent = 'Output Values:';
+        template.querySelector('.allowed-values label').textContent = translate('Output Values:');
       }
 
       // initializing the comboBox
       var comboBox = new ComboBox({
-        label: 'Type',
+        label: translate('Type'),
         classNames: [ 'dmn-combobox', 'datatype' ],
         options: [ 'string', 'boolean', 'integer', 'long', 'double', 'date' ],
         dropdownClassNames: [ 'dmn-combobox-suggestions' ]
@@ -4744,7 +4825,17 @@ TypeRow.prototype.updateAllowedValues = function(template, businessObject) {
   this._graphicsFactory.redraw();
 };
 
-TypeRow.$inject = [ 'eventBus', 'sheet', 'elementRegistry', 'graphicsFactory', 'complexCell', 'rules', 'simpleMode' ];
+TypeRow.$inject = [
+  'eventBus',
+  'sheet',
+  'elementRegistry',
+  'graphicsFactory',
+  'complexCell',
+  'rules',
+  'simpleMode',
+  'translate',
+  'parseTemplate'
+];
 
 module.exports = TypeRow;
 
@@ -4752,10 +4843,10 @@ TypeRow.prototype.getRow = function() {
   return this.row;
 };
 
-},{"246":246,"257":257,"260":260,"290":290,"55":55}],54:[function(_dereq_,module,exports){
+},{"250":250,"261":261,"264":264,"294":294,"57":57}],56:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(257);
+var domClasses = _dereq_(261);
 
 function TypeRowRenderer(
     eventBus,
@@ -4789,21 +4880,25 @@ TypeRowRenderer.$inject = [
 
 module.exports = TypeRowRenderer;
 
-},{"257":257}],55:[function(_dereq_,module,exports){
-module.exports = "<div>\n  <div class=\"allowed-values\">\n    <label>Input Values:</label>\n    <ul></ul>\n    <input type=\"text\" placeholder=\"value1, value2, otherValue\">\n  </div>\n</div>\n";
+},{"261":261}],57:[function(_dereq_,module,exports){
+module.exports = "<div>\n  <div class=\"allowed-values\">\n    <label>{{ 'Input Values:' | translate }}</label>\n    <ul></ul>\n    <input type=\"text\" placeholder=\"value1, value2, otherValue\">\n  </div>\n</div>\n";
 
-},{}],56:[function(_dereq_,module,exports){
+},{}],58:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'typeRow', 'typeRowRenderer' ],
-  __depends__: [ _dereq_(292) ],
-  typeRow: [ 'type', _dereq_(53) ],
-  typeRowRenderer: [ 'type', _dereq_(54) ]
+  __depends__: [
+    _dereq_(101),
+    _dereq_(14),
+    _dereq_(296)
+  ],
+  typeRow: [ 'type', _dereq_(55) ],
+  typeRowRenderer: [ 'type', _dereq_(56) ]
 };
 
-},{"292":292,"53":53,"54":54}],57:[function(_dereq_,module,exports){
+},{"101":101,"14":14,"296":296,"55":55,"56":56}],59:[function(_dereq_,module,exports){
 'use strict';
 
-var TableTreeWalker = _dereq_(59);
+var TableTreeWalker = _dereq_(61);
 
 
 /**
@@ -4876,14 +4971,14 @@ function importDmnTable(sheet, definitions, decision, done) {
 
 module.exports.importDmnTable = importDmnTable;
 
-},{"59":59}],58:[function(_dereq_,module,exports){
+},{"61":61}],60:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(246),
-    filter = _dereq_(130),
-    union  = _dereq_(124);
+var assign = _dereq_(250),
+    filter = _dereq_(134),
+    union  = _dereq_(128);
 
-var elementToString = _dereq_(60).elementToString;
+var elementToString = _dereq_(62).elementToString;
 
 
 function elementData(semantic, attrs) {
@@ -4910,7 +5005,7 @@ function equals(type, conditions) {
  * @param {ElementFactory} elementFactory
  * @param {ElementRegistry} elementRegistry
  */
-function TableImporter(eventBus, sheet, elementRegistry, elementFactory, moddle, tableName, ioLabel, tableFactory, literalExpressionEditor) {
+function TableImporter(eventBus, sheet, elementRegistry, elementFactory, moddle, tableName, ioLabel, tableFactory, literalExpressionEditor, translate) {
   this._eventBus = eventBus;
   this._sheet = sheet;
 
@@ -4920,6 +5015,7 @@ function TableImporter(eventBus, sheet, elementRegistry, elementFactory, moddle,
   this._tableFactory = tableFactory;
 
   this._literalExpressionEditor = literalExpressionEditor;
+  this._translate = translate;
 
   this._ioLabel = ioLabel;
 
@@ -4930,7 +5026,8 @@ TableImporter.$inject = [
   'eventBus', 'sheet', 'elementRegistry',
   'elementFactory', 'moddle', 'tableName',
   'ioLabel', 'tableFactory',
-  'literalExpressionEditor'
+  'literalExpressionEditor',
+  'translate'
 ];
 
 module.exports = TableImporter;
@@ -4950,10 +5047,11 @@ TableImporter.prototype._makeCopy = function(semantic) {
 };
 
 TableImporter.prototype.create = function(type, parent, clause, rule) {
-  var tableFactory = this._tableFactory;
+  var tableFactory = this._tableFactory,
+      translate = this._translate;
 
   var parentBO = parent.businessObject,
-      isInput= equals(type, [ 'dmn:InputClause', 'dmn:UnaryTests' ]) ? 'Input' : 'Output',
+      isInput= equals(type, [ 'dmn:InputClause', 'dmn:UnaryTests' ]) ? translate('Input') : translate('Output'),
       element;
 
   if (equals(type, [ 'dmn:InputClause', 'dmn:OutputClause' ])) {
@@ -5045,6 +5143,22 @@ TableImporter.prototype.add = function(semantic, parentElement, definitions) {
       }
       var type = element.businessObject.$type;
       return type === 'dmn:InputClause' || type === 'dmn:OutputClause';
+    }).sort(function(element1, element2) {
+      var bo1 = element1.businessObject;
+      var bo2 = element2.businessObject;
+      var parent = bo1.$parent;
+      var parsedType = bo1.$type === 'dmn:InputClause' ? 'input' : 'output';
+
+      // input entries before output entries
+      if (bo1.$type !== bo2.$type) {
+        if (bo1.$type === 'dmn:InputClause') {
+          return -1;
+        }
+        return 1;
+      }
+
+      // order is relative to appearance in parent array
+      return parent[parsedType].indexOf(bo1) - parent[parsedType].indexOf(bo2);
     });
 
     var column = allClauses[allCellsInRow.indexOf(semantic)].id;
@@ -5070,12 +5184,12 @@ TableImporter.prototype.add = function(semantic, parentElement, definitions) {
   return element;
 };
 
-},{"124":124,"130":130,"246":246,"60":60}],59:[function(_dereq_,module,exports){
+},{"128":128,"134":134,"250":250,"62":62}],61:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(132);
+var forEach = _dereq_(136);
 
-var elementToString = _dereq_(60).elementToString;
+var elementToString = _dereq_(62).elementToString;
 
 function TableTreeWalker(handler, options) {
 
@@ -5205,7 +5319,7 @@ function TableTreeWalker(handler, options) {
 
 module.exports = TableTreeWalker;
 
-},{"132":132,"60":60}],60:[function(_dereq_,module,exports){
+},{"136":136,"62":62}],62:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports.elementToString = function(e) {
@@ -5215,18 +5329,19 @@ module.exports.elementToString = function(e) {
 
   return '<' + e.$type + (e.id ? ' id="' + e.id : '') + '" />';
 };
-},{}],61:[function(_dereq_,module,exports){
+},{}],63:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(31)
+    _dereq_(33),
+    _dereq_(101)
   ],
-  tableImporter: [ 'type', _dereq_(58) ]
+  tableImporter: [ 'type', _dereq_(60) ]
 };
 
-},{"31":31,"58":58}],62:[function(_dereq_,module,exports){
+},{"101":101,"33":33,"60":60}],64:[function(_dereq_,module,exports){
 'use strict';
 
-var any = _dereq_(128);
+var any = _dereq_(132);
 
 /**
  * Is an element of the given DMN type?
@@ -5286,7 +5401,7 @@ function isAny(element, types) {
 
 module.exports.isAny = isAny;
 
-},{"128":128}],63:[function(_dereq_,module,exports){
+},{"132":132}],65:[function(_dereq_,module,exports){
 /**
  * This file must not be changed or exchanged.
  *
@@ -5295,9 +5410,9 @@ module.exports.isAny = isAny;
 
 'use strict';
 
-var domify = _dereq_(260);
+var domify = _dereq_(264);
 
-var domDelegate = _dereq_(259);
+var domDelegate = _dereq_(263);
 
 /* jshint -W101 */
 
@@ -5371,15 +5486,15 @@ function open() {
 
 module.exports.open = open;
 
-},{"259":259,"260":260}],64:[function(_dereq_,module,exports){
+},{"263":263,"264":264}],66:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
 try {
-  var index = _dereq_(68);
+  var index = _dereq_(70);
 } catch (err) {
-  var index = _dereq_(68);
+  var index = _dereq_(70);
 }
 
 /**
@@ -5564,8 +5679,8 @@ ClassList.prototype.contains = function(name){
     : !! ~index(this.array(), name);
 };
 
-},{"68":68}],65:[function(_dereq_,module,exports){
-var matches = _dereq_(69)
+},{"70":70}],67:[function(_dereq_,module,exports){
+var matches = _dereq_(71)
 
 module.exports = function (element, selector, checkYoSelf, root) {
   element = checkYoSelf ? {parentNode: element} : element
@@ -5585,21 +5700,21 @@ module.exports = function (element, selector, checkYoSelf, root) {
   }
 }
 
-},{"69":69}],66:[function(_dereq_,module,exports){
+},{"71":71}],68:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
 try {
-  var closest = _dereq_(65);
+  var closest = _dereq_(67);
 } catch(err) {
-  var closest = _dereq_(65);
+  var closest = _dereq_(67);
 }
 
 try {
-  var event = _dereq_(67);
+  var event = _dereq_(69);
 } catch(err) {
-  var event = _dereq_(67);
+  var event = _dereq_(69);
 }
 
 /**
@@ -5638,7 +5753,7 @@ exports.unbind = function(el, type, fn, capture){
   event.unbind(el, type, fn, capture);
 };
 
-},{"65":65,"67":67}],67:[function(_dereq_,module,exports){
+},{"67":67,"69":69}],69:[function(_dereq_,module,exports){
 var bind = window.addEventListener ? 'addEventListener' : 'attachEvent',
     unbind = window.removeEventListener ? 'removeEventListener' : 'detachEvent',
     prefix = bind !== 'addEventListener' ? 'on' : '';
@@ -5674,7 +5789,7 @@ exports.unbind = function(el, type, fn, capture){
   el[unbind](prefix + type, fn, capture || false);
   return fn;
 };
-},{}],68:[function(_dereq_,module,exports){
+},{}],70:[function(_dereq_,module,exports){
 module.exports = function(arr, obj){
   if (arr.indexOf) return arr.indexOf(obj);
   for (var i = 0; i < arr.length; ++i) {
@@ -5682,15 +5797,15 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],69:[function(_dereq_,module,exports){
+},{}],71:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
 try {
-  var query = _dereq_(70);
+  var query = _dereq_(72);
 } catch (err) {
-  var query = _dereq_(70);
+  var query = _dereq_(72);
 }
 
 /**
@@ -5734,7 +5849,7 @@ function match(el, selector) {
   return false;
 }
 
-},{"70":70}],70:[function(_dereq_,module,exports){
+},{"72":72}],72:[function(_dereq_,module,exports){
 function one(selector, el) {
   return el.querySelector(selector);
 }
@@ -5757,12 +5872,12 @@ exports.engine = function(obj){
   return exports;
 };
 
-},{}],71:[function(_dereq_,module,exports){
-module.exports = _dereq_(72);
-},{"72":72}],72:[function(_dereq_,module,exports){
+},{}],73:[function(_dereq_,module,exports){
+module.exports = _dereq_(74);
+},{"74":74}],74:[function(_dereq_,module,exports){
 'use strict';
 
-var di = _dereq_(111);
+var di = _dereq_(115);
 
 
 /**
@@ -5839,7 +5954,7 @@ function createInjector(options) {
     'config': ['value', options]
   };
 
-  var coreModule = _dereq_(79);
+  var coreModule = _dereq_(81);
 
   var modules = [ configModule, coreModule ].concat(options.modules || []);
 
@@ -5961,13 +6076,13 @@ Diagram.prototype.clear = function() {
   this.get('eventBus').fire('diagram.clear');
 };
 
-},{"111":111,"79":79}],73:[function(_dereq_,module,exports){
+},{"115":115,"81":81}],75:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(132),
-    isFunction = _dereq_(238),
-    isArray = _dereq_(237),
-    isNumber = _dereq_(240);
+var forEach = _dereq_(136),
+    isFunction = _dereq_(242),
+    isArray = _dereq_(241),
+    isNumber = _dereq_(244);
 
 
 var DEFAULT_PRIORITY = 1000;
@@ -6112,25 +6227,25 @@ forEach(hooks, function(hook) {
   };
 });
 
-},{"132":132,"237":237,"238":238,"240":240}],74:[function(_dereq_,module,exports){
+},{"136":136,"241":241,"242":242,"244":244}],76:[function(_dereq_,module,exports){
 'use strict';
 
-var isNumber = _dereq_(240),
-    assign = _dereq_(246),
-    forEach = _dereq_(132),
-    every = _dereq_(129),
-    debounce = _dereq_(139);
+var isNumber = _dereq_(244),
+    assign = _dereq_(250),
+    forEach = _dereq_(136),
+    every = _dereq_(133),
+    debounce = _dereq_(143);
 
-var Collections = _dereq_(100),
-    Elements = _dereq_(101);
+var Collections = _dereq_(104),
+    Elements = _dereq_(105);
 
-var svgAppend = _dereq_(316),
-    svgAttr = _dereq_(318),
-    svgClasses = _dereq_(319),
-    svgCreate = _dereq_(321),
-    svgTransform = _dereq_(325);
+var svgAppend = _dereq_(320),
+    svgAttr = _dereq_(322),
+    svgClasses = _dereq_(323),
+    svgCreate = _dereq_(325),
+    svgTransform = _dereq_(329);
 
-var createMatrix = _dereq_(322).createMatrix;
+var createMatrix = _dereq_(326).createMatrix;
 
 
 function round(number, resolution) {
@@ -7098,12 +7213,12 @@ Canvas.prototype.resized = function() {
   this._eventBus.fire('canvas.resized');
 };
 
-},{"100":100,"101":101,"129":129,"132":132,"139":139,"240":240,"246":246,"316":316,"318":318,"319":319,"321":321,"322":322,"325":325}],75:[function(_dereq_,module,exports){
+},{"104":104,"105":105,"133":133,"136":136,"143":143,"244":244,"250":250,"320":320,"322":322,"323":323,"325":325,"326":326,"329":329}],77:[function(_dereq_,module,exports){
 'use strict';
 
-var Model = _dereq_(99);
+var Model = _dereq_(103);
 
-var assign = _dereq_(246);
+var assign = _dereq_(250);
 
 /**
  * A factory for diagram-js shapes
@@ -7149,12 +7264,12 @@ ElementFactory.prototype.create = function(type, attrs) {
 
   return Model.create(type, attrs);
 };
-},{"246":246,"99":99}],76:[function(_dereq_,module,exports){
+},{"103":103,"250":250}],78:[function(_dereq_,module,exports){
 'use strict';
 
 var ELEMENT_ID = 'data-element-id';
 
-var svgAttr = _dereq_(318);
+var svgAttr = _dereq_(322);
 
 
 /**
@@ -7351,14 +7466,14 @@ ElementRegistry.prototype._validateId = function(id) {
   }
 };
 
-},{"318":318}],77:[function(_dereq_,module,exports){
+},{"322":322}],79:[function(_dereq_,module,exports){
 'use strict';
 
-var isFunction = _dereq_(238),
-    isArray = _dereq_(237),
-    isNumber = _dereq_(240),
-    bind = _dereq_(138),
-    assign = _dereq_(246);
+var isFunction = _dereq_(242),
+    isArray = _dereq_(241),
+    isNumber = _dereq_(244),
+    bind = _dereq_(142),
+    assign = _dereq_(250);
 
 var FN_REF = '__fn';
 
@@ -7809,23 +7924,23 @@ function invokeFunction(fn, args) {
   return fn.apply(null, args);
 }
 
-},{"138":138,"237":237,"238":238,"240":240,"246":246}],78:[function(_dereq_,module,exports){
+},{"142":142,"241":241,"242":242,"244":244,"250":250}],80:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(132),
-    reduce = _dereq_(135);
+var forEach = _dereq_(136),
+    reduce = _dereq_(139);
 
-var GraphicsUtil = _dereq_(103);
+var GraphicsUtil = _dereq_(107);
 
-var translate = _dereq_(108).translate;
+var translate = _dereq_(112).translate;
 
-var domClear = _dereq_(258);
+var domClear = _dereq_(262);
 
-var svgAppend = _dereq_(316),
-    svgAttr = _dereq_(318),
-    svgClasses = _dereq_(319),
-    svgCreate = _dereq_(321),
-    svgRemove = _dereq_(324);
+var svgAppend = _dereq_(320),
+    svgAttr = _dereq_(322),
+    svgClasses = _dereq_(323),
+    svgCreate = _dereq_(325),
+    svgRemove = _dereq_(328);
 
 
 /**
@@ -8026,17 +8141,17 @@ function prependTo(newNode, parentNode) {
   parentNode.insertBefore(newNode, parentNode.firstChild);
 }
 
-},{"103":103,"108":108,"132":132,"135":135,"258":258,"316":316,"318":318,"319":319,"321":321,"324":324}],79:[function(_dereq_,module,exports){
+},{"107":107,"112":112,"136":136,"139":139,"262":262,"320":320,"322":322,"323":323,"325":325,"328":328}],81:[function(_dereq_,module,exports){
 module.exports = {
-  __depends__: [ _dereq_(83) ],
+  __depends__: [ _dereq_(85) ],
   __init__: [ 'canvas' ],
-  canvas: [ 'type', _dereq_(74) ],
-  elementRegistry: [ 'type', _dereq_(76) ],
-  elementFactory: [ 'type', _dereq_(75) ],
-  eventBus: [ 'type', _dereq_(77) ],
-  graphicsFactory: [ 'type', _dereq_(78) ]
+  canvas: [ 'type', _dereq_(76) ],
+  elementRegistry: [ 'type', _dereq_(78) ],
+  elementFactory: [ 'type', _dereq_(77) ],
+  eventBus: [ 'type', _dereq_(79) ],
+  graphicsFactory: [ 'type', _dereq_(80) ]
 };
-},{"74":74,"75":75,"76":76,"77":77,"78":78,"83":83}],80:[function(_dereq_,module,exports){
+},{"76":76,"77":77,"78":78,"79":79,"80":80,"85":85}],82:[function(_dereq_,module,exports){
 'use strict';
 
 var DEFAULT_RENDER_PRIORITY = 1000;
@@ -8127,21 +8242,21 @@ BaseRenderer.prototype.getConnectionPath = function() {};
 
 module.exports = BaseRenderer;
 
-},{}],81:[function(_dereq_,module,exports){
+},{}],83:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(122);
+var inherits = _dereq_(126);
 
-var BaseRenderer = _dereq_(80);
+var BaseRenderer = _dereq_(82);
 
-var renderUtil = _dereq_(107);
+var renderUtil = _dereq_(111);
 
 var componentsToPath = renderUtil.componentsToPath,
     createLine = renderUtil.createLine;
 
-var svgAppend = _dereq_(316),
-    svgAttr = _dereq_(318),
-    svgCreate = _dereq_(321);
+var svgAppend = _dereq_(320),
+    svgAttr = _dereq_(322),
+    svgCreate = _dereq_(325);
 
 // apply default renderer with lowest possible priority
 // so that it only kicks in if noone else could render
@@ -8232,12 +8347,12 @@ DefaultRenderer.$inject = [ 'eventBus', 'styles' ];
 
 module.exports = DefaultRenderer;
 
-},{"107":107,"122":122,"316":316,"318":318,"321":321,"80":80}],82:[function(_dereq_,module,exports){
+},{"111":111,"126":126,"320":320,"322":322,"325":325,"82":82}],84:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(237),
-    assign = _dereq_(246),
-    reduce = _dereq_(135);
+var isArray = _dereq_(241),
+    assign = _dereq_(250),
+    reduce = _dereq_(139);
 
 
 /**
@@ -8309,26 +8424,26 @@ function Styles() {
 
 module.exports = Styles;
 
-},{"135":135,"237":237,"246":246}],83:[function(_dereq_,module,exports){
+},{"139":139,"241":241,"250":250}],85:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'defaultRenderer' ],
-  defaultRenderer: [ 'type', _dereq_(81) ],
-  styles: [ 'type', _dereq_(82) ]
+  defaultRenderer: [ 'type', _dereq_(83) ],
+  styles: [ 'type', _dereq_(84) ]
 };
 
-},{"81":81,"82":82}],84:[function(_dereq_,module,exports){
+},{"83":83,"84":84}],86:[function(_dereq_,module,exports){
 'use strict';
 
-var isFunction = _dereq_(238),
-    isArray = _dereq_(237),
-    forEach = _dereq_(132),
+var isFunction = _dereq_(242),
+    isArray = _dereq_(241),
+    forEach = _dereq_(136),
 
-    domDelegate = _dereq_(259),
-    domEvent = _dereq_(261),
-    domAttr = _dereq_(256),
-    domQuery = _dereq_(262),
-    domClasses = _dereq_(257),
-    domify = _dereq_(260);
+    domDelegate = _dereq_(263),
+    domEvent = _dereq_(265),
+    domAttr = _dereq_(260),
+    domQuery = _dereq_(266),
+    domClasses = _dereq_(261),
+    domify = _dereq_(264);
 
 
 var entrySelector = '.entry';
@@ -8619,29 +8734,29 @@ function addClasses(element, classNames) {
     classes.add(cls);
   });
 }
-},{"132":132,"237":237,"238":238,"256":256,"257":257,"259":259,"260":260,"261":261,"262":262}],85:[function(_dereq_,module,exports){
+},{"136":136,"241":241,"242":242,"260":260,"261":261,"263":263,"264":264,"265":265,"266":266}],87:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(87),
-    _dereq_(91)
+    _dereq_(89),
+    _dereq_(93)
   ],
-  contextPad: [ 'type', _dereq_(84) ]
+  contextPad: [ 'type', _dereq_(86) ]
 };
-},{"84":84,"87":87,"91":91}],86:[function(_dereq_,module,exports){
+},{"86":86,"89":89,"93":93}],88:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(132),
-    domDelegate = _dereq_(259);
+var forEach = _dereq_(136),
+    domDelegate = _dereq_(263);
 
-var isPrimaryButton = _dereq_(105).isPrimaryButton;
+var isPrimaryButton = _dereq_(109).isPrimaryButton;
 
-var svgAppend = _dereq_(316),
-    svgAttr = _dereq_(318),
-    svgCreate = _dereq_(321);
+var svgAppend = _dereq_(320),
+    svgAttr = _dereq_(322),
+    svgCreate = _dereq_(325);
 
-var domQuery = _dereq_(262);
+var domQuery = _dereq_(266);
 
-var renderUtil = _dereq_(107);
+var renderUtil = _dereq_(111);
 
 var createLine = renderUtil.createLine,
     updateLine = renderUtil.updateLine;
@@ -8927,25 +9042,25 @@ module.exports = InteractionEvents;
  * @property {Event} originalEvent
  */
 
-},{"105":105,"107":107,"132":132,"259":259,"262":262,"316":316,"318":318,"321":321}],87:[function(_dereq_,module,exports){
+},{"109":109,"111":111,"136":136,"263":263,"266":266,"320":320,"322":322,"325":325}],89:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'interactionEvents' ],
-  interactionEvents: [ 'type', _dereq_(86) ]
+  interactionEvents: [ 'type', _dereq_(88) ]
 };
-},{"86":86}],88:[function(_dereq_,module,exports){
+},{"88":88}],90:[function(_dereq_,module,exports){
 'use strict';
 
-var getBBox = _dereq_(101).getBBox;
+var getBBox = _dereq_(105).getBBox;
 
 var LOW_PRIORITY = 500;
 
-var svgAppend = _dereq_(316),
-    svgAttr = _dereq_(318),
-    svgCreate = _dereq_(321);
+var svgAppend = _dereq_(320),
+    svgAttr = _dereq_(322),
+    svgCreate = _dereq_(325);
 
-var domQuery = _dereq_(262);
+var domQuery = _dereq_(266);
 
-var assign = _dereq_(246);
+var assign = _dereq_(250);
 
 
 /**
@@ -9055,34 +9170,34 @@ Outline.$inject = ['eventBus', 'styles', 'elementRegistry'];
 
 module.exports = Outline;
 
-},{"101":101,"246":246,"262":262,"316":316,"318":318,"321":321}],89:[function(_dereq_,module,exports){
+},{"105":105,"250":250,"266":266,"320":320,"322":322,"325":325}],91:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'outline' ],
-  outline: [ 'type', _dereq_(88) ]
+  outline: [ 'type', _dereq_(90) ]
 };
-},{"88":88}],90:[function(_dereq_,module,exports){
+},{"90":90}],92:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(237),
-    isString = _dereq_(243),
-    isObject = _dereq_(241),
-    assign = _dereq_(246),
-    forEach = _dereq_(132),
-    find = _dereq_(131),
-    filter = _dereq_(130);
+var isArray = _dereq_(241),
+    isString = _dereq_(247),
+    isObject = _dereq_(245),
+    assign = _dereq_(250),
+    forEach = _dereq_(136),
+    find = _dereq_(135),
+    filter = _dereq_(134);
 
-var domify = _dereq_(260),
-    domClasses = _dereq_(257),
-    domAttr = _dereq_(256),
-    domRemove = _dereq_(263),
-    domClear = _dereq_(258);
+var domify = _dereq_(264),
+    domClasses = _dereq_(261),
+    domAttr = _dereq_(260),
+    domRemove = _dereq_(267),
+    domClear = _dereq_(262);
 
-var getBBox = _dereq_(101).getBBox;
+var getBBox = _dereq_(105).getBBox;
 
 // document wide unique overlay ids
-var ids = new (_dereq_(104))('ov');
+var ids = new (_dereq_(108))('ov');
 
 var LOW_PRIORITY = 500;
 
@@ -9613,18 +9728,18 @@ Overlays.prototype._init = function() {
   eventBus.on('diagram.clear', this.clear, this);
 };
 
-},{"101":101,"104":104,"130":130,"131":131,"132":132,"237":237,"241":241,"243":243,"246":246,"256":256,"257":257,"258":258,"260":260,"263":263}],91:[function(_dereq_,module,exports){
+},{"105":105,"108":108,"134":134,"135":135,"136":136,"241":241,"245":245,"247":247,"250":250,"260":260,"261":261,"262":262,"264":264,"267":267}],93:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'overlays' ],
-  overlays: [ 'type', _dereq_(90) ]
+  overlays: [ 'type', _dereq_(92) ]
 };
-},{"90":90}],92:[function(_dereq_,module,exports){
+},{"92":92}],94:[function(_dereq_,module,exports){
 
 'use strict';
 
-var inherits = _dereq_(122);
+var inherits = _dereq_(126);
 
-var CommandInterceptor = _dereq_(73);
+var CommandInterceptor = _dereq_(75);
 
 /**
  * A basic provider that may be extended to implement modeling rules.
@@ -9711,7 +9826,7 @@ RuleProvider.prototype.addRule = function(actions, priority, fn) {
  * Implement this method to add new rules during provider initialization.
  */
 RuleProvider.prototype.init = function() {};
-},{"122":122,"73":73}],93:[function(_dereq_,module,exports){
+},{"126":126,"75":75}],95:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -9762,17 +9877,17 @@ Rules.prototype.allowed = function(action, context) {
   // map undefined to true, i.e. no rules
   return allowed === undefined ? true : allowed;
 };
-},{}],94:[function(_dereq_,module,exports){
+},{}],96:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'rules' ],
-  rules: [ 'type', _dereq_(93) ]
+  rules: [ 'type', _dereq_(95) ]
 };
 
-},{"93":93}],95:[function(_dereq_,module,exports){
+},{"95":95}],97:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(237),
-    forEach = _dereq_(132);
+var isArray = _dereq_(241),
+    forEach = _dereq_(136);
 
 
 /**
@@ -9867,12 +9982,12 @@ Selection.prototype.select = function(elements, add) {
   this._eventBus.fire('selection.changed', { oldSelection: oldSelection, newSelection: selectedElements });
 };
 
-},{"132":132,"237":237}],96:[function(_dereq_,module,exports){
+},{"136":136,"241":241}],98:[function(_dereq_,module,exports){
 'use strict';
 
-var hasPrimaryModifier = _dereq_(105).hasPrimaryModifier;
+var hasPrimaryModifier = _dereq_(109).hasPrimaryModifier;
 
-var find = _dereq_(131);
+var find = _dereq_(135);
 
 
 function SelectionBehavior(eventBus, selection, canvas, elementRegistry) {
@@ -9947,10 +10062,10 @@ function SelectionBehavior(eventBus, selection, canvas, elementRegistry) {
 SelectionBehavior.$inject = [ 'eventBus', 'selection', 'canvas', 'elementRegistry' ];
 module.exports = SelectionBehavior;
 
-},{"105":105,"131":131}],97:[function(_dereq_,module,exports){
+},{"109":109,"135":135}],99:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(132);
+var forEach = _dereq_(136);
 
 var MARKER_HOVER = 'hover',
     MARKER_SELECTED = 'selected';
@@ -10024,25 +10139,58 @@ SelectionVisuals.$inject = [
 
 module.exports = SelectionVisuals;
 
-},{"132":132}],98:[function(_dereq_,module,exports){
+},{"136":136}],100:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'selectionVisuals', 'selectionBehavior' ],
   __depends__: [
-    _dereq_(87),
-    _dereq_(89)
+    _dereq_(89),
+    _dereq_(91)
   ],
-  selection: [ 'type', _dereq_(95) ],
-  selectionVisuals: [ 'type', _dereq_(97) ],
-  selectionBehavior: [ 'type', _dereq_(96) ]
+  selection: [ 'type', _dereq_(97) ],
+  selectionVisuals: [ 'type', _dereq_(99) ],
+  selectionBehavior: [ 'type', _dereq_(98) ]
 };
 
-},{"87":87,"89":89,"95":95,"96":96,"97":97}],99:[function(_dereq_,module,exports){
+},{"89":89,"91":91,"97":97,"98":98,"99":99}],101:[function(_dereq_,module,exports){
+module.exports = {
+  translate: [ 'value', _dereq_(102) ]
+};
+},{"102":102}],102:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(246),
-    inherits = _dereq_(122);
+/**
+ * A simple translation stub to be used for multi-language support
+ * in diagrams. Can be easily replaced with a more sophisticated
+ * solution.
+ *
+ * @example
+ *
+ * // use it inside any diagram component by injecting `translate`.
+ *
+ * function MyService(translate) {
+ *   alert(translate('HELLO {you}', { you: 'You!' }));
+ * }
+ *
+ * @param {String} template to interpolate
+ * @param {Object} [replacements] a map with substitutes
+ *
+ * @return {String} the translated string
+ */
+module.exports = function translate(template, replacements) {
 
-var Refs = _dereq_(276);
+  replacements = replacements || {};
+
+  return template.replace(/{([^}]+)}/g, function(_, key) {
+    return replacements[key] || '{' + key + '}';
+  });
+};
+},{}],103:[function(_dereq_,module,exports){
+'use strict';
+
+var assign = _dereq_(250),
+    inherits = _dereq_(126);
+
+var Refs = _dereq_(280);
 
 var parentRefs = new Refs({ name: 'children', enumerable: true, collection: true }, { name: 'parent' }),
     labelRefs = new Refs({ name: 'label', enumerable: true }, { name: 'labelTarget' }),
@@ -10252,7 +10400,7 @@ module.exports.Shape = Shape;
 module.exports.Connection = Connection;
 module.exports.Label = Label;
 
-},{"122":122,"246":246,"276":276}],100:[function(_dereq_,module,exports){
+},{"126":126,"250":250,"280":280}],104:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -10343,13 +10491,13 @@ module.exports.indexOf = function(collection, element) {
   return collection.indexOf(element);
 };
 
-},{}],101:[function(_dereq_,module,exports){
+},{}],105:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(237),
-    isNumber = _dereq_(240),
-    groupBy = _dereq_(133),
-    forEach = _dereq_(132);
+var isArray = _dereq_(241),
+    isNumber = _dereq_(244),
+    groupBy = _dereq_(137),
+    forEach = _dereq_(136);
 
 /**
  * Adds an element to a collection and returns true if the
@@ -10641,7 +10789,7 @@ function getElementType(element) {
 }
 
 module.exports.getType = getElementType;
-},{"132":132,"133":133,"237":237,"240":240}],102:[function(_dereq_,module,exports){
+},{"136":136,"137":137,"241":241,"244":244}],106:[function(_dereq_,module,exports){
 'use strict';
 
 function __preventDefault(event) {
@@ -10712,10 +10860,10 @@ function toPoint(event) {
 
 module.exports.toPoint = toPoint;
 
-},{}],103:[function(_dereq_,module,exports){
+},{}],107:[function(_dereq_,module,exports){
 'use strict';
 
-var domQuery = _dereq_(262);
+var domQuery = _dereq_(266);
 
 /**
  * SVGs for elements are generated by the {@link GraphicsFactory}.
@@ -10748,7 +10896,7 @@ function getChildren(gfx) {
 module.exports.getVisual = getVisual;
 module.exports.getChildren = getChildren;
 
-},{"262":262}],104:[function(_dereq_,module,exports){
+},{"266":266}],108:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -10781,12 +10929,12 @@ IdGenerator.prototype.next = function() {
   return this._prefix + (++this._counter);
 };
 
-},{}],105:[function(_dereq_,module,exports){
+},{}],109:[function(_dereq_,module,exports){
 'use strict';
 
-var getOriginalEvent = _dereq_(102).getOriginal;
+var getOriginalEvent = _dereq_(106).getOriginal;
 
-var isMac = _dereq_(106).isMac;
+var isMac = _dereq_(110).isMac;
 
 
 function isPrimaryButton(event) {
@@ -10820,17 +10968,17 @@ module.exports.hasSecondaryModifier = function(event) {
   return isPrimaryButton(event) && originalEvent.shiftKey;
 };
 
-},{"102":102,"106":106}],106:[function(_dereq_,module,exports){
+},{"106":106,"110":110}],110:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports.isMac = function isMac() {
   return (/mac/i).test(navigator.platform);
 };
-},{}],107:[function(_dereq_,module,exports){
+},{}],111:[function(_dereq_,module,exports){
 'use strict';
 
-var svgAttr = _dereq_(318),
-    svgCreate = _dereq_(321);
+var svgAttr = _dereq_(322),
+    svgCreate = _dereq_(325);
 
 
 module.exports.componentsToPath = function(elements) {
@@ -10867,12 +11015,12 @@ module.exports.updateLine = function(gfx, points) {
   return gfx;
 };
 
-},{"318":318,"321":321}],108:[function(_dereq_,module,exports){
+},{"322":322,"325":325}],112:[function(_dereq_,module,exports){
 'use strict';
 
-var svgTransform = _dereq_(325);
+var svgTransform = _dereq_(329);
 
-var createTransform = _dereq_(322).createTransform;
+var createTransform = _dereq_(326).createTransform;
 
 
 /**
@@ -10932,20 +11080,20 @@ module.exports.scale = function(gfx, amount) {
   svgTransform(gfx, scale);
 };
 
-},{"322":322,"325":325}],109:[function(_dereq_,module,exports){
+},{"326":326,"329":329}],113:[function(_dereq_,module,exports){
 'use strict';
 
-var isObject = _dereq_(241),
-    assign = _dereq_(246),
-    pick = _dereq_(252),
-    forEach = _dereq_(132),
-    reduce = _dereq_(135),
-    merge = _dereq_(249);
+var isObject = _dereq_(245),
+    assign = _dereq_(250),
+    pick = _dereq_(256),
+    forEach = _dereq_(136),
+    reduce = _dereq_(139),
+    merge = _dereq_(253);
 
-var svgAppend = _dereq_(316),
-    svgAttr = _dereq_(318),
-    svgCreate = _dereq_(321),
-    svgRemove = _dereq_(324);
+var svgAppend = _dereq_(320),
+    svgAttr = _dereq_(322),
+    svgCreate = _dereq_(325),
+    svgRemove = _dereq_(328);
 
 var DEFAULT_BOX_PADDING = 0;
 
@@ -11215,7 +11363,7 @@ Text.prototype.createText = function(parent, text, options) {
 
 module.exports = Text;
 
-},{"132":132,"135":135,"241":241,"246":246,"249":249,"252":252,"316":316,"318":318,"321":321,"324":324}],110:[function(_dereq_,module,exports){
+},{"136":136,"139":139,"245":245,"250":250,"253":253,"256":256,"320":320,"322":322,"325":325,"328":328}],114:[function(_dereq_,module,exports){
 
 var isArray = function(obj) {
   return Object.prototype.toString.call(obj) === '[object Array]';
@@ -11223,7 +11371,7 @@ var isArray = function(obj) {
 
 var annotate = function() {
   var args = Array.prototype.slice.call(arguments);
-
+  
   if (args.length === 1 && isArray(args[0])) {
     args = args[0];
   }
@@ -11265,18 +11413,18 @@ exports.annotate = annotate;
 exports.parse = parse;
 exports.isArray = isArray;
 
-},{}],111:[function(_dereq_,module,exports){
+},{}],115:[function(_dereq_,module,exports){
 module.exports = {
-  annotate: _dereq_(110).annotate,
-  Module: _dereq_(113),
-  Injector: _dereq_(112)
+  annotate: _dereq_(114).annotate,
+  Module: _dereq_(117),
+  Injector: _dereq_(116)
 };
 
-},{"110":110,"112":112,"113":113}],112:[function(_dereq_,module,exports){
-var Module = _dereq_(113);
-var autoAnnotate = _dereq_(110).parse;
-var annotate = _dereq_(110).annotate;
-var isArray = _dereq_(110).isArray;
+},{"114":114,"116":116,"117":117}],116:[function(_dereq_,module,exports){
+var Module = _dereq_(117);
+var autoAnnotate = _dereq_(114).parse;
+var annotate = _dereq_(114).annotate;
+var isArray = _dereq_(114).isArray;
 
 
 var Injector = function(modules, parent) {
@@ -11502,7 +11650,7 @@ var Injector = function(modules, parent) {
 
 module.exports = Injector;
 
-},{"110":110,"113":113}],113:[function(_dereq_,module,exports){
+},{"114":114,"117":117}],117:[function(_dereq_,module,exports){
 var Module = function() {
   var providers = [];
 
@@ -11528,18 +11676,18 @@ var Module = function() {
 
 module.exports = Module;
 
-},{}],114:[function(_dereq_,module,exports){
-module.exports = _dereq_(116);
-},{"116":116}],115:[function(_dereq_,module,exports){
+},{}],118:[function(_dereq_,module,exports){
+module.exports = _dereq_(120);
+},{"120":120}],119:[function(_dereq_,module,exports){
 'use strict';
 
-var isString = _dereq_(243),
-    isFunction = _dereq_(238),
-    assign = _dereq_(246);
+var isString = _dereq_(247),
+    isFunction = _dereq_(242),
+    assign = _dereq_(250);
 
-var Moddle = _dereq_(267),
-    XmlReader = _dereq_(265),
-    XmlWriter = _dereq_(266);
+var Moddle = _dereq_(271),
+    XmlReader = _dereq_(269),
+    XmlWriter = _dereq_(270);
 
 /**
  * A sub class of {@link Moddle} with support for import and export of DMN xml files.
@@ -11611,25 +11759,25 @@ DmnModdle.prototype.toXML = function(element, options, done) {
   }
 };
 
-},{"238":238,"243":243,"246":246,"265":265,"266":266,"267":267}],116:[function(_dereq_,module,exports){
+},{"242":242,"247":247,"250":250,"269":269,"270":270,"271":271}],120:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(246);
+var assign = _dereq_(250);
 
-var DmnModdle = _dereq_(115);
+var DmnModdle = _dereq_(119);
 
 var packages = {
-  dmn: _dereq_(120),
-  camunda: _dereq_(119),
-  dc: _dereq_(118),
-  biodi: _dereq_(117)
+  dmn: _dereq_(124),
+  camunda: _dereq_(123),
+  dc: _dereq_(122),
+  biodi: _dereq_(121)
 };
 
 module.exports = function(additionalPackages, options) {
   return new DmnModdle(assign({}, packages, additionalPackages), options);
 };
 
-},{"115":115,"117":117,"118":118,"119":119,"120":120,"246":246}],117:[function(_dereq_,module,exports){
+},{"119":119,"121":121,"122":122,"123":123,"124":124,"250":250}],121:[function(_dereq_,module,exports){
 module.exports={
   "name": "bpmn.io DI for DMN",
   "uri": "http://bpmn.io/schema/dmn/biodi/1.0",
@@ -11671,7 +11819,7 @@ module.exports={
   ]
 }
 
-},{}],118:[function(_dereq_,module,exports){
+},{}],122:[function(_dereq_,module,exports){
 module.exports={
   "name": "DC",
   "uri": "http://www.omg.org/spec/DD/20100524/DC",
@@ -11772,7 +11920,7 @@ module.exports={
   "associations": []
 }
 
-},{}],119:[function(_dereq_,module,exports){
+},{}],123:[function(_dereq_,module,exports){
 module.exports={
   "name": "Camunda",
   "uri": "http://camunda.org/schema/1.0/dmn",
@@ -11797,7 +11945,7 @@ module.exports={
   ]
 }
 
-},{}],120:[function(_dereq_,module,exports){
+},{}],124:[function(_dereq_,module,exports){
 module.exports={
   "name": "DMN",
   "uri": "http://www.omg.org/spec/DMN/20151101/dmn.xsd",
@@ -12124,7 +12272,7 @@ module.exports={
   ]
 }
 
-},{}],121:[function(_dereq_,module,exports){
+},{}],125:[function(_dereq_,module,exports){
 
 /**
  * Expose `parse`.
@@ -12238,7 +12386,7 @@ function parse(html, doc) {
   return fragment;
 }
 
-},{}],122:[function(_dereq_,module,exports){
+},{}],126:[function(_dereq_,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -12263,7 +12411,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],123:[function(_dereq_,module,exports){
+},{}],127:[function(_dereq_,module,exports){
 /**
  * Gets the last element of `array`.
  *
@@ -12284,10 +12432,10 @@ function last(array) {
 
 module.exports = last;
 
-},{}],124:[function(_dereq_,module,exports){
-var baseFlatten = _dereq_(165),
-    baseUniq = _dereq_(187),
-    restParam = _dereq_(141);
+},{}],128:[function(_dereq_,module,exports){
+var baseFlatten = _dereq_(169),
+    baseUniq = _dereq_(191),
+    restParam = _dereq_(145);
 
 /**
  * Creates an array of unique values, in order, from all of the provided arrays
@@ -12310,11 +12458,11 @@ var union = restParam(function(arrays) {
 
 module.exports = union;
 
-},{"141":141,"165":165,"187":187}],125:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(155),
-    baseUniq = _dereq_(187),
-    isIterateeCall = _dereq_(217),
-    sortedUniq = _dereq_(232);
+},{"145":145,"169":169,"191":191}],129:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(159),
+    baseUniq = _dereq_(191),
+    isIterateeCall = _dereq_(221),
+    sortedUniq = _dereq_(236);
 
 /**
  * Creates a duplicate-free version of an array, using
@@ -12383,16 +12531,16 @@ function uniq(array, isSorted, iteratee, thisArg) {
 
 module.exports = uniq;
 
-},{"155":155,"187":187,"217":217,"232":232}],126:[function(_dereq_,module,exports){
-module.exports = _dereq_(125);
+},{"159":159,"191":191,"221":221,"236":236}],130:[function(_dereq_,module,exports){
+module.exports = _dereq_(129);
 
-},{"125":125}],127:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(142),
-    LodashWrapper = _dereq_(143),
-    baseLodash = _dereq_(174),
-    isArray = _dereq_(237),
-    isObjectLike = _dereq_(221),
-    wrapperClone = _dereq_(235);
+},{"129":129}],131:[function(_dereq_,module,exports){
+var LazyWrapper = _dereq_(146),
+    LodashWrapper = _dereq_(147),
+    baseLodash = _dereq_(178),
+    isArray = _dereq_(241),
+    isObjectLike = _dereq_(225),
+    wrapperClone = _dereq_(239);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -12513,15 +12661,15 @@ lodash.prototype = baseLodash.prototype;
 
 module.exports = lodash;
 
-},{"142":142,"143":143,"174":174,"221":221,"235":235,"237":237}],128:[function(_dereq_,module,exports){
-module.exports = _dereq_(136);
+},{"146":146,"147":147,"178":178,"225":225,"239":239,"241":241}],132:[function(_dereq_,module,exports){
+module.exports = _dereq_(140);
 
-},{"136":136}],129:[function(_dereq_,module,exports){
-var arrayEvery = _dereq_(147),
-    baseCallback = _dereq_(155),
-    baseEvery = _dereq_(161),
-    isArray = _dereq_(237),
-    isIterateeCall = _dereq_(217);
+},{"140":140}],133:[function(_dereq_,module,exports){
+var arrayEvery = _dereq_(151),
+    baseCallback = _dereq_(159),
+    baseEvery = _dereq_(165),
+    isArray = _dereq_(241),
+    isIterateeCall = _dereq_(221);
 
 /**
  * Checks if `predicate` returns truthy for **all** elements of `collection`.
@@ -12584,11 +12732,11 @@ function every(collection, predicate, thisArg) {
 
 module.exports = every;
 
-},{"147":147,"155":155,"161":161,"217":217,"237":237}],130:[function(_dereq_,module,exports){
-var arrayFilter = _dereq_(148),
-    baseCallback = _dereq_(155),
-    baseFilter = _dereq_(162),
-    isArray = _dereq_(237);
+},{"151":151,"159":159,"165":165,"221":221,"241":241}],134:[function(_dereq_,module,exports){
+var arrayFilter = _dereq_(152),
+    baseCallback = _dereq_(159),
+    baseFilter = _dereq_(166),
+    isArray = _dereq_(241);
 
 /**
  * Iterates over elements of `collection`, returning an array of all elements
@@ -12647,9 +12795,9 @@ function filter(collection, predicate, thisArg) {
 
 module.exports = filter;
 
-},{"148":148,"155":155,"162":162,"237":237}],131:[function(_dereq_,module,exports){
-var baseEach = _dereq_(160),
-    createFind = _dereq_(200);
+},{"152":152,"159":159,"166":166,"241":241}],135:[function(_dereq_,module,exports){
+var baseEach = _dereq_(164),
+    createFind = _dereq_(204);
 
 /**
  * Iterates over elements of `collection`, returning the first element
@@ -12705,10 +12853,10 @@ var find = createFind(baseEach);
 
 module.exports = find;
 
-},{"160":160,"200":200}],132:[function(_dereq_,module,exports){
-var arrayEach = _dereq_(146),
-    baseEach = _dereq_(160),
-    createForEach = _dereq_(201);
+},{"164":164,"204":204}],136:[function(_dereq_,module,exports){
+var arrayEach = _dereq_(150),
+    baseEach = _dereq_(164),
+    createForEach = _dereq_(205);
 
 /**
  * Iterates over elements of `collection` invoking `iteratee` for each element.
@@ -12744,8 +12892,8 @@ var forEach = createForEach(arrayEach, baseEach);
 
 module.exports = forEach;
 
-},{"146":146,"160":160,"201":201}],133:[function(_dereq_,module,exports){
-var createAggregator = _dereq_(193);
+},{"150":150,"164":164,"205":205}],137:[function(_dereq_,module,exports){
+var createAggregator = _dereq_(197);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -12805,11 +12953,11 @@ var groupBy = createAggregator(function(result, value, key) {
 
 module.exports = groupBy;
 
-},{"193":193}],134:[function(_dereq_,module,exports){
-var arrayMap = _dereq_(149),
-    baseCallback = _dereq_(155),
-    baseMap = _dereq_(175),
-    isArray = _dereq_(237);
+},{"197":197}],138:[function(_dereq_,module,exports){
+var arrayMap = _dereq_(153),
+    baseCallback = _dereq_(159),
+    baseMap = _dereq_(179),
+    isArray = _dereq_(241);
 
 /**
  * Creates an array of values by running each element in `collection` through
@@ -12875,10 +13023,10 @@ function map(collection, iteratee, thisArg) {
 
 module.exports = map;
 
-},{"149":149,"155":155,"175":175,"237":237}],135:[function(_dereq_,module,exports){
-var arrayReduce = _dereq_(151),
-    baseEach = _dereq_(160),
-    createReduce = _dereq_(204);
+},{"153":153,"159":159,"179":179,"241":241}],139:[function(_dereq_,module,exports){
+var arrayReduce = _dereq_(155),
+    baseEach = _dereq_(164),
+    createReduce = _dereq_(208);
 
 /**
  * Reduces `collection` to a value which is the accumulated result of running
@@ -12921,12 +13069,12 @@ var reduce = createReduce(arrayReduce, baseEach);
 
 module.exports = reduce;
 
-},{"151":151,"160":160,"204":204}],136:[function(_dereq_,module,exports){
-var arraySome = _dereq_(152),
-    baseCallback = _dereq_(155),
-    baseSome = _dereq_(185),
-    isArray = _dereq_(237),
-    isIterateeCall = _dereq_(217);
+},{"155":155,"164":164,"208":208}],140:[function(_dereq_,module,exports){
+var arraySome = _dereq_(156),
+    baseCallback = _dereq_(159),
+    baseSome = _dereq_(189),
+    isArray = _dereq_(241),
+    isIterateeCall = _dereq_(221);
 
 /**
  * Checks if `predicate` returns truthy for **any** element of `collection`.
@@ -12990,8 +13138,8 @@ function some(collection, predicate, thisArg) {
 
 module.exports = some;
 
-},{"152":152,"155":155,"185":185,"217":217,"237":237}],137:[function(_dereq_,module,exports){
-var getNative = _dereq_(213);
+},{"156":156,"159":159,"189":189,"221":221,"241":241}],141:[function(_dereq_,module,exports){
+var getNative = _dereq_(217);
 
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeNow = getNative(Date, 'now');
@@ -13016,10 +13164,10 @@ var now = nativeNow || function() {
 
 module.exports = now;
 
-},{"213":213}],138:[function(_dereq_,module,exports){
-var createWrapper = _dereq_(205),
-    replaceHolders = _dereq_(229),
-    restParam = _dereq_(141);
+},{"217":217}],142:[function(_dereq_,module,exports){
+var createWrapper = _dereq_(209),
+    replaceHolders = _dereq_(233),
+    restParam = _dereq_(145);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1,
@@ -13074,9 +13222,9 @@ bind.placeholder = {};
 
 module.exports = bind;
 
-},{"141":141,"205":205,"229":229}],139:[function(_dereq_,module,exports){
-var isObject = _dereq_(241),
-    now = _dereq_(137);
+},{"145":145,"209":209,"233":233}],143:[function(_dereq_,module,exports){
+var isObject = _dereq_(245),
+    now = _dereq_(141);
 
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
@@ -13257,9 +13405,9 @@ function debounce(func, wait, options) {
 
 module.exports = debounce;
 
-},{"137":137,"241":241}],140:[function(_dereq_,module,exports){
-var baseDelay = _dereq_(158),
-    restParam = _dereq_(141);
+},{"141":141,"245":245}],144:[function(_dereq_,module,exports){
+var baseDelay = _dereq_(162),
+    restParam = _dereq_(145);
 
 /**
  * Defers invoking the `func` until the current call stack has cleared. Any
@@ -13284,7 +13432,7 @@ var defer = restParam(function(func, args) {
 
 module.exports = defer;
 
-},{"141":141,"158":158}],141:[function(_dereq_,module,exports){
+},{"145":145,"162":162}],145:[function(_dereq_,module,exports){
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
 
@@ -13344,9 +13492,9 @@ function restParam(func, start) {
 
 module.exports = restParam;
 
-},{}],142:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(157),
-    baseLodash = _dereq_(174);
+},{}],146:[function(_dereq_,module,exports){
+var baseCreate = _dereq_(161),
+    baseLodash = _dereq_(178);
 
 /** Used as references for `-Infinity` and `Infinity`. */
 var POSITIVE_INFINITY = Number.POSITIVE_INFINITY;
@@ -13372,9 +13520,9 @@ LazyWrapper.prototype.constructor = LazyWrapper;
 
 module.exports = LazyWrapper;
 
-},{"157":157,"174":174}],143:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(157),
-    baseLodash = _dereq_(174);
+},{"161":161,"178":178}],147:[function(_dereq_,module,exports){
+var baseCreate = _dereq_(161),
+    baseLodash = _dereq_(178);
 
 /**
  * The base constructor for creating `lodash` wrapper objects.
@@ -13395,10 +13543,10 @@ LodashWrapper.prototype.constructor = LodashWrapper;
 
 module.exports = LodashWrapper;
 
-},{"157":157,"174":174}],144:[function(_dereq_,module,exports){
+},{"161":161,"178":178}],148:[function(_dereq_,module,exports){
 (function (global){
-var cachePush = _dereq_(190),
-    getNative = _dereq_(213);
+var cachePush = _dereq_(194),
+    getNative = _dereq_(217);
 
 /** Native method references. */
 var Set = getNative(global, 'Set');
@@ -13429,7 +13577,7 @@ module.exports = SetCache;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"190":190,"213":213}],145:[function(_dereq_,module,exports){
+},{"194":194,"217":217}],149:[function(_dereq_,module,exports){
 /**
  * Copies the values of `source` to `array`.
  *
@@ -13451,7 +13599,7 @@ function arrayCopy(source, array) {
 
 module.exports = arrayCopy;
 
-},{}],146:[function(_dereq_,module,exports){
+},{}],150:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.forEach` for arrays without support for callback
  * shorthands and `this` binding.
@@ -13475,7 +13623,7 @@ function arrayEach(array, iteratee) {
 
 module.exports = arrayEach;
 
-},{}],147:[function(_dereq_,module,exports){
+},{}],151:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.every` for arrays without support for callback
  * shorthands and `this` binding.
@@ -13500,7 +13648,7 @@ function arrayEvery(array, predicate) {
 
 module.exports = arrayEvery;
 
-},{}],148:[function(_dereq_,module,exports){
+},{}],152:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.filter` for arrays without support for callback
  * shorthands and `this` binding.
@@ -13527,7 +13675,7 @@ function arrayFilter(array, predicate) {
 
 module.exports = arrayFilter;
 
-},{}],149:[function(_dereq_,module,exports){
+},{}],153:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.map` for arrays without support for callback
  * shorthands and `this` binding.
@@ -13550,7 +13698,7 @@ function arrayMap(array, iteratee) {
 
 module.exports = arrayMap;
 
-},{}],150:[function(_dereq_,module,exports){
+},{}],154:[function(_dereq_,module,exports){
 /**
  * Appends the elements of `values` to `array`.
  *
@@ -13572,7 +13720,7 @@ function arrayPush(array, values) {
 
 module.exports = arrayPush;
 
-},{}],151:[function(_dereq_,module,exports){
+},{}],155:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.reduce` for arrays without support for callback
  * shorthands and `this` binding.
@@ -13600,7 +13748,7 @@ function arrayReduce(array, iteratee, accumulator, initFromArray) {
 
 module.exports = arrayReduce;
 
-},{}],152:[function(_dereq_,module,exports){
+},{}],156:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.some` for arrays without support for callback
  * shorthands and `this` binding.
@@ -13625,8 +13773,8 @@ function arraySome(array, predicate) {
 
 module.exports = arraySome;
 
-},{}],153:[function(_dereq_,module,exports){
-var keys = _dereq_(247);
+},{}],157:[function(_dereq_,module,exports){
+var keys = _dereq_(251);
 
 /**
  * A specialized version of `_.assign` for customizing assigned values without
@@ -13659,9 +13807,9 @@ function assignWith(object, source, customizer) {
 
 module.exports = assignWith;
 
-},{"247":247}],154:[function(_dereq_,module,exports){
-var baseCopy = _dereq_(156),
-    keys = _dereq_(247);
+},{"251":251}],158:[function(_dereq_,module,exports){
+var baseCopy = _dereq_(160),
+    keys = _dereq_(251);
 
 /**
  * The base implementation of `_.assign` without support for argument juggling,
@@ -13680,12 +13828,12 @@ function baseAssign(object, source) {
 
 module.exports = baseAssign;
 
-},{"156":156,"247":247}],155:[function(_dereq_,module,exports){
-var baseMatches = _dereq_(176),
-    baseMatchesProperty = _dereq_(177),
-    bindCallback = _dereq_(188),
-    identity = _dereq_(253),
-    property = _dereq_(255);
+},{"160":160,"251":251}],159:[function(_dereq_,module,exports){
+var baseMatches = _dereq_(180),
+    baseMatchesProperty = _dereq_(181),
+    bindCallback = _dereq_(192),
+    identity = _dereq_(257),
+    property = _dereq_(259);
 
 /**
  * The base implementation of `_.callback` which supports specifying the
@@ -13717,7 +13865,7 @@ function baseCallback(func, thisArg, argCount) {
 
 module.exports = baseCallback;
 
-},{"176":176,"177":177,"188":188,"253":253,"255":255}],156:[function(_dereq_,module,exports){
+},{"180":180,"181":181,"192":192,"257":257,"259":259}],160:[function(_dereq_,module,exports){
 /**
  * Copies properties of `source` to `object`.
  *
@@ -13742,8 +13890,8 @@ function baseCopy(source, props, object) {
 
 module.exports = baseCopy;
 
-},{}],157:[function(_dereq_,module,exports){
-var isObject = _dereq_(241);
+},{}],161:[function(_dereq_,module,exports){
+var isObject = _dereq_(245);
 
 /**
  * The base implementation of `_.create` without support for assigning
@@ -13767,7 +13915,7 @@ var baseCreate = (function() {
 
 module.exports = baseCreate;
 
-},{"241":241}],158:[function(_dereq_,module,exports){
+},{"245":245}],162:[function(_dereq_,module,exports){
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
 
@@ -13790,10 +13938,10 @@ function baseDelay(func, wait, args) {
 
 module.exports = baseDelay;
 
-},{}],159:[function(_dereq_,module,exports){
-var baseIndexOf = _dereq_(170),
-    cacheIndexOf = _dereq_(189),
-    createCache = _dereq_(198);
+},{}],163:[function(_dereq_,module,exports){
+var baseIndexOf = _dereq_(174),
+    cacheIndexOf = _dereq_(193),
+    createCache = _dereq_(202);
 
 /** Used as the size to enable large array optimizations. */
 var LARGE_ARRAY_SIZE = 200;
@@ -13847,9 +13995,9 @@ function baseDifference(array, values) {
 
 module.exports = baseDifference;
 
-},{"170":170,"189":189,"198":198}],160:[function(_dereq_,module,exports){
-var baseForOwn = _dereq_(168),
-    createBaseEach = _dereq_(195);
+},{"174":174,"193":193,"202":202}],164:[function(_dereq_,module,exports){
+var baseForOwn = _dereq_(172),
+    createBaseEach = _dereq_(199);
 
 /**
  * The base implementation of `_.forEach` without support for callback
@@ -13864,8 +14012,8 @@ var baseEach = createBaseEach(baseForOwn);
 
 module.exports = baseEach;
 
-},{"168":168,"195":195}],161:[function(_dereq_,module,exports){
-var baseEach = _dereq_(160);
+},{"172":172,"199":199}],165:[function(_dereq_,module,exports){
+var baseEach = _dereq_(164);
 
 /**
  * The base implementation of `_.every` without support for callback
@@ -13888,8 +14036,8 @@ function baseEvery(collection, predicate) {
 
 module.exports = baseEvery;
 
-},{"160":160}],162:[function(_dereq_,module,exports){
-var baseEach = _dereq_(160);
+},{"164":164}],166:[function(_dereq_,module,exports){
+var baseEach = _dereq_(164);
 
 /**
  * The base implementation of `_.filter` without support for callback
@@ -13912,7 +14060,7 @@ function baseFilter(collection, predicate) {
 
 module.exports = baseFilter;
 
-},{"160":160}],163:[function(_dereq_,module,exports){
+},{"164":164}],167:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.find`, `_.findLast`, `_.findKey`, and `_.findLastKey`,
  * without support for callback shorthands and `this` binding, which iterates
@@ -13939,7 +14087,7 @@ function baseFind(collection, predicate, eachFunc, retKey) {
 
 module.exports = baseFind;
 
-},{}],164:[function(_dereq_,module,exports){
+},{}],168:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.findIndex` and `_.findLastIndex` without
  * support for callback shorthands and `this` binding.
@@ -13964,12 +14112,12 @@ function baseFindIndex(array, predicate, fromRight) {
 
 module.exports = baseFindIndex;
 
-},{}],165:[function(_dereq_,module,exports){
-var arrayPush = _dereq_(150),
-    isArguments = _dereq_(236),
-    isArray = _dereq_(237),
-    isArrayLike = _dereq_(215),
-    isObjectLike = _dereq_(221);
+},{}],169:[function(_dereq_,module,exports){
+var arrayPush = _dereq_(154),
+    isArguments = _dereq_(240),
+    isArray = _dereq_(241),
+    isArrayLike = _dereq_(219),
+    isObjectLike = _dereq_(225);
 
 /**
  * The base implementation of `_.flatten` with added support for restricting
@@ -14007,8 +14155,8 @@ function baseFlatten(array, isDeep, isStrict, result) {
 
 module.exports = baseFlatten;
 
-},{"150":150,"215":215,"221":221,"236":236,"237":237}],166:[function(_dereq_,module,exports){
-var createBaseFor = _dereq_(196);
+},{"154":154,"219":219,"225":225,"240":240,"241":241}],170:[function(_dereq_,module,exports){
+var createBaseFor = _dereq_(200);
 
 /**
  * The base implementation of `baseForIn` and `baseForOwn` which iterates
@@ -14026,9 +14174,9 @@ var baseFor = createBaseFor();
 
 module.exports = baseFor;
 
-},{"196":196}],167:[function(_dereq_,module,exports){
-var baseFor = _dereq_(166),
-    keysIn = _dereq_(248);
+},{"200":200}],171:[function(_dereq_,module,exports){
+var baseFor = _dereq_(170),
+    keysIn = _dereq_(252);
 
 /**
  * The base implementation of `_.forIn` without support for callback
@@ -14045,9 +14193,9 @@ function baseForIn(object, iteratee) {
 
 module.exports = baseForIn;
 
-},{"166":166,"248":248}],168:[function(_dereq_,module,exports){
-var baseFor = _dereq_(166),
-    keys = _dereq_(247);
+},{"170":170,"252":252}],172:[function(_dereq_,module,exports){
+var baseFor = _dereq_(170),
+    keys = _dereq_(251);
 
 /**
  * The base implementation of `_.forOwn` without support for callback
@@ -14064,8 +14212,8 @@ function baseForOwn(object, iteratee) {
 
 module.exports = baseForOwn;
 
-},{"166":166,"247":247}],169:[function(_dereq_,module,exports){
-var toObject = _dereq_(233);
+},{"170":170,"251":251}],173:[function(_dereq_,module,exports){
+var toObject = _dereq_(237);
 
 /**
  * The base implementation of `get` without support for string paths
@@ -14095,8 +14243,8 @@ function baseGet(object, path, pathKey) {
 
 module.exports = baseGet;
 
-},{"233":233}],170:[function(_dereq_,module,exports){
-var indexOfNaN = _dereq_(214);
+},{"237":237}],174:[function(_dereq_,module,exports){
+var indexOfNaN = _dereq_(218);
 
 /**
  * The base implementation of `_.indexOf` without support for binary searches.
@@ -14124,10 +14272,10 @@ function baseIndexOf(array, value, fromIndex) {
 
 module.exports = baseIndexOf;
 
-},{"214":214}],171:[function(_dereq_,module,exports){
-var baseIsEqualDeep = _dereq_(172),
-    isObject = _dereq_(241),
-    isObjectLike = _dereq_(221);
+},{"218":218}],175:[function(_dereq_,module,exports){
+var baseIsEqualDeep = _dereq_(176),
+    isObject = _dereq_(245),
+    isObjectLike = _dereq_(225);
 
 /**
  * The base implementation of `_.isEqual` without support for `this` binding
@@ -14154,12 +14302,12 @@ function baseIsEqual(value, other, customizer, isLoose, stackA, stackB) {
 
 module.exports = baseIsEqual;
 
-},{"172":172,"221":221,"241":241}],172:[function(_dereq_,module,exports){
-var equalArrays = _dereq_(206),
-    equalByTag = _dereq_(207),
-    equalObjects = _dereq_(208),
-    isArray = _dereq_(237),
-    isTypedArray = _dereq_(244);
+},{"176":176,"225":225,"245":245}],176:[function(_dereq_,module,exports){
+var equalArrays = _dereq_(210),
+    equalByTag = _dereq_(211),
+    equalObjects = _dereq_(212),
+    isArray = _dereq_(241),
+    isTypedArray = _dereq_(248);
 
 /** `Object#toString` result references. */
 var argsTag = '[object Arguments]',
@@ -14258,9 +14406,9 @@ function baseIsEqualDeep(object, other, equalFunc, customizer, isLoose, stackA, 
 
 module.exports = baseIsEqualDeep;
 
-},{"206":206,"207":207,"208":208,"237":237,"244":244}],173:[function(_dereq_,module,exports){
-var baseIsEqual = _dereq_(171),
-    toObject = _dereq_(233);
+},{"210":210,"211":211,"212":212,"241":241,"248":248}],177:[function(_dereq_,module,exports){
+var baseIsEqual = _dereq_(175),
+    toObject = _dereq_(237);
 
 /**
  * The base implementation of `_.isMatch` without support for callback
@@ -14312,7 +14460,7 @@ function baseIsMatch(object, matchData, customizer) {
 
 module.exports = baseIsMatch;
 
-},{"171":171,"233":233}],174:[function(_dereq_,module,exports){
+},{"175":175,"237":237}],178:[function(_dereq_,module,exports){
 /**
  * The function whose prototype all chaining wrappers inherit from.
  *
@@ -14324,9 +14472,9 @@ function baseLodash() {
 
 module.exports = baseLodash;
 
-},{}],175:[function(_dereq_,module,exports){
-var baseEach = _dereq_(160),
-    isArrayLike = _dereq_(215);
+},{}],179:[function(_dereq_,module,exports){
+var baseEach = _dereq_(164),
+    isArrayLike = _dereq_(219);
 
 /**
  * The base implementation of `_.map` without support for callback shorthands
@@ -14349,10 +14497,10 @@ function baseMap(collection, iteratee) {
 
 module.exports = baseMap;
 
-},{"160":160,"215":215}],176:[function(_dereq_,module,exports){
-var baseIsMatch = _dereq_(173),
-    getMatchData = _dereq_(212),
-    toObject = _dereq_(233);
+},{"164":164,"219":219}],180:[function(_dereq_,module,exports){
+var baseIsMatch = _dereq_(177),
+    getMatchData = _dereq_(216),
+    toObject = _dereq_(237);
 
 /**
  * The base implementation of `_.matches` which does not clone `source`.
@@ -14381,16 +14529,16 @@ function baseMatches(source) {
 
 module.exports = baseMatches;
 
-},{"173":173,"212":212,"233":233}],177:[function(_dereq_,module,exports){
-var baseGet = _dereq_(169),
-    baseIsEqual = _dereq_(171),
-    baseSlice = _dereq_(184),
-    isArray = _dereq_(237),
-    isKey = _dereq_(218),
-    isStrictComparable = _dereq_(222),
-    last = _dereq_(123),
-    toObject = _dereq_(233),
-    toPath = _dereq_(234);
+},{"177":177,"216":216,"237":237}],181:[function(_dereq_,module,exports){
+var baseGet = _dereq_(173),
+    baseIsEqual = _dereq_(175),
+    baseSlice = _dereq_(188),
+    isArray = _dereq_(241),
+    isKey = _dereq_(222),
+    isStrictComparable = _dereq_(226),
+    last = _dereq_(127),
+    toObject = _dereq_(237),
+    toPath = _dereq_(238);
 
 /**
  * The base implementation of `_.matchesProperty` which does not clone `srcValue`.
@@ -14428,15 +14576,15 @@ function baseMatchesProperty(path, srcValue) {
 
 module.exports = baseMatchesProperty;
 
-},{"123":123,"169":169,"171":171,"184":184,"218":218,"222":222,"233":233,"234":234,"237":237}],178:[function(_dereq_,module,exports){
-var arrayEach = _dereq_(146),
-    baseMergeDeep = _dereq_(179),
-    isArray = _dereq_(237),
-    isArrayLike = _dereq_(215),
-    isObject = _dereq_(241),
-    isObjectLike = _dereq_(221),
-    isTypedArray = _dereq_(244),
-    keys = _dereq_(247);
+},{"127":127,"173":173,"175":175,"188":188,"222":222,"226":226,"237":237,"238":238,"241":241}],182:[function(_dereq_,module,exports){
+var arrayEach = _dereq_(150),
+    baseMergeDeep = _dereq_(183),
+    isArray = _dereq_(241),
+    isArrayLike = _dereq_(219),
+    isObject = _dereq_(245),
+    isObjectLike = _dereq_(225),
+    isTypedArray = _dereq_(248),
+    keys = _dereq_(251);
 
 /**
  * The base implementation of `_.merge` without support for argument juggling,
@@ -14486,14 +14634,14 @@ function baseMerge(object, source, customizer, stackA, stackB) {
 
 module.exports = baseMerge;
 
-},{"146":146,"179":179,"215":215,"221":221,"237":237,"241":241,"244":244,"247":247}],179:[function(_dereq_,module,exports){
-var arrayCopy = _dereq_(145),
-    isArguments = _dereq_(236),
-    isArray = _dereq_(237),
-    isArrayLike = _dereq_(215),
-    isPlainObject = _dereq_(242),
-    isTypedArray = _dereq_(244),
-    toPlainObject = _dereq_(245);
+},{"150":150,"183":183,"219":219,"225":225,"241":241,"245":245,"248":248,"251":251}],183:[function(_dereq_,module,exports){
+var arrayCopy = _dereq_(149),
+    isArguments = _dereq_(240),
+    isArray = _dereq_(241),
+    isArrayLike = _dereq_(219),
+    isPlainObject = _dereq_(246),
+    isTypedArray = _dereq_(248),
+    toPlainObject = _dereq_(249);
 
 /**
  * A specialized version of `baseMerge` for arrays and objects which performs
@@ -14555,7 +14703,7 @@ function baseMergeDeep(object, source, key, mergeFunc, customizer, stackA, stack
 
 module.exports = baseMergeDeep;
 
-},{"145":145,"215":215,"236":236,"237":237,"242":242,"244":244,"245":245}],180:[function(_dereq_,module,exports){
+},{"149":149,"219":219,"240":240,"241":241,"246":246,"248":248,"249":249}],184:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.property` without support for deep paths.
  *
@@ -14571,9 +14719,9 @@ function baseProperty(key) {
 
 module.exports = baseProperty;
 
-},{}],181:[function(_dereq_,module,exports){
-var baseGet = _dereq_(169),
-    toPath = _dereq_(234);
+},{}],185:[function(_dereq_,module,exports){
+var baseGet = _dereq_(173),
+    toPath = _dereq_(238);
 
 /**
  * A specialized version of `baseProperty` which supports deep paths.
@@ -14592,7 +14740,7 @@ function basePropertyDeep(path) {
 
 module.exports = basePropertyDeep;
 
-},{"169":169,"234":234}],182:[function(_dereq_,module,exports){
+},{"173":173,"238":238}],186:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.reduce` and `_.reduceRight` without support
  * for callback shorthands and `this` binding, which iterates over `collection`
@@ -14618,9 +14766,9 @@ function baseReduce(collection, iteratee, accumulator, initFromCollection, eachF
 
 module.exports = baseReduce;
 
-},{}],183:[function(_dereq_,module,exports){
-var identity = _dereq_(253),
-    metaMap = _dereq_(224);
+},{}],187:[function(_dereq_,module,exports){
+var identity = _dereq_(257),
+    metaMap = _dereq_(228);
 
 /**
  * The base implementation of `setData` without support for hot loop detection.
@@ -14637,7 +14785,7 @@ var baseSetData = !metaMap ? identity : function(func, data) {
 
 module.exports = baseSetData;
 
-},{"224":224,"253":253}],184:[function(_dereq_,module,exports){
+},{"228":228,"257":257}],188:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.slice` without an iteratee call guard.
  *
@@ -14671,8 +14819,8 @@ function baseSlice(array, start, end) {
 
 module.exports = baseSlice;
 
-},{}],185:[function(_dereq_,module,exports){
-var baseEach = _dereq_(160);
+},{}],189:[function(_dereq_,module,exports){
+var baseEach = _dereq_(164);
 
 /**
  * The base implementation of `_.some` without support for callback shorthands
@@ -14696,7 +14844,7 @@ function baseSome(collection, predicate) {
 
 module.exports = baseSome;
 
-},{"160":160}],186:[function(_dereq_,module,exports){
+},{"164":164}],190:[function(_dereq_,module,exports){
 /**
  * Converts `value` to a string if it's not one. An empty string is returned
  * for `null` or `undefined` values.
@@ -14711,10 +14859,10 @@ function baseToString(value) {
 
 module.exports = baseToString;
 
-},{}],187:[function(_dereq_,module,exports){
-var baseIndexOf = _dereq_(170),
-    cacheIndexOf = _dereq_(189),
-    createCache = _dereq_(198);
+},{}],191:[function(_dereq_,module,exports){
+var baseIndexOf = _dereq_(174),
+    cacheIndexOf = _dereq_(193),
+    createCache = _dereq_(202);
 
 /** Used as the size to enable large array optimizations. */
 var LARGE_ARRAY_SIZE = 200;
@@ -14773,8 +14921,8 @@ function baseUniq(array, iteratee) {
 
 module.exports = baseUniq;
 
-},{"170":170,"189":189,"198":198}],188:[function(_dereq_,module,exports){
-var identity = _dereq_(253);
+},{"174":174,"193":193,"202":202}],192:[function(_dereq_,module,exports){
+var identity = _dereq_(257);
 
 /**
  * A specialized version of `baseCallback` which only supports `this` binding
@@ -14814,8 +14962,8 @@ function bindCallback(func, thisArg, argCount) {
 
 module.exports = bindCallback;
 
-},{"253":253}],189:[function(_dereq_,module,exports){
-var isObject = _dereq_(241);
+},{"257":257}],193:[function(_dereq_,module,exports){
+var isObject = _dereq_(245);
 
 /**
  * Checks if `value` is in `cache` mimicking the return signature of
@@ -14835,8 +14983,8 @@ function cacheIndexOf(cache, value) {
 
 module.exports = cacheIndexOf;
 
-},{"241":241}],190:[function(_dereq_,module,exports){
-var isObject = _dereq_(241);
+},{"245":245}],194:[function(_dereq_,module,exports){
+var isObject = _dereq_(245);
 
 /**
  * Adds `value` to the cache.
@@ -14857,7 +15005,7 @@ function cachePush(value) {
 
 module.exports = cachePush;
 
-},{"241":241}],191:[function(_dereq_,module,exports){
+},{"245":245}],195:[function(_dereq_,module,exports){
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeMax = Math.max;
 
@@ -14893,7 +15041,7 @@ function composeArgs(args, partials, holders) {
 
 module.exports = composeArgs;
 
-},{}],192:[function(_dereq_,module,exports){
+},{}],196:[function(_dereq_,module,exports){
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeMax = Math.max;
 
@@ -14931,10 +15079,10 @@ function composeArgsRight(args, partials, holders) {
 
 module.exports = composeArgsRight;
 
-},{}],193:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(155),
-    baseEach = _dereq_(160),
-    isArray = _dereq_(237);
+},{}],197:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(159),
+    baseEach = _dereq_(164),
+    isArray = _dereq_(241);
 
 /**
  * Creates a `_.countBy`, `_.groupBy`, `_.indexBy`, or `_.partition` function.
@@ -14968,10 +15116,10 @@ function createAggregator(setter, initializer) {
 
 module.exports = createAggregator;
 
-},{"155":155,"160":160,"237":237}],194:[function(_dereq_,module,exports){
-var bindCallback = _dereq_(188),
-    isIterateeCall = _dereq_(217),
-    restParam = _dereq_(141);
+},{"159":159,"164":164,"241":241}],198:[function(_dereq_,module,exports){
+var bindCallback = _dereq_(192),
+    isIterateeCall = _dereq_(221),
+    restParam = _dereq_(145);
 
 /**
  * Creates a `_.assign`, `_.defaults`, or `_.merge` function.
@@ -15011,10 +15159,10 @@ function createAssigner(assigner) {
 
 module.exports = createAssigner;
 
-},{"141":141,"188":188,"217":217}],195:[function(_dereq_,module,exports){
-var getLength = _dereq_(211),
-    isLength = _dereq_(220),
-    toObject = _dereq_(233);
+},{"145":145,"192":192,"221":221}],199:[function(_dereq_,module,exports){
+var getLength = _dereq_(215),
+    isLength = _dereq_(224),
+    toObject = _dereq_(237);
 
 /**
  * Creates a `baseEach` or `baseEachRight` function.
@@ -15044,8 +15192,8 @@ function createBaseEach(eachFunc, fromRight) {
 
 module.exports = createBaseEach;
 
-},{"211":211,"220":220,"233":233}],196:[function(_dereq_,module,exports){
-var toObject = _dereq_(233);
+},{"215":215,"224":224,"237":237}],200:[function(_dereq_,module,exports){
+var toObject = _dereq_(237);
 
 /**
  * Creates a base function for `_.forIn` or `_.forInRight`.
@@ -15073,9 +15221,9 @@ function createBaseFor(fromRight) {
 
 module.exports = createBaseFor;
 
-},{"233":233}],197:[function(_dereq_,module,exports){
+},{"237":237}],201:[function(_dereq_,module,exports){
 (function (global){
-var createCtorWrapper = _dereq_(199);
+var createCtorWrapper = _dereq_(203);
 
 /**
  * Creates a function that wraps `func` and invokes it with the `this`
@@ -15100,10 +15248,10 @@ module.exports = createBindWrapper;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"199":199}],198:[function(_dereq_,module,exports){
+},{"203":203}],202:[function(_dereq_,module,exports){
 (function (global){
-var SetCache = _dereq_(144),
-    getNative = _dereq_(213);
+var SetCache = _dereq_(148),
+    getNative = _dereq_(217);
 
 /** Native method references. */
 var Set = getNative(global, 'Set');
@@ -15126,9 +15274,9 @@ module.exports = createCache;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"144":144,"213":213}],199:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(157),
-    isObject = _dereq_(241);
+},{"148":148,"217":217}],203:[function(_dereq_,module,exports){
+var baseCreate = _dereq_(161),
+    isObject = _dereq_(245);
 
 /**
  * Creates a function that produces an instance of `Ctor` regardless of
@@ -15165,11 +15313,11 @@ function createCtorWrapper(Ctor) {
 
 module.exports = createCtorWrapper;
 
-},{"157":157,"241":241}],200:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(155),
-    baseFind = _dereq_(163),
-    baseFindIndex = _dereq_(164),
-    isArray = _dereq_(237);
+},{"161":161,"245":245}],204:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(159),
+    baseFind = _dereq_(167),
+    baseFindIndex = _dereq_(168),
+    isArray = _dereq_(241);
 
 /**
  * Creates a `_.find` or `_.findLast` function.
@@ -15192,9 +15340,9 @@ function createFind(eachFunc, fromRight) {
 
 module.exports = createFind;
 
-},{"155":155,"163":163,"164":164,"237":237}],201:[function(_dereq_,module,exports){
-var bindCallback = _dereq_(188),
-    isArray = _dereq_(237);
+},{"159":159,"167":167,"168":168,"241":241}],205:[function(_dereq_,module,exports){
+var bindCallback = _dereq_(192),
+    isArray = _dereq_(241);
 
 /**
  * Creates a function for `_.forEach` or `_.forEachRight`.
@@ -15214,16 +15362,16 @@ function createForEach(arrayFunc, eachFunc) {
 
 module.exports = createForEach;
 
-},{"188":188,"237":237}],202:[function(_dereq_,module,exports){
+},{"192":192,"241":241}],206:[function(_dereq_,module,exports){
 (function (global){
-var arrayCopy = _dereq_(145),
-    composeArgs = _dereq_(191),
-    composeArgsRight = _dereq_(192),
-    createCtorWrapper = _dereq_(199),
-    isLaziable = _dereq_(219),
-    reorder = _dereq_(228),
-    replaceHolders = _dereq_(229),
-    setData = _dereq_(230);
+var arrayCopy = _dereq_(149),
+    composeArgs = _dereq_(195),
+    composeArgsRight = _dereq_(196),
+    createCtorWrapper = _dereq_(203),
+    isLaziable = _dereq_(223),
+    reorder = _dereq_(232),
+    replaceHolders = _dereq_(233),
+    setData = _dereq_(234);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1,
@@ -15330,9 +15478,9 @@ module.exports = createHybridWrapper;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"145":145,"191":191,"192":192,"199":199,"219":219,"228":228,"229":229,"230":230}],203:[function(_dereq_,module,exports){
+},{"149":149,"195":195,"196":196,"203":203,"223":223,"232":232,"233":233,"234":234}],207:[function(_dereq_,module,exports){
 (function (global){
-var createCtorWrapper = _dereq_(199);
+var createCtorWrapper = _dereq_(203);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1;
@@ -15378,10 +15526,10 @@ module.exports = createPartialWrapper;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"199":199}],204:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(155),
-    baseReduce = _dereq_(182),
-    isArray = _dereq_(237);
+},{"203":203}],208:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(159),
+    baseReduce = _dereq_(186),
+    isArray = _dereq_(241);
 
 /**
  * Creates a function for `_.reduce` or `_.reduceRight`.
@@ -15402,14 +15550,14 @@ function createReduce(arrayFunc, eachFunc) {
 
 module.exports = createReduce;
 
-},{"155":155,"182":182,"237":237}],205:[function(_dereq_,module,exports){
-var baseSetData = _dereq_(183),
-    createBindWrapper = _dereq_(197),
-    createHybridWrapper = _dereq_(202),
-    createPartialWrapper = _dereq_(203),
-    getData = _dereq_(209),
-    mergeData = _dereq_(223),
-    setData = _dereq_(230);
+},{"159":159,"186":186,"241":241}],209:[function(_dereq_,module,exports){
+var baseSetData = _dereq_(187),
+    createBindWrapper = _dereq_(201),
+    createHybridWrapper = _dereq_(206),
+    createPartialWrapper = _dereq_(207),
+    getData = _dereq_(213),
+    mergeData = _dereq_(227),
+    setData = _dereq_(234);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1,
@@ -15490,8 +15638,8 @@ function createWrapper(func, bitmask, thisArg, partials, holders, argPos, ary, a
 
 module.exports = createWrapper;
 
-},{"183":183,"197":197,"202":202,"203":203,"209":209,"223":223,"230":230}],206:[function(_dereq_,module,exports){
-var arraySome = _dereq_(152);
+},{"187":187,"201":201,"206":206,"207":207,"213":213,"227":227,"234":234}],210:[function(_dereq_,module,exports){
+var arraySome = _dereq_(156);
 
 /**
  * A specialized version of `baseIsEqualDeep` for arrays with support for
@@ -15543,7 +15691,7 @@ function equalArrays(array, other, equalFunc, customizer, isLoose, stackA, stack
 
 module.exports = equalArrays;
 
-},{"152":152}],207:[function(_dereq_,module,exports){
+},{"156":156}],211:[function(_dereq_,module,exports){
 /** `Object#toString` result references. */
 var boolTag = '[object Boolean]',
     dateTag = '[object Date]',
@@ -15593,8 +15741,8 @@ function equalByTag(object, other, tag) {
 
 module.exports = equalByTag;
 
-},{}],208:[function(_dereq_,module,exports){
-var keys = _dereq_(247);
+},{}],212:[function(_dereq_,module,exports){
+var keys = _dereq_(251);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -15662,9 +15810,9 @@ function equalObjects(object, other, equalFunc, customizer, isLoose, stackA, sta
 
 module.exports = equalObjects;
 
-},{"247":247}],209:[function(_dereq_,module,exports){
-var metaMap = _dereq_(224),
-    noop = _dereq_(254);
+},{"251":251}],213:[function(_dereq_,module,exports){
+var metaMap = _dereq_(228),
+    noop = _dereq_(258);
 
 /**
  * Gets metadata for `func`.
@@ -15679,8 +15827,8 @@ var getData = !metaMap ? noop : function(func) {
 
 module.exports = getData;
 
-},{"224":224,"254":254}],210:[function(_dereq_,module,exports){
-var realNames = _dereq_(227);
+},{"228":228,"258":258}],214:[function(_dereq_,module,exports){
+var realNames = _dereq_(231);
 
 /**
  * Gets the name of `func`.
@@ -15706,8 +15854,8 @@ function getFuncName(func) {
 
 module.exports = getFuncName;
 
-},{"227":227}],211:[function(_dereq_,module,exports){
-var baseProperty = _dereq_(180);
+},{"231":231}],215:[function(_dereq_,module,exports){
+var baseProperty = _dereq_(184);
 
 /**
  * Gets the "length" property value of `object`.
@@ -15723,9 +15871,9 @@ var getLength = baseProperty('length');
 
 module.exports = getLength;
 
-},{"180":180}],212:[function(_dereq_,module,exports){
-var isStrictComparable = _dereq_(222),
-    pairs = _dereq_(251);
+},{"184":184}],216:[function(_dereq_,module,exports){
+var isStrictComparable = _dereq_(226),
+    pairs = _dereq_(255);
 
 /**
  * Gets the propery names, values, and compare flags of `object`.
@@ -15746,8 +15894,8 @@ function getMatchData(object) {
 
 module.exports = getMatchData;
 
-},{"222":222,"251":251}],213:[function(_dereq_,module,exports){
-var isNative = _dereq_(239);
+},{"226":226,"255":255}],217:[function(_dereq_,module,exports){
+var isNative = _dereq_(243);
 
 /**
  * Gets the native function at `key` of `object`.
@@ -15764,7 +15912,7 @@ function getNative(object, key) {
 
 module.exports = getNative;
 
-},{"239":239}],214:[function(_dereq_,module,exports){
+},{"243":243}],218:[function(_dereq_,module,exports){
 /**
  * Gets the index at which the first occurrence of `NaN` is found in `array`.
  *
@@ -15789,9 +15937,9 @@ function indexOfNaN(array, fromIndex, fromRight) {
 
 module.exports = indexOfNaN;
 
-},{}],215:[function(_dereq_,module,exports){
-var getLength = _dereq_(211),
-    isLength = _dereq_(220);
+},{}],219:[function(_dereq_,module,exports){
+var getLength = _dereq_(215),
+    isLength = _dereq_(224);
 
 /**
  * Checks if `value` is array-like.
@@ -15806,7 +15954,7 @@ function isArrayLike(value) {
 
 module.exports = isArrayLike;
 
-},{"211":211,"220":220}],216:[function(_dereq_,module,exports){
+},{"215":215,"224":224}],220:[function(_dereq_,module,exports){
 /** Used to detect unsigned integer values. */
 var reIsUint = /^\d+$/;
 
@@ -15832,10 +15980,10 @@ function isIndex(value, length) {
 
 module.exports = isIndex;
 
-},{}],217:[function(_dereq_,module,exports){
-var isArrayLike = _dereq_(215),
-    isIndex = _dereq_(216),
-    isObject = _dereq_(241);
+},{}],221:[function(_dereq_,module,exports){
+var isArrayLike = _dereq_(219),
+    isIndex = _dereq_(220),
+    isObject = _dereq_(245);
 
 /**
  * Checks if the provided arguments are from an iteratee call.
@@ -15862,9 +16010,9 @@ function isIterateeCall(value, index, object) {
 
 module.exports = isIterateeCall;
 
-},{"215":215,"216":216,"241":241}],218:[function(_dereq_,module,exports){
-var isArray = _dereq_(237),
-    toObject = _dereq_(233);
+},{"219":219,"220":220,"245":245}],222:[function(_dereq_,module,exports){
+var isArray = _dereq_(241),
+    toObject = _dereq_(237);
 
 /** Used to match property names within property paths. */
 var reIsDeepProp = /\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\n\\]|\\.)*?\1)\]/,
@@ -15892,11 +16040,11 @@ function isKey(value, object) {
 
 module.exports = isKey;
 
-},{"233":233,"237":237}],219:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(142),
-    getData = _dereq_(209),
-    getFuncName = _dereq_(210),
-    lodash = _dereq_(127);
+},{"237":237,"241":241}],223:[function(_dereq_,module,exports){
+var LazyWrapper = _dereq_(146),
+    getData = _dereq_(213),
+    getFuncName = _dereq_(214),
+    lodash = _dereq_(131);
 
 /**
  * Checks if `func` has a lazy counterpart.
@@ -15921,7 +16069,7 @@ function isLaziable(func) {
 
 module.exports = isLaziable;
 
-},{"127":127,"142":142,"209":209,"210":210}],220:[function(_dereq_,module,exports){
+},{"131":131,"146":146,"213":213,"214":214}],224:[function(_dereq_,module,exports){
 /**
  * Used as the [maximum length](http://ecma-international.org/ecma-262/6.0/#sec-number.max_safe_integer)
  * of an array-like value.
@@ -15943,7 +16091,7 @@ function isLength(value) {
 
 module.exports = isLength;
 
-},{}],221:[function(_dereq_,module,exports){
+},{}],225:[function(_dereq_,module,exports){
 /**
  * Checks if `value` is object-like.
  *
@@ -15957,8 +16105,8 @@ function isObjectLike(value) {
 
 module.exports = isObjectLike;
 
-},{}],222:[function(_dereq_,module,exports){
-var isObject = _dereq_(241);
+},{}],226:[function(_dereq_,module,exports){
+var isObject = _dereq_(245);
 
 /**
  * Checks if `value` is suitable for strict equality comparisons, i.e. `===`.
@@ -15974,11 +16122,11 @@ function isStrictComparable(value) {
 
 module.exports = isStrictComparable;
 
-},{"241":241}],223:[function(_dereq_,module,exports){
-var arrayCopy = _dereq_(145),
-    composeArgs = _dereq_(191),
-    composeArgsRight = _dereq_(192),
-    replaceHolders = _dereq_(229);
+},{"245":245}],227:[function(_dereq_,module,exports){
+var arrayCopy = _dereq_(149),
+    composeArgs = _dereq_(195),
+    composeArgsRight = _dereq_(196),
+    replaceHolders = _dereq_(233);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1,
@@ -16065,9 +16213,9 @@ function mergeData(data, source) {
 
 module.exports = mergeData;
 
-},{"145":145,"191":191,"192":192,"229":229}],224:[function(_dereq_,module,exports){
+},{"149":149,"195":195,"196":196,"233":233}],228:[function(_dereq_,module,exports){
 (function (global){
-var getNative = _dereq_(213);
+var getNative = _dereq_(217);
 
 /** Native method references. */
 var WeakMap = getNative(global, 'WeakMap');
@@ -16079,8 +16227,8 @@ module.exports = metaMap;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"213":213}],225:[function(_dereq_,module,exports){
-var toObject = _dereq_(233);
+},{"217":217}],229:[function(_dereq_,module,exports){
+var toObject = _dereq_(237);
 
 /**
  * A specialized version of `_.pick` which picks `object` properties specified
@@ -16109,8 +16257,8 @@ function pickByArray(object, props) {
 
 module.exports = pickByArray;
 
-},{"233":233}],226:[function(_dereq_,module,exports){
-var baseForIn = _dereq_(167);
+},{"237":237}],230:[function(_dereq_,module,exports){
+var baseForIn = _dereq_(171);
 
 /**
  * A specialized version of `_.pick` which picks `object` properties `predicate`
@@ -16133,15 +16281,15 @@ function pickByCallback(object, predicate) {
 
 module.exports = pickByCallback;
 
-},{"167":167}],227:[function(_dereq_,module,exports){
+},{"171":171}],231:[function(_dereq_,module,exports){
 /** Used to lookup unminified function names. */
 var realNames = {};
 
 module.exports = realNames;
 
-},{}],228:[function(_dereq_,module,exports){
-var arrayCopy = _dereq_(145),
-    isIndex = _dereq_(216);
+},{}],232:[function(_dereq_,module,exports){
+var arrayCopy = _dereq_(149),
+    isIndex = _dereq_(220);
 
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeMin = Math.min;
@@ -16170,7 +16318,7 @@ function reorder(array, indexes) {
 
 module.exports = reorder;
 
-},{"145":145,"216":216}],229:[function(_dereq_,module,exports){
+},{"149":149,"220":220}],233:[function(_dereq_,module,exports){
 /** Used as the internal argument placeholder. */
 var PLACEHOLDER = '__lodash_placeholder__';
 
@@ -16200,9 +16348,9 @@ function replaceHolders(array, placeholder) {
 
 module.exports = replaceHolders;
 
-},{}],230:[function(_dereq_,module,exports){
-var baseSetData = _dereq_(183),
-    now = _dereq_(137);
+},{}],234:[function(_dereq_,module,exports){
+var baseSetData = _dereq_(187),
+    now = _dereq_(141);
 
 /** Used to detect when a function becomes hot. */
 var HOT_COUNT = 150,
@@ -16243,12 +16391,12 @@ var setData = (function() {
 
 module.exports = setData;
 
-},{"137":137,"183":183}],231:[function(_dereq_,module,exports){
-var isArguments = _dereq_(236),
-    isArray = _dereq_(237),
-    isIndex = _dereq_(216),
-    isLength = _dereq_(220),
-    keysIn = _dereq_(248);
+},{"141":141,"187":187}],235:[function(_dereq_,module,exports){
+var isArguments = _dereq_(240),
+    isArray = _dereq_(241),
+    isIndex = _dereq_(220),
+    isLength = _dereq_(224),
+    keysIn = _dereq_(252);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -16286,7 +16434,7 @@ function shimKeys(object) {
 
 module.exports = shimKeys;
 
-},{"216":216,"220":220,"236":236,"237":237,"248":248}],232:[function(_dereq_,module,exports){
+},{"220":220,"224":224,"240":240,"241":241,"252":252}],236:[function(_dereq_,module,exports){
 /**
  * An implementation of `_.uniq` optimized for sorted arrays without support
  * for callback shorthands and `this` binding.
@@ -16317,8 +16465,8 @@ function sortedUniq(array, iteratee) {
 
 module.exports = sortedUniq;
 
-},{}],233:[function(_dereq_,module,exports){
-var isObject = _dereq_(241);
+},{}],237:[function(_dereq_,module,exports){
+var isObject = _dereq_(245);
 
 /**
  * Converts `value` to an object if it's not one.
@@ -16333,9 +16481,9 @@ function toObject(value) {
 
 module.exports = toObject;
 
-},{"241":241}],234:[function(_dereq_,module,exports){
-var baseToString = _dereq_(186),
-    isArray = _dereq_(237);
+},{"245":245}],238:[function(_dereq_,module,exports){
+var baseToString = _dereq_(190),
+    isArray = _dereq_(241);
 
 /** Used to match property names within property paths. */
 var rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\n\\]|\\.)*?)\2)\]/g;
@@ -16363,10 +16511,10 @@ function toPath(value) {
 
 module.exports = toPath;
 
-},{"186":186,"237":237}],235:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(142),
-    LodashWrapper = _dereq_(143),
-    arrayCopy = _dereq_(145);
+},{"190":190,"241":241}],239:[function(_dereq_,module,exports){
+var LazyWrapper = _dereq_(146),
+    LodashWrapper = _dereq_(147),
+    arrayCopy = _dereq_(149);
 
 /**
  * Creates a clone of `wrapper`.
@@ -16383,9 +16531,9 @@ function wrapperClone(wrapper) {
 
 module.exports = wrapperClone;
 
-},{"142":142,"143":143,"145":145}],236:[function(_dereq_,module,exports){
-var isArrayLike = _dereq_(215),
-    isObjectLike = _dereq_(221);
+},{"146":146,"147":147,"149":149}],240:[function(_dereq_,module,exports){
+var isArrayLike = _dereq_(219),
+    isObjectLike = _dereq_(225);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -16419,10 +16567,10 @@ function isArguments(value) {
 
 module.exports = isArguments;
 
-},{"215":215,"221":221}],237:[function(_dereq_,module,exports){
-var getNative = _dereq_(213),
-    isLength = _dereq_(220),
-    isObjectLike = _dereq_(221);
+},{"219":219,"225":225}],241:[function(_dereq_,module,exports){
+var getNative = _dereq_(217),
+    isLength = _dereq_(224),
+    isObjectLike = _dereq_(225);
 
 /** `Object#toString` result references. */
 var arrayTag = '[object Array]';
@@ -16461,8 +16609,8 @@ var isArray = nativeIsArray || function(value) {
 
 module.exports = isArray;
 
-},{"213":213,"220":220,"221":221}],238:[function(_dereq_,module,exports){
-var isObject = _dereq_(241);
+},{"217":217,"224":224,"225":225}],242:[function(_dereq_,module,exports){
+var isObject = _dereq_(245);
 
 /** `Object#toString` result references. */
 var funcTag = '[object Function]';
@@ -16501,9 +16649,9 @@ function isFunction(value) {
 
 module.exports = isFunction;
 
-},{"241":241}],239:[function(_dereq_,module,exports){
-var isFunction = _dereq_(238),
-    isObjectLike = _dereq_(221);
+},{"245":245}],243:[function(_dereq_,module,exports){
+var isFunction = _dereq_(242),
+    isObjectLike = _dereq_(225);
 
 /** Used to detect host constructors (Safari > 5). */
 var reIsHostCtor = /^\[object .+?Constructor\]$/;
@@ -16551,8 +16699,8 @@ function isNative(value) {
 
 module.exports = isNative;
 
-},{"221":221,"238":238}],240:[function(_dereq_,module,exports){
-var isObjectLike = _dereq_(221);
+},{"225":225,"242":242}],244:[function(_dereq_,module,exports){
+var isObjectLike = _dereq_(225);
 
 /** `Object#toString` result references. */
 var numberTag = '[object Number]';
@@ -16594,7 +16742,7 @@ function isNumber(value) {
 
 module.exports = isNumber;
 
-},{"221":221}],241:[function(_dereq_,module,exports){
+},{"225":225}],245:[function(_dereq_,module,exports){
 /**
  * Checks if `value` is the [language type](https://es5.github.io/#x8) of `Object`.
  * (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
@@ -16624,10 +16772,10 @@ function isObject(value) {
 
 module.exports = isObject;
 
-},{}],242:[function(_dereq_,module,exports){
-var baseForIn = _dereq_(167),
-    isArguments = _dereq_(236),
-    isObjectLike = _dereq_(221);
+},{}],246:[function(_dereq_,module,exports){
+var baseForIn = _dereq_(171),
+    isArguments = _dereq_(240),
+    isObjectLike = _dereq_(225);
 
 /** `Object#toString` result references. */
 var objectTag = '[object Object]';
@@ -16697,8 +16845,8 @@ function isPlainObject(value) {
 
 module.exports = isPlainObject;
 
-},{"167":167,"221":221,"236":236}],243:[function(_dereq_,module,exports){
-var isObjectLike = _dereq_(221);
+},{"171":171,"225":225,"240":240}],247:[function(_dereq_,module,exports){
+var isObjectLike = _dereq_(225);
 
 /** `Object#toString` result references. */
 var stringTag = '[object String]';
@@ -16734,9 +16882,9 @@ function isString(value) {
 
 module.exports = isString;
 
-},{"221":221}],244:[function(_dereq_,module,exports){
-var isLength = _dereq_(220),
-    isObjectLike = _dereq_(221);
+},{"225":225}],248:[function(_dereq_,module,exports){
+var isLength = _dereq_(224),
+    isObjectLike = _dereq_(225);
 
 /** `Object#toString` result references. */
 var argsTag = '[object Arguments]',
@@ -16810,9 +16958,9 @@ function isTypedArray(value) {
 
 module.exports = isTypedArray;
 
-},{"220":220,"221":221}],245:[function(_dereq_,module,exports){
-var baseCopy = _dereq_(156),
-    keysIn = _dereq_(248);
+},{"224":224,"225":225}],249:[function(_dereq_,module,exports){
+var baseCopy = _dereq_(160),
+    keysIn = _dereq_(252);
 
 /**
  * Converts `value` to a plain object flattening inherited enumerable
@@ -16843,10 +16991,10 @@ function toPlainObject(value) {
 
 module.exports = toPlainObject;
 
-},{"156":156,"248":248}],246:[function(_dereq_,module,exports){
-var assignWith = _dereq_(153),
-    baseAssign = _dereq_(154),
-    createAssigner = _dereq_(194);
+},{"160":160,"252":252}],250:[function(_dereq_,module,exports){
+var assignWith = _dereq_(157),
+    baseAssign = _dereq_(158),
+    createAssigner = _dereq_(198);
 
 /**
  * Assigns own enumerable properties of source object(s) to the destination
@@ -16888,11 +17036,11 @@ var assign = createAssigner(function(object, source, customizer) {
 
 module.exports = assign;
 
-},{"153":153,"154":154,"194":194}],247:[function(_dereq_,module,exports){
-var getNative = _dereq_(213),
-    isArrayLike = _dereq_(215),
-    isObject = _dereq_(241),
-    shimKeys = _dereq_(231);
+},{"157":157,"158":158,"198":198}],251:[function(_dereq_,module,exports){
+var getNative = _dereq_(217),
+    isArrayLike = _dereq_(219),
+    isObject = _dereq_(245),
+    shimKeys = _dereq_(235);
 
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeKeys = getNative(Object, 'keys');
@@ -16935,12 +17083,12 @@ var keys = !nativeKeys ? shimKeys : function(object) {
 
 module.exports = keys;
 
-},{"213":213,"215":215,"231":231,"241":241}],248:[function(_dereq_,module,exports){
-var isArguments = _dereq_(236),
-    isArray = _dereq_(237),
-    isIndex = _dereq_(216),
-    isLength = _dereq_(220),
-    isObject = _dereq_(241);
+},{"217":217,"219":219,"235":235,"245":245}],252:[function(_dereq_,module,exports){
+var isArguments = _dereq_(240),
+    isArray = _dereq_(241),
+    isIndex = _dereq_(220),
+    isLength = _dereq_(224),
+    isObject = _dereq_(245);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -17001,9 +17149,9 @@ function keysIn(object) {
 
 module.exports = keysIn;
 
-},{"216":216,"220":220,"236":236,"237":237,"241":241}],249:[function(_dereq_,module,exports){
-var baseMerge = _dereq_(178),
-    createAssigner = _dereq_(194);
+},{"220":220,"224":224,"240":240,"241":241,"245":245}],253:[function(_dereq_,module,exports){
+var baseMerge = _dereq_(182),
+    createAssigner = _dereq_(198);
 
 /**
  * Recursively merges own enumerable properties of the source object(s), that
@@ -17057,15 +17205,15 @@ var merge = createAssigner(baseMerge);
 
 module.exports = merge;
 
-},{"178":178,"194":194}],250:[function(_dereq_,module,exports){
-var arrayMap = _dereq_(149),
-    baseDifference = _dereq_(159),
-    baseFlatten = _dereq_(165),
-    bindCallback = _dereq_(188),
-    keysIn = _dereq_(248),
-    pickByArray = _dereq_(225),
-    pickByCallback = _dereq_(226),
-    restParam = _dereq_(141);
+},{"182":182,"198":198}],254:[function(_dereq_,module,exports){
+var arrayMap = _dereq_(153),
+    baseDifference = _dereq_(163),
+    baseFlatten = _dereq_(169),
+    bindCallback = _dereq_(192),
+    keysIn = _dereq_(252),
+    pickByArray = _dereq_(229),
+    pickByCallback = _dereq_(230),
+    restParam = _dereq_(145);
 
 /**
  * The opposite of `_.pick`; this method creates an object composed of the
@@ -17106,9 +17254,9 @@ var omit = restParam(function(object, props) {
 
 module.exports = omit;
 
-},{"141":141,"149":149,"159":159,"165":165,"188":188,"225":225,"226":226,"248":248}],251:[function(_dereq_,module,exports){
-var keys = _dereq_(247),
-    toObject = _dereq_(233);
+},{"145":145,"153":153,"163":163,"169":169,"192":192,"229":229,"230":230,"252":252}],255:[function(_dereq_,module,exports){
+var keys = _dereq_(251),
+    toObject = _dereq_(237);
 
 /**
  * Creates a two dimensional array of the key-value pairs for `object`,
@@ -17141,12 +17289,12 @@ function pairs(object) {
 
 module.exports = pairs;
 
-},{"233":233,"247":247}],252:[function(_dereq_,module,exports){
-var baseFlatten = _dereq_(165),
-    bindCallback = _dereq_(188),
-    pickByArray = _dereq_(225),
-    pickByCallback = _dereq_(226),
-    restParam = _dereq_(141);
+},{"237":237,"251":251}],256:[function(_dereq_,module,exports){
+var baseFlatten = _dereq_(169),
+    bindCallback = _dereq_(192),
+    pickByArray = _dereq_(229),
+    pickByCallback = _dereq_(230),
+    restParam = _dereq_(145);
 
 /**
  * Creates an object composed of the picked `object` properties. Property
@@ -17185,7 +17333,7 @@ var pick = restParam(function(object, props) {
 
 module.exports = pick;
 
-},{"141":141,"165":165,"188":188,"225":225,"226":226}],253:[function(_dereq_,module,exports){
+},{"145":145,"169":169,"192":192,"229":229,"230":230}],257:[function(_dereq_,module,exports){
 /**
  * This method returns the first argument provided to it.
  *
@@ -17207,7 +17355,7 @@ function identity(value) {
 
 module.exports = identity;
 
-},{}],254:[function(_dereq_,module,exports){
+},{}],258:[function(_dereq_,module,exports){
 /**
  * A no-operation function that returns `undefined` regardless of the
  * arguments it receives.
@@ -17228,10 +17376,10 @@ function noop() {
 
 module.exports = noop;
 
-},{}],255:[function(_dereq_,module,exports){
-var baseProperty = _dereq_(180),
-    basePropertyDeep = _dereq_(181),
-    isKey = _dereq_(218);
+},{}],259:[function(_dereq_,module,exports){
+var baseProperty = _dereq_(184),
+    basePropertyDeep = _dereq_(185),
+    isKey = _dereq_(222);
 
 /**
  * Creates a function that returns the property value at `path` on a
@@ -17261,7 +17409,7 @@ function property(path) {
 
 module.exports = property;
 
-},{"180":180,"181":181,"218":218}],256:[function(_dereq_,module,exports){
+},{"184":184,"185":185,"222":222}],260:[function(_dereq_,module,exports){
 /**
  * Set attribute `name` to `val`, or get attr `name`.
  *
@@ -17287,9 +17435,9 @@ module.exports = function(el, name, val) {
 
   return el;
 };
-},{}],257:[function(_dereq_,module,exports){
-module.exports = _dereq_(64);
-},{"64":64}],258:[function(_dereq_,module,exports){
+},{}],261:[function(_dereq_,module,exports){
+module.exports = _dereq_(66);
+},{"66":66}],262:[function(_dereq_,module,exports){
 module.exports = function(el) {
 
   var c;
@@ -17301,19 +17449,19 @@ module.exports = function(el) {
 
   return el;
 };
-},{}],259:[function(_dereq_,module,exports){
-module.exports = _dereq_(66);
-},{"66":66}],260:[function(_dereq_,module,exports){
-module.exports = _dereq_(121);
-},{"121":121}],261:[function(_dereq_,module,exports){
-module.exports = _dereq_(67);
-},{"67":67}],262:[function(_dereq_,module,exports){
-module.exports = _dereq_(70);
-},{"70":70}],263:[function(_dereq_,module,exports){
+},{}],263:[function(_dereq_,module,exports){
+module.exports = _dereq_(68);
+},{"68":68}],264:[function(_dereq_,module,exports){
+module.exports = _dereq_(125);
+},{"125":125}],265:[function(_dereq_,module,exports){
+module.exports = _dereq_(69);
+},{"69":69}],266:[function(_dereq_,module,exports){
+module.exports = _dereq_(72);
+},{"72":72}],267:[function(_dereq_,module,exports){
 module.exports = function(el) {
   el.parentNode && el.parentNode.removeChild(el);
 };
-},{}],264:[function(_dereq_,module,exports){
+},{}],268:[function(_dereq_,module,exports){
 'use strict';
 
 function capitalize(string) {
@@ -17362,23 +17510,23 @@ module.exports.serializeAsType = function(element) {
 module.exports.serializeAsProperty = function(element) {
   return serializeFormat(element) === 'property';
 };
-},{}],265:[function(_dereq_,module,exports){
+},{}],269:[function(_dereq_,module,exports){
 'use strict';
 
-var reduce = _dereq_(135),
-    forEach = _dereq_(132),
-    find = _dereq_(131),
-    assign = _dereq_(246),
-    defer = _dereq_(140);
+var reduce = _dereq_(139),
+    forEach = _dereq_(136),
+    find = _dereq_(135),
+    assign = _dereq_(250),
+    defer = _dereq_(144);
 
-var Stack = _dereq_(315),
-    SaxParser = _dereq_(279).parser,
-    Moddle = _dereq_(267),
-    parseNameNs = _dereq_(272).parseName,
-    Types = _dereq_(275),
+var Stack = _dereq_(319),
+    SaxParser = _dereq_(283).parser,
+    Moddle = _dereq_(271),
+    parseNameNs = _dereq_(276).parseName,
+    Types = _dereq_(279),
     coerceType = Types.coerceType,
     isSimpleType = Types.isSimple,
-    common = _dereq_(264),
+    common = _dereq_(268),
     XSI_TYPE = common.XSI_TYPE,
     XSI_URI = common.DEFAULT_NS_MAP.xsi,
     serializeAsType = common.serializeAsType,
@@ -17982,7 +18130,7 @@ XMLReader.prototype.fromXML = function(xml, options, done) {
 
     var i, r;
 
-    for (i = 0; !!(r = references[i]); i++) {
+    for (i = 0; (r = references[i]); i++) {
       var element = r.element;
       var reference = elementsById[r.id];
       var property = getModdleDescriptor(element).propertiesByName[r.property];
@@ -18092,18 +18240,18 @@ XMLReader.prototype.handler = function(name) {
 
 module.exports = XMLReader;
 module.exports.ElementHandler = ElementHandler;
-},{"131":131,"132":132,"135":135,"140":140,"246":246,"264":264,"267":267,"272":272,"275":275,"279":279,"315":315}],266:[function(_dereq_,module,exports){
+},{"135":135,"136":136,"139":139,"144":144,"250":250,"268":268,"271":271,"276":276,"279":279,"283":283,"319":319}],270:[function(_dereq_,module,exports){
 'use strict';
 
-var map = _dereq_(134),
-    forEach = _dereq_(132),
-    isString = _dereq_(243),
-    filter = _dereq_(130),
-    assign = _dereq_(246);
+var map = _dereq_(138),
+    forEach = _dereq_(136),
+    isString = _dereq_(247),
+    filter = _dereq_(134),
+    assign = _dereq_(250);
 
-var Types = _dereq_(275),
-    parseNameNs = _dereq_(272).parseName,
-    common = _dereq_(264),
+var Types = _dereq_(279),
+    parseNameNs = _dereq_(276).parseName,
+    common = _dereq_(268),
     nameToAlias = common.nameToAlias,
     serializeAsType = common.serializeAsType,
     serializeAsProperty = common.serializeAsProperty;
@@ -18113,6 +18261,18 @@ var XML_PREAMBLE = '<?xml version="1.0" encoding="UTF-8"?>\n',
     DEFAULT_NS_MAP = common.DEFAULT_NS_MAP,
     XSI_TYPE = common.XSI_TYPE;
 
+
+function inherits(ctor, superCtor) {
+  ctor.super_ = superCtor;
+  ctor.prototype = Object.create(superCtor.prototype, {
+    constructor: {
+      value: ctor,
+      enumerable: false,
+      writable: true,
+      configurable: true
+    }
+  });
+}
 
 function nsName(ns) {
   if (isString(ns)) {
@@ -18262,7 +18422,7 @@ function ValueSerializer(ns) {
   this.ns = ns;
 }
 
-ValueSerializer.prototype = new BodySerializer();
+inherits(ValueSerializer, BodySerializer);
 
 ValueSerializer.prototype.serializeTo = function(writer) {
 
@@ -18273,7 +18433,7 @@ ValueSerializer.prototype.serializeTo = function(writer) {
   this.serializeValue(writer);
 
   writer
-    .append( '</' + nsName(this.ns) + '>')
+    .append('</' + nsName(this.ns) + '>')
     .appendNewLine();
 };
 
@@ -18555,6 +18715,11 @@ ElementSerializer.prototype.logNamespaceUsed = function(ns) {
 
   var prefix = ns.prefix;
 
+  // graceful handle anonymous (non-ns) elements, cf. #23
+  if (typeof prefix === 'undefined') {
+    return {};
+  }
+
   var wellknownUri = DEFAULT_NS_MAP[prefix] || model && (model.getPackage(prefix) || {}).uri;
 
   var uri = ns.uri || namespaces.prefixMap[prefix] || wellknownUri;
@@ -18630,8 +18795,8 @@ ElementSerializer.prototype.serializeAttributes = function(writer) {
 };
 
 ElementSerializer.prototype.serializeTo = function(writer) {
-  var hasBody = this.body.length,
-      indent = !(this.body.length === 1 && this.body[0] instanceof BodySerializer);
+  var firstBody = this.body[0],
+      indent = firstBody && firstBody.constructor !== BodySerializer;
 
   writer
     .appendIndent()
@@ -18639,9 +18804,9 @@ ElementSerializer.prototype.serializeTo = function(writer) {
 
   this.serializeAttributes(writer);
 
-  writer.append(hasBody ? '>' : ' />');
+  writer.append(firstBody ? '>' : ' />');
 
-  if (hasBody) {
+  if (firstBody) {
 
     if (indent) {
       writer
@@ -18672,7 +18837,7 @@ function TypeSerializer(parent, ns) {
   ElementSerializer.call(this, parent, ns);
 }
 
-TypeSerializer.prototype = new ElementSerializer();
+inherits(TypeSerializer, ElementSerializer);
 
 TypeSerializer.prototype.build = function(element) {
   var descriptor = element.$descriptor;
@@ -18776,9 +18941,9 @@ function XMLWriter(options) {
 
 module.exports = XMLWriter;
 
-},{"130":130,"132":132,"134":134,"243":243,"246":246,"264":264,"272":272,"275":275}],267:[function(_dereq_,module,exports){
-module.exports = _dereq_(271);
-},{"271":271}],268:[function(_dereq_,module,exports){
+},{"134":134,"136":136,"138":138,"247":247,"250":250,"268":268,"276":276,"279":279}],271:[function(_dereq_,module,exports){
+module.exports = _dereq_(275);
+},{"275":275}],272:[function(_dereq_,module,exports){
 'use strict';
 
 function Base() { }
@@ -18793,20 +18958,21 @@ Base.prototype.set = function(name, value) {
 
 
 module.exports = Base;
-},{}],269:[function(_dereq_,module,exports){
+},{}],273:[function(_dereq_,module,exports){
 'use strict';
 
-var pick = _dereq_(252),
-    assign = _dereq_(246),
-    forEach = _dereq_(132);
+var pick = _dereq_(256),
+    assign = _dereq_(250),
+    forEach = _dereq_(136);
 
-var parseNameNs = _dereq_(272).parseName;
+var parseNameNs = _dereq_(276).parseName;
 
 
 function DescriptorBuilder(nameNs) {
   this.ns = nameNs;
   this.name = nameNs.name;
   this.allTypes = [];
+  this.allTypesByName = {};
   this.properties = [];
   this.propertiesByName = {};
 }
@@ -18819,6 +18985,7 @@ DescriptorBuilder.prototype.build = function() {
     'ns',
     'name',
     'allTypes',
+    'allTypesByName',
     'properties',
     'propertiesByName',
     'bodyProperty',
@@ -18980,9 +19147,12 @@ DescriptorBuilder.prototype.hasProperty = function(name) {
 
 DescriptorBuilder.prototype.addTrait = function(t, inherited) {
 
-  var allTypes = this.allTypes;
+  var typesByName = this.allTypesByName,
+      types = this.allTypes;
 
-  if (allTypes.indexOf(t) !== -1) {
+  var typeName = t.name;
+
+  if (typeName in typesByName) {
     return;
   }
 
@@ -19015,15 +19185,16 @@ DescriptorBuilder.prototype.addTrait = function(t, inherited) {
     }
   }, this);
 
-  allTypes.push(t);
+  types.push(t);
+  typesByName[typeName] = t;
 };
 
-},{"132":132,"246":246,"252":252,"272":272}],270:[function(_dereq_,module,exports){
+},{"136":136,"250":250,"256":256,"276":276}],274:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(132);
+var forEach = _dereq_(136);
 
-var Base = _dereq_(268);
+var Base = _dereq_(272);
 
 
 function Factory(model, properties) {
@@ -19076,20 +19247,19 @@ Factory.prototype.createType = function(descriptor) {
 
   return ModdleElement;
 };
-},{"132":132,"268":268}],271:[function(_dereq_,module,exports){
+},{"136":136,"272":272}],275:[function(_dereq_,module,exports){
 'use strict';
 
-var isString = _dereq_(243),
-    isObject = _dereq_(241),
-    forEach = _dereq_(132),
-    find = _dereq_(131);
+var isString = _dereq_(247),
+    isObject = _dereq_(245),
+    forEach = _dereq_(136);
 
 
-var Factory = _dereq_(270),
-    Registry = _dereq_(274),
-    Properties = _dereq_(273);
+var Factory = _dereq_(274),
+    Registry = _dereq_(278),
+    Properties = _dereq_(277);
 
-var parseNameNs = _dereq_(272).parseName;
+var parseNameNs = _dereq_(276).parseName;
 
 
 //// Moddle implementation /////////////////////////////////////////////////
@@ -19215,7 +19385,10 @@ Moddle.prototype.createAny = function(name, nsUri, properties) {
   var nameNs = parseNameNs(name);
 
   var element = {
-    $type: name
+    $type: name,
+    $instanceOf: function(type) {
+      return type === this.$type;
+    }
   };
 
   var descriptor = {
@@ -19282,9 +19455,7 @@ Moddle.prototype.hasType = function(element, type) {
 
   var descriptor = element.$model.getElementDescriptor(element);
 
-  return !!find(descriptor.allTypes, function(t) {
-    return t.name === type;
-  });
+  return (type in descriptor.allTypesByName);
 };
 
 /**
@@ -19301,7 +19472,7 @@ Moddle.prototype.getTypeDescriptor = function(type) {
   return this.registry.typeMap[type];
 };
 
-},{"131":131,"132":132,"241":241,"243":243,"270":270,"272":272,"273":273,"274":274}],272:[function(_dereq_,module,exports){
+},{"136":136,"245":245,"247":247,"274":274,"276":276,"277":277,"278":278}],276:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -19338,7 +19509,7 @@ module.exports.parseName = function(name, defaultPrefix) {
     localName: localName
   };
 };
-},{}],273:[function(_dereq_,module,exports){
+},{}],277:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -19457,16 +19628,16 @@ function defineProperty(target, property, value) {
     configurable: true
   });
 }
-},{}],274:[function(_dereq_,module,exports){
+},{}],278:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(246),
-    forEach = _dereq_(132);
+var assign = _dereq_(250),
+    forEach = _dereq_(136);
 
-var Types = _dereq_(275),
-    DescriptorBuilder = _dereq_(269);
+var Types = _dereq_(279),
+    DescriptorBuilder = _dereq_(273);
 
-var parseNameNs = _dereq_(272).parseName,
+var parseNameNs = _dereq_(276).parseName,
     isBuiltInType = Types.isBuiltIn;
 
 
@@ -19498,12 +19669,17 @@ Registry.prototype.registerPackage = function(pkg) {
   // copy package
   pkg = assign({}, pkg);
 
+  var pkgMap = this.packageMap;
+
+  ensureAvailable(pkgMap, pkg, 'prefix');
+  ensureAvailable(pkgMap, pkg, 'uri');
+
   // register types
   forEach(pkg.types, function(descriptor) {
     this.registerType(descriptor, pkg);
   }, this);
 
-  this.packageMap[pkg.uri] = this.packageMap[pkg.prefix] = pkg;
+  pkgMap[pkg.uri] = pkgMap[pkg.prefix] = pkg;
   this.packages.push(pkg);
 };
 
@@ -19644,7 +19820,20 @@ Registry.prototype.definePackage = function(target, pkg) {
   this.properties.define(target, '$pkg', { value: pkg });
 };
 
-},{"132":132,"246":246,"269":269,"272":272,"275":275}],275:[function(_dereq_,module,exports){
+
+
+///////// helpers ////////////////////////////
+
+function ensureAvailable(packageMap, pkg, identifierKey) {
+
+  var value = pkg[identifierKey];
+
+  if (value in packageMap) {
+    throw new Error('package with ' + identifierKey + ' <' + value + '> already defined');
+  }
+}
+
+},{"136":136,"250":250,"273":273,"276":276,"279":279}],279:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -19695,11 +19884,11 @@ module.exports.isBuiltIn = function(type) {
 module.exports.isSimple = function(type) {
   return !!TYPE_CONVERTERS[type];
 };
-},{}],276:[function(_dereq_,module,exports){
-module.exports = _dereq_(278);
+},{}],280:[function(_dereq_,module,exports){
+module.exports = _dereq_(282);
 
-module.exports.Collection = _dereq_(277);
-},{"277":277,"278":278}],277:[function(_dereq_,module,exports){
+module.exports.Collection = _dereq_(281);
+},{"281":281,"282":282}],281:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -19796,10 +19985,10 @@ function isExtended(collection) {
 module.exports.extend = extend;
 
 module.exports.isExtended = isExtended;
-},{}],278:[function(_dereq_,module,exports){
+},{}],282:[function(_dereq_,module,exports){
 'use strict';
 
-var Collection = _dereq_(277);
+var Collection = _dereq_(281);
 
 function hasOwnProperty(e, property) {
   return Object.prototype.hasOwnProperty.call(e, property.name || property);
@@ -19988,7 +20177,7 @@ module.exports = Refs;
  * @property {boolean} [collection=false]
  * @property {boolean} [enumerable=false]
  */
-},{"277":277}],279:[function(_dereq_,module,exports){
+},{"281":281}],283:[function(_dereq_,module,exports){
 (function (Buffer){
 // wrapper for non-node envs
 ;(function (sax) {
@@ -21403,13 +21592,13 @@ if (!String.fromCodePoint) {
 
 }).call(this,undefined)
 
-},{"undefined":undefined}],280:[function(_dereq_,module,exports){
-module.exports = _dereq_(281);
+},{"undefined":undefined}],284:[function(_dereq_,module,exports){
+module.exports = _dereq_(285);
 
-},{"281":281}],281:[function(_dereq_,module,exports){
+},{"285":285}],285:[function(_dereq_,module,exports){
 'use strict';
 
-var di = _dereq_(111);
+var di = _dereq_(115);
 
 
 /**
@@ -21485,7 +21674,7 @@ function createInjector(options) {
     'config': ['value', options]
   };
 
-  var coreModule = _dereq_(286);
+  var coreModule = _dereq_(290);
 
   var modules = [ configModule, coreModule ].concat(options.modules || []);
 
@@ -21586,10 +21775,10 @@ Table.prototype.clear = function() {
   this.get('eventBus').fire('diagram.clear');
 };
 
-},{"111":111,"286":286}],282:[function(_dereq_,module,exports){
+},{"115":115,"290":290}],286:[function(_dereq_,module,exports){
 'use strict';
 
-var Model = _dereq_(304);
+var Model = _dereq_(308);
 
 
 /**
@@ -21634,7 +21823,7 @@ ElementFactory.prototype.create = function(type, attrs) {
   return Model.create(type, attrs);
 };
 
-},{"304":304}],283:[function(_dereq_,module,exports){
+},{"308":308}],287:[function(_dereq_,module,exports){
 'use strict';
 
 var ELEMENT_ID = 'data-element-id';
@@ -21835,10 +22024,10 @@ ElementRegistry.prototype._validateId = function(id) {
   }
 };
 
-},{}],284:[function(_dereq_,module,exports){
+},{}],288:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(132);
+var forEach = _dereq_(136);
 
 /**
  * A factory that creates graphical elements
@@ -21856,32 +22045,44 @@ module.exports = GraphicsFactory;
 
 GraphicsFactory.prototype.create = function(type, element, parent) {
   var newElement;
+
   switch (type) {
+
   case 'row':
     newElement = document.createElement('tr');
     break;
+
   case 'cell':
-      // cells consist of a td element with a nested span which contains the content
+    
+    // cells consist of a td element with a nested span which contains the content
     newElement = document.createElement(element.row.useTH ? 'th' : 'td');
+
     var contentContainer = document.createElement('span');
+    
     newElement.appendChild(contentContainer);
     break;
   }
+
   if (newElement && type === 'row') {
+
     if (element.next) {
       parent.insertBefore(newElement, this._elementRegistry.getGraphics(element.next));
     } else {
       parent.appendChild(newElement);
     }
+
   } else if (type === 'cell') {
+
     var neighboringCell = this._elementRegistry.filter(function(el) {
       return el.row === element.row && el.column === element.column.next;
     })[0];
+
     if (neighboringCell) {
       parent.insertBefore(newElement, this._elementRegistry.getGraphics(neighboringCell));
     } else {
       parent.appendChild(newElement);
     }
+
   }
   return newElement || document.createElement('div');
 };
@@ -21894,12 +22095,14 @@ GraphicsFactory.prototype.moveRow = function(source, target, above) {
     gfxTarget = this._elementRegistry.getGraphics(target);
     gfxTarget.parentNode.insertBefore(gfxSource, gfxTarget);
   } else {
+
     if (source.next) {
       gfxTarget = this._elementRegistry.getGraphics(source.next);
       gfxTarget.parentNode.insertBefore(gfxSource, gfxTarget);
     } else {
       gfxSource.parentNode.appendChild(gfxSource);
     }
+
   }
 };
 
@@ -21937,14 +22140,16 @@ GraphicsFactory.prototype.redraw = function() {
 
 GraphicsFactory.prototype.update = function(type, element, gfx) {
 
-  // Do not update root element
+  // do not update root element
   if (!element.parent) {
     return;
   }
 
   var self = this;
+
   // redraw
   if (type === 'row') {
+
     this._renderer.drawRow(gfx, element);
 
     // also redraw all cells in this row
@@ -21953,8 +22158,9 @@ GraphicsFactory.prototype.update = function(type, element, gfx) {
     }), function(cell) {
       self.update('cell', cell, self._elementRegistry.getGraphics(cell));
     });
-  } else
-  if (type === 'column') {
+
+  } else if (type === 'column') {
+
     this._renderer.drawColumn(gfx, element);
 
     // also redraw all cells in this column
@@ -21963,8 +22169,8 @@ GraphicsFactory.prototype.update = function(type, element, gfx) {
     }), function(cell) {
       self.update('cell', cell, self._elementRegistry.getGraphics(cell));
     });
-  } else
-  if (type === 'cell') {
+
+  } else if (type === 'cell') {
     this._renderer.drawCell(gfx, element);
   } else {
     throw new Error('unknown type: ' + type);
@@ -21978,13 +22184,13 @@ GraphicsFactory.prototype.remove = function(element) {
   gfx.parentNode && gfx.parentNode.removeChild(gfx);
 };
 
-},{"132":132}],285:[function(_dereq_,module,exports){
+},{"136":136}],289:[function(_dereq_,module,exports){
 'use strict';
 
-var isNumber = _dereq_(240),
-    assign = _dereq_(246),
-    forEach = _dereq_(132),
-    every = _dereq_(129);
+var isNumber = _dereq_(244),
+    assign = _dereq_(250),
+    forEach = _dereq_(136),
+    every = _dereq_(133);
 
 function ensurePx(number) {
   return isNumber(number) ? number + 'px' : number;
@@ -22215,31 +22421,46 @@ Sheet.prototype.setLastRow = function(element, type) {
 };
 
 Sheet.prototype.setSibling = function(first, second) {
-  if (first) first.next = second;
-  if (second) second.previous = first;
+  if (first) {
+    first.next = second;
+  }
+
+  if (second) {
+    second.previous = first;
+  }
 };
 
 Sheet.prototype.addSiblings = function(type, element) {
   var tmp, subType;
+
   if (type === 'row') {
     subType = element.isHead ? 'head' : element.isFoot ? 'foot' : 'body';
   }
+
   if (!element.previous && !element.next) {
     if (type === 'column') {
+
       // add column to end of table per default
       element.next = null;
+
       this.setSibling(this.getLastColumn(), element);
+
       this.setLastColumn(element);
     } else if (type === 'row') {
+
       // add row to end of table per default
       element.next = null;
+
       this.setSibling(this.getLastRow(subType), element);
+
       this.setLastRow(element, subType);
     }
   } else if (element.previous && !element.next) {
     tmp = element.previous.next;
+
     this.setSibling(element.previous, element);
     this.setSibling(element, tmp);
+
     if (!tmp) {
       if (type === 'row') {
         this.setLastRow(element, subType);
@@ -22249,6 +22470,7 @@ Sheet.prototype.addSiblings = function(type, element) {
     }
   } else if (!element.previous && element.next) {
     tmp = element.next.previous;
+
     this.setSibling(tmp, element);
     this.setSibling(element, element.next);
   } else if (element.previous && element.next) {
@@ -22263,25 +22485,29 @@ Sheet.prototype.addSiblings = function(type, element) {
 
 Sheet.prototype.removeSiblings = function(type, element) {
   var subType;
+
   if (type === 'row') {
     subType = element.isHead ? 'head' : element.isFoot ? 'foot' : 'body';
   }
+
   if (type === 'column') {
     if (this.getLastColumn() === element) {
       this.setLastColumn(element.previous);
     }
-  } else
-  if (type === 'row') {
+  } else if (type === 'row') {
     if (this.getLastRow(subType) === element) {
       this.setLastRow(element.previous, subType);
     }
   }
+
   if (element.previous) {
     element.previous.next = element.next;
   }
+
   if (element.next) {
     element.next.previous = element.previous;
   }
+
   delete element.previous;
   delete element.next;
 };
@@ -22333,12 +22559,15 @@ Sheet.prototype.moveRow = function(source, target, above) {
   if (source.previous) {
     source.previous.next = source.next;
   }
+
   if (source.next) {
     source.next.previous = source.previous;
   }
+
   // re-wire the prev/next relations for the target
   if (above) {
     if (target.previous) {
+
       // (previous --> source --> target)
       target.previous.next = source;
       source.previous = target.previous;
@@ -22346,6 +22575,7 @@ Sheet.prototype.moveRow = function(source, target, above) {
       source.next = target;
       target.previous = source;
     } else {
+
       // (null --> source --> target)
       source.previous = null;
 
@@ -22354,6 +22584,7 @@ Sheet.prototype.moveRow = function(source, target, above) {
     }
   } else {
     if (target.next) {
+
       // (target --> source --> next)
       target.next.previous = source;
       source.next = target.next;
@@ -22361,11 +22592,13 @@ Sheet.prototype.moveRow = function(source, target, above) {
       source.previous = target;
       target.next = source;
     } else {
+
       // (target --> source --> null)
       source.next = null;
 
       source.previous = target;
       target.next = source;
+
       this.setLastRow(source, 'body');
     }
   }
@@ -22407,12 +22640,16 @@ Sheet.prototype.moveColumn = function(source, target, left) {
   if (source.previous) {
     source.previous.next = source.next;
   }
+
   if (source.next) {
     source.next.previous = source.previous;
   }
+
   // re-wire the prev/next relations for the target
   if (left) {
+
     if (target.previous) {
+
       // (previous --> source --> target)
       target.previous.next = source;
       source.previous = target.previous;
@@ -22420,14 +22657,18 @@ Sheet.prototype.moveColumn = function(source, target, left) {
       source.next = target;
       target.previous = source;
     } else {
+
       // (null --> source --> target)
       source.previous = null;
 
       source.next = target;
       target.previous = source;
     }
+
   } else {
+
     if (target.next) {
+
       // (target --> source --> next)
       target.next.previous = source;
       source.next = target.next;
@@ -22435,6 +22676,7 @@ Sheet.prototype.moveColumn = function(source, target, left) {
       source.previous = target;
       target.next = source;
     } else {
+
       // (target --> source --> null)
       source.next = null;
 
@@ -22443,6 +22685,7 @@ Sheet.prototype.moveColumn = function(source, target, left) {
 
       this.setLastColumn(source);
     }
+
   }
 
   graphicsFactory.moveColumn(source, target, left);
@@ -22476,8 +22719,7 @@ Sheet.prototype._ensureValid = function(type, element) {
   });
 
   if (!valid) {
-    throw new Error(
-      'must supply { ' + requiredAttrs.join(', ') + ' } with ' + type);
+    throw new Error('must supply { ' + requiredAttrs.join(', ') + ' } with ' + type);
   }
 };
 
@@ -22511,7 +22753,6 @@ Sheet.prototype._addElement = function(type, element, parent) {
   eventBus.fire(type + '.add', element);
 
   // create graphics
-
   element.parent = parent || this._rootNode;
 
   var gfx = graphicsFactory.create(type, element, element.parent);
@@ -22609,9 +22850,11 @@ Sheet.prototype.setCellContent = function(config) {
 
   elementRegistry.get('cell_' + config.column + '_' + config.row).content = config.content;
 
-  graphicsFactory.update('cell',
+  graphicsFactory.update(
+    'cell',
     elementRegistry.get('cell_' + config.column + '_' + config.row),
-    elementRegistry.getGraphics('cell_' + config.column + '_' + config.row));
+    elementRegistry.getGraphics('cell_' + config.column + '_' + config.row)
+  );
 };
 
 Sheet.prototype.getCellContent = function(config) {
@@ -22633,6 +22876,7 @@ Sheet.prototype._removeElement = function(element, type) {
   element = elementRegistry.get(element.id || element);
 
   if (!element) {
+
     // element was removed already
     return;
   }
@@ -22661,6 +22905,7 @@ Sheet.prototype.removeRow = function(element) {
   eventBus.fire('cells.remove', el);
 
   var self = this;
+
   forEach(this._elementRegistry.filter(function(el) {
     return el.row === element;
   }), function(el) {
@@ -22683,6 +22928,7 @@ Sheet.prototype.removeColumn = function(element) {
   eventBus.fire('cells.remove', el);
 
   var self = this;
+  
   forEach(this._elementRegistry.filter(function(el) {
     return el.column === element;
   }), function(el) {
@@ -22756,39 +23002,41 @@ Sheet.prototype.resized = function() {
   eventBus.fire('sheet.resized');
 };
 
-},{"129":129,"132":132,"240":240,"246":246}],286:[function(_dereq_,module,exports){
+},{"133":133,"136":136,"244":244,"250":250}],290:[function(_dereq_,module,exports){
 module.exports = {
-  __depends__: [ _dereq_(288) ],
+  __depends__: [ _dereq_(292) ],
   __init__: [ 'sheet' ],
-  sheet: [ 'type', _dereq_(285) ],
-  elementRegistry: [ 'type', _dereq_(283) ],
-  elementFactory: ['type', _dereq_(282)],
-  graphicsFactory: [ 'type', _dereq_(284) ],
-  eventBus: [ 'type', _dereq_(308) ]
+  sheet: [ 'type', _dereq_(289) ],
+  elementRegistry: [ 'type', _dereq_(287) ],
+  elementFactory: ['type', _dereq_(286)],
+  graphicsFactory: [ 'type', _dereq_(288) ],
+  eventBus: [ 'type', _dereq_(312) ]
 };
 
-},{"282":282,"283":283,"284":284,"285":285,"288":288,"308":308}],287:[function(_dereq_,module,exports){
+},{"286":286,"287":287,"288":288,"289":289,"292":292,"312":312}],291:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(132),
-    colDistance = function colDistance(from, to) {
-      var i = 0,
-          current = from.column;
-      while (current && current !== to.column) {
-        current = current.next;
-        i++;
-      }
-      return !current ? -1 : i;
-    },
-    rowDistance = function rowDistance(from, to) {
-      var i = 0,
-          current = from.row;
-      while (current && current !== to.row) {
-        current = current.next;
-        i++;
-      }
-      return !current ? -1 : i;
-    };
+var forEach = _dereq_(136);
+
+function colDistance(from, to) {
+  var i = 0,
+      current = from.column;
+  while (current && current !== to.column) {
+    current = current.next;
+    i++;
+  }
+  return !current ? -1 : i;
+}
+
+function rowDistance(from, to) {
+  var i = 0,
+      current = from.row;
+  while (current && current !== to.row) {
+    current = current.next;
+    i++;
+  }
+  return !current ? -1 : i;
+}
 
 /**
  * The default renderer used for rows, columns and cells.
@@ -22808,6 +23056,7 @@ Renderer.prototype.drawRow = function drawRow(gfx, data) {
     gfx: gfx,
     data: data
   });
+
   return gfx;
 };
 
@@ -22816,6 +23065,7 @@ Renderer.prototype.drawColumn = function drawColumn(gfx, data) {
     gfx: gfx,
     data: data
   });
+
   return gfx;
 };
 
@@ -22836,6 +23086,7 @@ Renderer.prototype.drawCell = function drawCell(gfx, data) {
 
   forEach(cells, function(cell) {
     var d = colDistance(cell, data);
+
     if (cell.colspan && d > 0 && d < cell.colspan) {
       gfx.setAttribute('style', 'display: none;');
     }
@@ -22848,6 +23099,7 @@ Renderer.prototype.drawCell = function drawCell(gfx, data) {
 
   forEach(cells, function(cell) {
     var d = rowDistance(cell, data);
+    
     if (cell.rowspan && d > 0 && d < cell.rowspan) {
       gfx.setAttribute('style', 'display: none;');
     }
@@ -22871,23 +23123,23 @@ Renderer.prototype.drawCell = function drawCell(gfx, data) {
   return gfx;
 };
 
-},{"132":132}],288:[function(_dereq_,module,exports){
+},{"136":136}],292:[function(_dereq_,module,exports){
 module.exports = {
-  renderer: [ 'type', _dereq_(287) ]
+  renderer: [ 'type', _dereq_(291) ]
 };
 
-},{"287":287}],289:[function(_dereq_,module,exports){
-module.exports = "<div>\n  <label></label>\n  <input tabindex=\"0\" />\n  <span class=\"cb-caret\"></span>\n</div>\n";
+},{"291":291}],293:[function(_dereq_,module,exports){
+module.exports = "<div>\r\n  <label></label>\r\n  <input tabindex=\"0\" />\r\n  <span class=\"cb-caret\"></span>\r\n</div>\r\n";
 
-},{}],290:[function(_dereq_,module,exports){
+},{}],294:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(260),
-    domClasses = _dereq_(257),
-    assign = _dereq_(246),
-    forEach = _dereq_(132);
+var domify = _dereq_(264),
+    domClasses = _dereq_(261),
+    assign = _dereq_(250),
+    forEach = _dereq_(136);
 
-var comboBoxTemplate = _dereq_(289);
+var comboBoxTemplate = _dereq_(293);
 
 /**
  * Offers the ability to create a combobox which is a combination of an
@@ -22966,8 +23218,13 @@ function ComboBox(config) {
   //   a. clicks on an option in the dropdown
   //   b. focuses an option in the dropdown via keyboard
   var update = function(evt) {
-    self.setValue(evt.target.textContent);
+    var value = evt.target.textContent;
+
+    if (options.indexOf(value) !== -1) {
+      self.setValue(evt.target.textContent);
+    }
   };
+
   this._dropdown.addEventListener('click', function(evt) {
     update(evt);
 
@@ -22977,6 +23234,7 @@ function ComboBox(config) {
     // still close the dropdown
     self._closeDropdown();
   });
+  
   this._dropdown.addEventListener('focus', update, true);
 
   // keyboard behavior for dropdown and input field
@@ -23181,12 +23439,12 @@ ComboBox.prototype.enable = function() {
 
 module.exports = ComboBox;
 
-},{"132":132,"246":246,"257":257,"260":260,"289":289}],291:[function(_dereq_,module,exports){
+},{"136":136,"250":250,"261":261,"264":264,"293":293}],295:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(246),
-    domClasses = _dereq_(257),
-    domRemove = _dereq_(263);
+var assign = _dereq_(250),
+    domClasses = _dereq_(261),
+    domRemove = _dereq_(267);
 
 
 /**
@@ -23391,18 +23649,18 @@ ComplexCell.$inject = [ 'eventBus', 'elementRegistry', 'sheet' ];
 
 module.exports = ComplexCell;
 
-},{"246":246,"257":257,"263":263}],292:[function(_dereq_,module,exports){
+},{"250":250,"261":261,"267":267}],296:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'complexCell' ],
-  complexCell: [ 'type', _dereq_(291) ]
+  complexCell: [ 'type', _dereq_(295) ]
 };
 
-},{"291":291}],293:[function(_dereq_,module,exports){
+},{"295":295}],297:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(257);
+var domClasses = _dereq_(261);
 /**
  *  The controls module adds a container to the top-right corner of the table which holds
  *  some control elements
@@ -23464,22 +23722,22 @@ Controls.$inject = [ 'eventBus' ];
 
 module.exports = Controls;
 
-},{"257":257}],294:[function(_dereq_,module,exports){
+},{"261":261}],298:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'controls' ],
-  controls: [ 'type', _dereq_(293) ]
+  controls: [ 'type', _dereq_(297) ]
 };
 
-},{"293":293}],295:[function(_dereq_,module,exports){
+},{"297":297}],299:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(132),
-    domDelegate = _dereq_(259);
+var forEach = _dereq_(136),
+    domDelegate = _dereq_(263);
 
 
-var isPrimaryButton = _dereq_(313).isPrimaryButton;
+var isPrimaryButton = _dereq_(317).isPrimaryButton;
 
 /**
  * A plugin that provides interaction events for table elements.
@@ -23719,16 +23977,16 @@ module.exports = InteractionEvents;
  * @property {Event} originalEvent
  */
 
-},{"132":132,"259":259,"313":313}],296:[function(_dereq_,module,exports){
+},{"136":136,"263":263,"317":317}],300:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'interactionEvents' ],
-  interactionEvents: [ 'type', _dereq_(295) ]
+  interactionEvents: [ 'type', _dereq_(299) ]
 };
 
-},{"295":295}],297:[function(_dereq_,module,exports){
+},{"299":299}],301:[function(_dereq_,module,exports){
 'use strict';
 
-var debounce = _dereq_(139);
+var debounce = _dereq_(143);
 
 var VERY_LOW_PRIORITY = 150;
 
@@ -23788,19 +24046,19 @@ LineNumbers.prototype.updateLineNumbers = function() {
   }
 };
 
-},{"139":139}],298:[function(_dereq_,module,exports){
+},{"143":143}],302:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'lineNumbers' ],
   __depends__: [
-    _dereq_(303)
+    _dereq_(307)
   ],
-  lineNumbers: [ 'type', _dereq_(297) ]
+  lineNumbers: [ 'type', _dereq_(301) ]
 };
 
-},{"297":297,"303":303}],299:[function(_dereq_,module,exports){
+},{"301":301,"307":307}],303:[function(_dereq_,module,exports){
 'use strict';
 
-var domify = _dereq_(260);
+var domify = _dereq_(264);
 
 /**
  * Adds a header to the table containing the table name
@@ -23843,7 +24101,7 @@ TableName.prototype.getNode = function() {
   return this.node.querySelector('h3');
 };
 
-},{"260":260}],300:[function(_dereq_,module,exports){
+},{"264":264}],304:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -23890,10 +24148,10 @@ UtilityColumn.prototype.getColumn = function() {
   return this.column;
 };
 
-},{}],301:[function(_dereq_,module,exports){
+},{}],305:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(257);
+var domClasses = _dereq_(261);
 
 function UtilityColumnRenderer(eventBus, utilityColumn) {
 
@@ -23914,12 +24172,12 @@ UtilityColumnRenderer.$inject = [
 
 module.exports = UtilityColumnRenderer;
 
-},{"257":257}],302:[function(_dereq_,module,exports){
+},{"261":261}],306:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(122);
+var inherits = _dereq_(126);
 
-var RuleProvider = _dereq_(309);
+var RuleProvider = _dereq_(313);
 
 /**
  * LineNumber specific modeling rule
@@ -23946,23 +24204,23 @@ UtilityColumnRules.prototype.init = function() {
 
 };
 
-},{"122":122,"309":309}],303:[function(_dereq_,module,exports){
+},{"126":126,"313":313}],307:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'utilityColumn', 'utilityColumnRules', 'utilityColumnRenderer' ],
   __depends__: [
-    _dereq_(307),
-    _dereq_(311)
+    _dereq_(311),
+    _dereq_(315)
   ],
-  utilityColumn: [ 'type', _dereq_(300) ],
-  utilityColumnRules: [ 'type', _dereq_(302) ],
-  utilityColumnRenderer: [ 'type', _dereq_(301) ]
+  utilityColumn: [ 'type', _dereq_(304) ],
+  utilityColumnRules: [ 'type', _dereq_(306) ],
+  utilityColumnRenderer: [ 'type', _dereq_(305) ]
 };
 
-},{"300":300,"301":301,"302":302,"307":307,"311":311}],304:[function(_dereq_,module,exports){
+},{"304":304,"305":305,"306":306,"311":311,"315":315}],308:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(246),
-    inherits = _dereq_(122);
+var assign = _dereq_(250),
+    inherits = _dereq_(126);
 
 function Base() {
   Object.defineProperty(this, 'businessObject', {
@@ -24025,13 +24283,13 @@ module.exports.Table = Table;
 module.exports.Row = Row;
 module.exports.Column = Column;
 
-},{"122":122,"246":246}],305:[function(_dereq_,module,exports){
+},{"126":126,"250":250}],309:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(132),
-    isFunction = _dereq_(238),
-    isArray = _dereq_(237),
-    isNumber = _dereq_(240);
+var forEach = _dereq_(136),
+    isFunction = _dereq_(242),
+    isArray = _dereq_(241),
+    isNumber = _dereq_(244);
 
 
 var DEFAULT_PRIORITY = 1000;
@@ -24176,14 +24434,14 @@ forEach(hooks, function(hook) {
   };
 });
 
-},{"132":132,"237":237,"238":238,"240":240}],306:[function(_dereq_,module,exports){
+},{"136":136,"241":241,"242":242,"244":244}],310:[function(_dereq_,module,exports){
 'use strict';
 
-var unique = _dereq_(126),
-    isArray = _dereq_(237),
-    assign = _dereq_(246);
+var unique = _dereq_(130),
+    isArray = _dereq_(241),
+    assign = _dereq_(250);
 
-var InternalEvent = _dereq_(308).Event;
+var InternalEvent = _dereq_(312).Event;
 
 
 /**
@@ -24676,19 +24934,19 @@ CommandStack.prototype._setHandler = function(command, handler) {
   this._handlerMap[command] = handler;
 };
 
-},{"126":126,"237":237,"246":246,"308":308}],307:[function(_dereq_,module,exports){
+},{"130":130,"241":241,"250":250,"312":312}],311:[function(_dereq_,module,exports){
 module.exports = {
-  commandStack: [ 'type', _dereq_(306) ]
+  commandStack: [ 'type', _dereq_(310) ]
 };
 
-},{"306":306}],308:[function(_dereq_,module,exports){
+},{"310":310}],312:[function(_dereq_,module,exports){
 'use strict';
 
-var isFunction = _dereq_(238),
-    isArray = _dereq_(237),
-    isNumber = _dereq_(240),
-    bind = _dereq_(138),
-    assign = _dereq_(246);
+var isFunction = _dereq_(242),
+    isArray = _dereq_(241),
+    isNumber = _dereq_(244),
+    bind = _dereq_(142),
+    assign = _dereq_(250);
 
 var FN_REF = '__fn';
 
@@ -25139,13 +25397,13 @@ function invokeFunction(fn, args) {
   return fn.apply(null, args);
 }
 
-},{"138":138,"237":237,"238":238,"240":240,"246":246}],309:[function(_dereq_,module,exports){
+},{"142":142,"241":241,"242":242,"244":244,"250":250}],313:[function(_dereq_,module,exports){
 
 'use strict';
 
-var inherits = _dereq_(122);
+var inherits = _dereq_(126);
 
-var CommandInterceptor = _dereq_(305);
+var CommandInterceptor = _dereq_(309);
 
 /**
  * A basic provider that may be extended to implement modeling rules.
@@ -25232,7 +25490,7 @@ RuleProvider.prototype.addRule = function(actions, priority, fn) {
  * Implement this method to add new rules during provider initialization.
  */
 RuleProvider.prototype.init = function() {};
-},{"122":122,"305":305}],310:[function(_dereq_,module,exports){
+},{"126":126,"309":309}],314:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -25283,13 +25541,13 @@ Rules.prototype.allowed = function(action, context) {
   // map undefined to true, i.e. no rules
   return allowed === undefined ? true : allowed;
 };
-},{}],311:[function(_dereq_,module,exports){
+},{}],315:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'rules' ],
-  rules: [ 'type', _dereq_(310) ]
+  rules: [ 'type', _dereq_(314) ]
 };
 
-},{"310":310}],312:[function(_dereq_,module,exports){
+},{"314":314}],316:[function(_dereq_,module,exports){
 'use strict';
 
 function __preventDefault(event) {
@@ -25360,12 +25618,12 @@ function toPoint(event) {
 
 module.exports.toPoint = toPoint;
 
-},{}],313:[function(_dereq_,module,exports){
+},{}],317:[function(_dereq_,module,exports){
 'use strict';
 
-var getOriginalEvent = _dereq_(312).getOriginal;
+var getOriginalEvent = _dereq_(316).getOriginal;
 
-var isMac = _dereq_(314).isMac;
+var isMac = _dereq_(318).isMac;
 
 
 function isPrimaryButton(event) {
@@ -25399,13 +25657,13 @@ module.exports.hasSecondaryModifier = function(event) {
   return isPrimaryButton(event) && originalEvent.shiftKey;
 };
 
-},{"312":312,"314":314}],314:[function(_dereq_,module,exports){
+},{"316":316,"318":318}],318:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports.isMac = function isMac() {
   return (/mac/i).test(navigator.platform);
 };
-},{}],315:[function(_dereq_,module,exports){
+},{}],319:[function(_dereq_,module,exports){
 /**
  * Tiny stack for browser or server
  *
@@ -25522,14 +25780,14 @@ else {
 }
 } )( this );
 
-},{}],316:[function(_dereq_,module,exports){
+},{}],320:[function(_dereq_,module,exports){
 /**
  * append utility
  */
 
 module.exports = append;
 
-var appendTo = _dereq_(317);
+var appendTo = _dereq_(321);
 
 /**
  * Append a node to an element
@@ -25543,13 +25801,13 @@ function append(element, node) {
   appendTo(node, element);
   return element;
 }
-},{"317":317}],317:[function(_dereq_,module,exports){
+},{"321":321}],321:[function(_dereq_,module,exports){
 /**
  * appendTo utility
  */
 module.exports = appendTo;
 
-var ensureImported = _dereq_(326);
+var ensureImported = _dereq_(330);
 
 /**
  * Append a node to a target element and return the appended node.
@@ -25563,7 +25821,7 @@ function appendTo(element, target) {
   target.appendChild(ensureImported(element, target));
   return element;
 }
-},{"326":326}],318:[function(_dereq_,module,exports){
+},{"330":330}],322:[function(_dereq_,module,exports){
 /**
  * attribute accessor utility
  */
@@ -25696,7 +25954,7 @@ function attr(node, name, value) {
   return node;
 }
 
-},{}],319:[function(_dereq_,module,exports){
+},{}],323:[function(_dereq_,module,exports){
 /**
  * Clear utility
  */
@@ -25903,7 +26161,7 @@ ClassList.prototype.contains = function(name) {
   );
 };
 
-},{}],320:[function(_dereq_,module,exports){
+},{}],324:[function(_dereq_,module,exports){
 /**
  * Clear utility
  */
@@ -25911,7 +26169,7 @@ ClassList.prototype.contains = function(name) {
 module.exports = clear;
 
 
-var remove = _dereq_(324);
+var remove = _dereq_(328);
 
 /**
  * Removes all children from the given element
@@ -25928,7 +26186,7 @@ function clear(element) {
 
   return element;
 }
-},{"324":324}],321:[function(_dereq_,module,exports){
+},{"328":328}],325:[function(_dereq_,module,exports){
 /**
  * Create utility for SVG elements
  */
@@ -25936,9 +26194,9 @@ function clear(element) {
 module.exports = create;
 
 
-var attr = _dereq_(318);
-var parse = _dereq_(328);
-var ns = _dereq_(327);
+var attr = _dereq_(322);
+var parse = _dereq_(332);
+var ns = _dereq_(331);
 
 
 /**
@@ -25965,15 +26223,13 @@ function create(name, attrs) {
 
   return element;
 }
-},{"318":318,"327":327,"328":328}],322:[function(_dereq_,module,exports){
+},{"322":322,"331":331,"332":332}],326:[function(_dereq_,module,exports){
 /**
  * Geometry helpers
  */
 
-module.exports = { createPoint: createPoint, createMatrix: createMatrix, createTransform: createTransform };
 
-
-var create = _dereq_(321);
+var create = _dereq_(325);
 
 // fake node used to instantiate svg geometry elements
 var node = create('svg');
@@ -26034,7 +26290,12 @@ function createTransform(matrix) {
     return node.createSVGTransform();
   }
 }
-},{"321":321}],323:[function(_dereq_,module,exports){
+
+
+module.exports.createTransform = createTransform;
+module.exports.createMatrix = createMatrix;
+module.exports.createPoint = createPoint;
+},{"325":325}],327:[function(_dereq_,module,exports){
 /**
  * innerHTML like functionality for SVG elements.
  * based on innerSVG (https://code.google.com/p/innersvg)
@@ -26043,10 +26304,10 @@ function createTransform(matrix) {
 module.exports = innerSVG;
 
 
-var clear = _dereq_(320);
-var appendTo = _dereq_(317);
-var parse = _dereq_(328);
-var serialize = _dereq_(329);
+var clear = _dereq_(324);
+var appendTo = _dereq_(321);
+var parse = _dereq_(332);
+var serialize = _dereq_(333);
 
 
 function set(element, svg) {
@@ -26097,14 +26358,19 @@ function innerSVG(element, svg) {
     return get(element);
   }
 }
-},{"317":317,"320":320,"328":328,"329":329}],324:[function(_dereq_,module,exports){
+},{"321":321,"324":324,"332":332,"333":333}],328:[function(_dereq_,module,exports){
 module.exports = remove;
 
 function remove(element) {
-  element.parentNode.removeChild(element);
+  var parent = element.parentNode;
+
+  if (parent) {
+    parent.removeChild(element);
+  }
+
   return element;
 }
-},{}],325:[function(_dereq_,module,exports){
+},{}],329:[function(_dereq_,module,exports){
 /**
  * transform accessor utility
  */
@@ -26144,7 +26410,7 @@ function transform(node, transforms) {
     }
   }
 }
-},{}],326:[function(_dereq_,module,exports){
+},{}],330:[function(_dereq_,module,exports){
 module.exports = ensureImported;
 
 function ensureImported(element, target) {
@@ -26160,13 +26426,13 @@ function ensureImported(element, target) {
 
   return element;
 }
-},{}],327:[function(_dereq_,module,exports){
+},{}],331:[function(_dereq_,module,exports){
 var ns = {
   svg: 'http://www.w3.org/2000/svg'
 };
 
 module.exports = ns;
-},{}],328:[function(_dereq_,module,exports){
+},{}],332:[function(_dereq_,module,exports){
 /**
  * DOM parsing utility
  */
@@ -26174,7 +26440,7 @@ module.exports = ns;
 module.exports = parse;
 
 
-var ns = _dereq_(327);
+var ns = _dereq_(331);
 
 var SVG_START = '<svg xmlns="' + ns.svg + '"';
 
@@ -26203,7 +26469,7 @@ function parseDocument(svg) {
 
   return parser.parseFromString(svg, 'text/xml');
 }
-},{"327":327}],329:[function(_dereq_,module,exports){
+},{"331":331}],333:[function(_dereq_,module,exports){
 /**
  * Serialization util
  */
